@@ -25,6 +25,8 @@ export const TEXT_EXTENSIONS = [
   "tsx",
   "yaml",
   "yml",
+  "svelte",
+  "gd"
 ];
 
 export function isTextFile(filename: string): boolean {
