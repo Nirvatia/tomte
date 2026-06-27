@@ -47,6 +47,8 @@ const LANG_EXT_MAP: Record<string, string> = {
   markdown: "md",
   md: "md",
   txt: "txt",
+  svelte: "svelte",
+  gdscript: "gd"
 };
 
 function findFileName(text: string): string | null {
