@@ -24,14 +24,27 @@
     Minus,
     Trash,
     Eraser,
+    FolderTree,
   } from "@lucide/svelte";
 
-  import { isPreviewOpen, isExtractorOpen, attachedFiles, fileName, exportFormat } from "../../stores";
+  import {
+    isPreviewOpen,
+    isExtractorOpen,
+    attachedFiles,
+    fileName,
+    exportFormat,
+    isProjectTreeOpen,
+  } from "../../stores";
   import type { Editor } from "@tiptap/core";
   import TablePicker from "./TablePicker.svelte";
   import { clearDraft } from "../../utils/draft";
+  import FontSizePicker from "./FontSizePicker.svelte";
 
   let { editor = null }: { editor?: Editor | null } = $props();
+
+  function toggleProjectTree() {
+    isProjectTreeOpen.update((v) => !v);
+  }
 
   let toolbarState = $state({
     canUndo: false,
@@ -87,20 +100,12 @@
   });
 
   function handleClearDraft() {
-    if (
-      !confirm("Очистить черновик? Это удалит весь текст и загруженные файлы.")
-    )
-      return;
+    if (!confirm("Очистить черновик? Это удалит весь текст и загруженные файлы.")) return;
 
-    // Очищаем редактор
     editor?.commands.clearContent();
-
-    // Очищаем сторы
     attachedFiles.set([]);
     fileName.set("prompt");
     exportFormat.set("pdf");
-
-    // Очищаем draft
     clearDraft();
   }
 
@@ -134,7 +139,6 @@
     }
   }
 
-  // Table-specific actions
   function addRowBefore() {
     run(() => editor?.chain().focus().addRowBefore().run());
   }
@@ -167,10 +171,18 @@
     "flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0";
 </script>
 
-<div
-  class="bg-surface border-b border-slate-200 px-6 py-2 flex items-center gap-1 shadow-soft-sm sticky top-0 z-40 flex-wrap"
->
-  <!-- История -->
+<div class="bg-surface border-b border-slate-200 px-6 py-2 flex items-center gap-1 shadow-soft-sm shrink-0">
+  <button
+    onclick={toggleProjectTree}
+    class="p-2 rounded-lg transition-all duration-200 {$isProjectTreeOpen ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'text-ink-secondary hover:bg-surface-tertiary hover:text-ink hover:-translate-y-0.5 hover:shadow-soft'}"
+    title="Структура проекта"
+    aria-label="Открыть панель структуры проекта"
+  >
+    <FolderTree size={18} />
+  </button>
+
+  <div class="w-4 mr-1 border-r border-slate-200 h-6"></div>
+
   <div class="flex items-center gap-0.5 pr-2 mr-1 border-r border-slate-200">
     <button
       onclick={() => run(() => editor?.chain().focus().undo().run())}
@@ -190,19 +202,16 @@
     </button>
   </div>
 
-  <!-- Заголовки -->
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
     <button
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
+      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
       class={btnClass(isBlockActive("h1"))}
       title="Заголовок 1"
     >
       <Heading1 size={18} />
     </button>
     <button
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
+      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
       class={btnClass(isBlockActive("h2"))}
       title="Заголовок 2"
     >
@@ -210,7 +219,10 @@
     </button>
   </div>
 
-  <!-- Inline форматирование -->
+  <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
+    <FontSizePicker {editor} />
+  </div>
+
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
     <button
       onclick={() => run(() => editor?.chain().focus().toggleBold().run())}
@@ -256,104 +268,67 @@
     </button>
   </div>
 
-  <!-- Списки и блоки -->
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
     <button
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleBulletList().run())}
+      onclick={() => run(() => editor?.chain().focus().toggleBulletList().run())}
       class={btnClass(isBlockActive("bulletList"))}
       title="Маркированный список"
     >
       <List size={18} />
     </button>
     <button
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleOrderedList().run())}
+      onclick={() => run(() => editor?.chain().focus().toggleOrderedList().run())}
       class={btnClass(isBlockActive("orderedList"))}
       title="Нумерованный список"
     >
       <ListOrdered size={18} />
     </button>
     <button
-      onclick={() =>
-        run(() => editor?.chain().focus().liftListItem("listItem").run())}
+      onclick={() => run(() => editor?.chain().focus().liftListItem("listItem").run())}
       class={TOOLBAR_BTN_BASE}
       title="Уменьшить отступ"
     >
       <Outdent size={18} />
     </button>
     <button
-      onclick={() =>
-        run(() => editor?.chain().focus().sinkListItem("listItem").run())}
+      onclick={() => run(() => editor?.chain().focus().sinkListItem("listItem").run())}
       class={TOOLBAR_BTN_BASE}
       title="Увеличить отступ"
     >
       <Indent size={18} />
     </button>
     <button
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleBlockquote().run())}
+      onclick={() => run(() => editor?.chain().focus().toggleBlockquote().run())}
       class={btnClass(isBlockActive("blockquote"))}
       title="Цитата"
     >
       <Quote size={18} />
     </button>
 
-    <!-- Table picker (всегда виден) -->
     <TablePicker {editor} />
   </div>
 
-  <!-- Table tools (появляется только внутри таблицы) -->
   {#if toolbarState.isInsideTable}
-    <div
-      class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200 animate-fade-in"
-    >
-      <div
-        class="text-[10px] font-semibold text-brand-600 uppercase tracking-wider px-1 select-none"
-      >
+    <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200 animate-fade-in">
+      <div class="text-[10px] font-semibold text-brand-600 uppercase tracking-wider px-1 select-none">
         Таблица
       </div>
-      <button
-        onclick={addRowBefore}
-        class={TOOLBAR_BTN_BASE}
-        title="Добавить строку выше"
-      >
+      <button onclick={addRowBefore} class={TOOLBAR_BTN_BASE} title="Добавить строку выше">
         <Rows3 size={18} />
-        <span class="sr-only">+</span>
       </button>
-      <button
-        onclick={addRowAfter}
-        class={TOOLBAR_BTN_BASE}
-        title="Добавить строку ниже"
-      >
+      <button onclick={addRowAfter} class={TOOLBAR_BTN_BASE} title="Добавить строку ниже">
         <Rows3 size={18} class="rotate-180" />
       </button>
-      <button
-        onclick={addColumnBefore}
-        class={TOOLBAR_BTN_BASE}
-        title="Добавить столбец слева"
-      >
+      <button onclick={addColumnBefore} class={TOOLBAR_BTN_BASE} title="Добавить столбец слева">
         <Columns3 size={18} />
       </button>
-      <button
-        onclick={addColumnAfter}
-        class={TOOLBAR_BTN_BASE}
-        title="Добавить столбец справа"
-      >
+      <button onclick={addColumnAfter} class={TOOLBAR_BTN_BASE} title="Добавить столбец справа">
         <Columns3 size={18} class="rotate-180" />
       </button>
-      <button
-        onclick={deleteRow}
-        class={TOOLBAR_BTN_BASE}
-        title="Удалить строку"
-      >
+      <button onclick={deleteRow} class={TOOLBAR_BTN_BASE} title="Удалить строку">
         <Minus size={18} class="text-orange-500" />
       </button>
-      <button
-        onclick={deleteColumn}
-        class={TOOLBAR_BTN_BASE}
-        title="Удалить столбец"
-      >
+      <button onclick={deleteColumn} class={TOOLBAR_BTN_BASE} title="Удалить столбец">
         <Minus size={18} class="text-orange-500 rotate-90" />
       </button>
       <button
@@ -366,19 +341,14 @@
     </div>
   {/if}
 
-  <!-- Действия -->
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
-    <button
-      onclick={handleCopy}
-      class={TOOLBAR_BTN_BASE}
-      title="Копировать текст"
-    >
+    <button onclick={handleCopy} class={TOOLBAR_BTN_BASE} title="Копировать текст">
       <Copy size={18} />
     </button>
     <button
       onclick={handleClear}
       class={`${TOOLBAR_BTN_BASE} text-red-500 hover:bg-red-50 hover:text-red-600`}
-      title="Очистить всё"
+      title="Очистить весь текст"
     >
       <Trash2 size={18} />
     </button>
@@ -393,7 +363,6 @@
 
   <div class="flex-1"></div>
 
-  <!-- Правая часть -->
   <div class="flex items-center gap-2">
     <button
       onclick={() => isPreviewOpen.set(true)}

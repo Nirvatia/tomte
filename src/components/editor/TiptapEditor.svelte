@@ -34,17 +34,6 @@
           spellcheck: "true",
         },
         // Предотвращаем клик вне контента
-        handleDOMEvents: {
-          mousedown: (view, event) => {
-            const target = event.target as HTMLElement;
-            // Если клик был на самом wrapper, а не на контенте
-            if (target === editorElement) {
-              event.preventDefault();
-              return true;
-            }
-            return false;
-          },
-        },
       },
       onUpdate: ({ editor: e }) => {
         onUpdate({
@@ -83,4 +72,3 @@
 </script>
 
 <div bind:this={editorElement} class="tiptap-wrapper"></div>
-

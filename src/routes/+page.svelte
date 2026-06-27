@@ -13,17 +13,12 @@
   }
 </script>
 
-<div class="min-h-screen bg-surface-tertiary flex flex-col">
+<div class="h-screen flex flex-col overflow-hidden bg-surface-tertiary">
   <AppHeader />
-
-  <main class="flex-1 flex flex-col overflow-hidden">
-    <EditorToolbar {editor} />
-
-    <div class="flex-1 overflow-y-auto py-8 px-4 bg-surface-tertiary">
-      <div class="max-w-7xl mx-auto h-full">
-        <PromptEditor onEditorReady={handleEditorReady} />
-      </div>
-    </div>
+  <EditorToolbar {editor} />
+  
+  <main class="flex-1 overflow-hidden">
+    <PromptEditor onEditorReady={handleEditorReady} />
   </main>
 
   <FileManagerModal />

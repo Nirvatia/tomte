@@ -204,11 +204,42 @@
   margin: 0;
 }
 
+/* Списки — ВАЖНО: Tailwind v4 сбрасывает list-style */
+.tiptap-prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap-prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap-prose ul ul,
+.tiptap-prose ol ol,
+.tiptap-prose ul ol,
+.tiptap-prose ol ul {
+  margin: 0.25rem 0;
+}
+
+.tiptap-prose li {
+  margin: 0.25rem 0;
+}
+
+.tiptap-prose li > p {
+  margin: 0;
+}
+
+.tiptap-prose li::marker {
+  color: var(--color-brand-500);
+}
+
 
 /* ============================================
  * СТИЛИ ДЛЯ ПРЕДПРОСМОТРА (PreviewModal)
  * ============================================ */
-
 .preview-content {
   color: var(--color-ink);
   line-height: 1.75;

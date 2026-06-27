@@ -11,6 +11,8 @@ import TableHeader from "@tiptap/extension-table-header";
 import Highlight from "@tiptap/extension-highlight";
 import CharacterCount from "@tiptap/extension-character-count";
 import type { Extensions } from "@tiptap/core";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { FontSize } from "./extensions/FontSize";
 
 export function buildExtensions(): Extensions {
   return [
@@ -19,6 +21,8 @@ export function buildExtensions(): Extensions {
       // History включён по умолчанию — даёт Undo/Redo
     }),
     Underline,
+    TextStyle,
+    FontSize,
     Highlight.configure({ multicolor: false }),
     TextAlign.configure({
       types: ["heading", "paragraph"],

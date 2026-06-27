@@ -18,12 +18,9 @@
     onInsertContent?: (file: AttachedFile) => void;
   } = $props();
 
-  // Dropdown state
   let exportMenuOpen = $state(false);
   let selectMenuOpen = $state(false);
   let deleteMenuOpen = $state(false);
-
-  // Preview modal state
   let previewFile: AttachedFile | null = $state(null);
 
   async function handleFilesSelected(files: File[]) {
@@ -133,9 +130,8 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="w-[400px] shrink-0 flex flex-col bg-surface rounded-2xl shadow-xl border border-slate-100 overflow-hidden h-fit sticky top-4">
-  <!-- Заголовок со статистикой -->
-  <div class="p-4 border-b border-slate-100 bg-surface-secondary">
+<div class="w-[400px] shrink-0 flex flex-col bg-surface border-l border-slate-200 overflow-hidden h-full">
+  <div class="p-4 border-b border-slate-100 bg-surface-secondary shrink-0">
     <div class="flex items-center justify-between mb-3">
       <h2 class="font-bold text-ink flex items-center gap-2">
         <FolderOpen size={18} class="text-brand-500" />
@@ -154,9 +150,7 @@
       </div>
     </div>
 
-    <!-- Компактная панель инструментов с dropdown -->
     <div class="flex gap-2">
-      <!-- Экспорт -->
       <div class="relative flex-1 dropdown-container">
         <button
           onclick={(e) => {
@@ -175,38 +169,23 @@
         </button>
         {#if exportMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button
-              onclick={() => toggleAllExports(true)}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-            >
+            <button onclick={() => toggleAllExports(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Включить все тексты
             </button>
-            <button
-              onclick={() => toggleAllExports(false)}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-            >
+            <button onclick={() => toggleAllExports(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Выключить все тексты
             </button>
             <div class="border-t border-slate-100 my-1"></div>
-            <button
-              onclick={() => toggleExportSelected(true)}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-              disabled={$selectedFilesCount === 0}
-            >
+            <button onclick={() => toggleExportSelected(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Вкл. для выбранных
             </button>
-            <button
-              onclick={() => toggleExportSelected(false)}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-              disabled={$selectedFilesCount === 0}
-            >
+            <button onclick={() => toggleExportSelected(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Выкл. для выбранных
             </button>
           </div>
         {/if}
       </div>
 
-      <!-- Выделение -->
       <div class="relative flex-1 dropdown-container">
         <button
           onclick={(e) => {
@@ -225,23 +204,16 @@
         </button>
         {#if selectMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button
-              onclick={selectAll}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-            >
+            <button onclick={selectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Выбрать всё
             </button>
-            <button
-              onclick={deselectAll}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-            >
+            <button onclick={deselectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Снять выделение
             </button>
           </div>
         {/if}
       </div>
 
-      <!-- Удаление -->
       <div class="relative flex-1 dropdown-container">
         <button
           onclick={(e) => {
@@ -260,17 +232,10 @@
         </button>
         {#if deleteMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button
-              onclick={deleteSelected}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-              disabled={$selectedFilesCount === 0}
-            >
+            <button onclick={deleteSelected} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Удалить выбранные
             </button>
-            <button
-              onclick={deleteAll}
-              class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors"
-            >
+            <button onclick={deleteAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Удалить все
             </button>
           </div>
@@ -279,13 +244,11 @@
     </div>
   </div>
 
-  <!-- Drop zone -->
-  <div class="p-4 border-b border-slate-100">
+  <div class="p-4 border-b border-slate-100 shrink-0">
     <DropZone onFilesSelected={handleFilesSelected} />
   </div>
 
-  <!-- Кнопка менеджера файлов -->
-  <div class="px-4 pb-3">
+  <div class="px-4 pb-3 shrink-0">
     <button
       onclick={() => isFileManagerOpen.set(true)}
       class="w-full py-2 px-3 bg-brand-500 text-white rounded-lg font-medium text-sm hover:bg-brand-600 transition-colors flex items-center justify-center gap-2"
@@ -295,8 +258,7 @@
     </button>
   </div>
 
-  <!-- Список файлов -->
-  <div class="flex-1 overflow-y-auto p-4 space-y-2 max-h-[500px]">
+  <div class="flex-1 overflow-y-auto p-4 space-y-2 min-h-0">
     {#if $attachedFiles.length === 0}
       <div class="text-center py-10 text-ink-tertiary">
         <FolderOpen size={32} class="mx-auto mb-3 opacity-50" />
@@ -322,5 +284,4 @@
   </div>
 </div>
 
-<!-- Модальное окно предпросмотра -->
 <FilePreviewModal file={previewFile} onClose={closePreview} />

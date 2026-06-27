@@ -1,29 +1,28 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { attachedFiles, fileName, exportFormat, editorHtml } from '../../stores';
-  import { Upload, Save, CheckCircle } from '@lucide/svelte';
-  import TiptapEditor from './TiptapEditor.svelte';
-  import AttachmentsPanel from '../attachments/AttachmentPanel.svelte';
-  import PreviewModal from '../preview/PreviewModal.svelte';
-  import TagPanel from '../tags/TagPanel.svelte';
-  import type { Editor } from '@tiptap/core';
-  import type { AttachedFile } from '../../types';
-  import { getPlaceholder } from '../../utils/files';
-  import { saveDraft, loadDraft } from '../../utils/draft';
-  import { debounce } from '../../utils';
+  import { onMount } from "svelte";
+  import { attachedFiles, fileName, exportFormat, editorHtml } from "../../stores";
+  import { Upload, Save, CheckCircle } from "@lucide/svelte";
+  import TiptapEditor from "./TiptapEditor.svelte";
+  import AttachmentsPanel from "../attachments/AttachmentPanel.svelte";
+  import PreviewModal from "../preview/PreviewModal.svelte";
+  import TagPanel from "../tags/TagPanel.svelte";
+  import ProjectTreeSidebar from "../project-tree/ProjectTreeSidebar.svelte";
+  import type { Editor } from "@tiptap/core";
+  import type { AttachedFile } from "../../types";
+  import { getPlaceholder } from "../../utils/files";
+  import { saveDraft, loadDraft } from "../../utils/draft";
+  import { debounce } from "../../utils";
 
-  let {
-    onEditorReady = (editor: Editor) => {},
-  }: { onEditorReady?: (editor: Editor) => void } = $props();
+  let { onEditorReady = (editor: Editor) => {} }: { onEditorReady?: (editor: Editor) => void } = $props();
 
   let charCount = $state(0);
-  let currentHtml = $state('');
+  let currentHtml = $state("");
   let dropZoneActive = $state(false);
   let editorInstance: Editor | null = $state(null);
-  let saveStatus = $state<'idle' | 'saving' | 'saved'>('idle');
+  let saveStatus = $state<"idle" | "saving" | "saved">("idle");
 
   const debouncedSaveDraft = debounce(() => {
-    saveStatus = 'saving';
+    saveStatus = "saving";
     saveDraft({
       editorHtml: currentHtml,
       attachedFiles: $attachedFiles,
@@ -31,9 +30,9 @@
       exportFormat: $exportFormat,
     });
     setTimeout(() => {
-      saveStatus = 'saved';
+      saveStatus = "saved";
       setTimeout(() => {
-        saveStatus = 'idle';
+        saveStatus = "idle";
       }, 2000);
     }, 300);
   }, 500);
@@ -44,7 +43,6 @@
     }
   });
 
-  // Синхронизируем html в стор
   $effect(() => {
     editorHtml.set(currentHtml);
   });
@@ -56,8 +54,10 @@
       attachedFiles.set(draft.attachedFiles);
       fileName.set(draft.fileName);
       exportFormat.set(draft.exportFormat);
-      saveStatus = 'saved';
-      setTimeout(() => { saveStatus = 'idle'; }, 3000);
+      saveStatus = "saved";
+      setTimeout(() => {
+        saveStatus = "idle";
+      }, 3000);
     }
 
     const handleBeforeUnload = () => {
@@ -70,8 +70,8 @@
         });
       }
     };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   });
 
   function handleUpdate(data: { html: string; text: string; charCount: number }) {
@@ -101,21 +101,26 @@
   function insertPlaceholder(file: AttachedFile) {
     if (!editorInstance) return;
     const placeholder = getPlaceholder(file, $attachedFiles);
-    editorInstance.chain().focus().insertContent(placeholder + ' ').run();
+    editorInstance.chain().focus().insertContent(placeholder + " ").run();
   }
 
   function insertContent(file: AttachedFile) {
-    if (!editorInstance || file.type !== 'text' || !file.content) return;
-    const separator = '═'.repeat(40);
+    if (!editorInstance || file.type !== "text" || !file.content) return;
+    const separator = "═".repeat(40);
     const content = `\n${separator}\n FILE: ${file.name}\n${separator}\n${file.content}\n${separator}\n`;
     editorInstance.chain().focus().insertContent(content).run();
   }
 </script>
 
-<div class="flex gap-6 min-h-full pb-12">
-  <div class="flex-1 flex flex-col">
+<!-- ... остальной код без изменений ... -->
+
+<div class="h-full grid grid-cols-[auto_1fr_auto] gap-0">
+  <ProjectTreeSidebar editor={editorInstance} />
+
+  <div class="flex flex-col min-w-0 overflow-hidden p-6">
+    <!-- Белый блок с фиксированной высотой и overflow-hidden -->
     <div
-      class="flex-1 bg-surface rounded-2xl shadow-xl border border-slate-100 p-12 min-h-250 relative transition-all duration-300 {dropZoneActive
+      class="flex-1 bg-surface rounded-2xl shadow-xl border border-slate-100 relative transition-all duration-300 overflow-hidden {dropZoneActive
         ? 'ring-4 ring-brand-500/30 border-brand-500'
         : ''}"
       role="region"
@@ -124,11 +129,10 @@
       ondragover={handleDragOver}
       ondragleave={handleDragLeave}
     >
-      <TiptapEditor
-        content={currentHtml}
-        onReady={handleReady}
-        onUpdate={handleUpdate}
-      />
+      <!-- Скроллящийся контейнер внутри белого блока -->
+      <div class="h-full overflow-y-auto p-12">
+        <TiptapEditor content={currentHtml} onReady={handleReady} onUpdate={handleUpdate} />
+      </div>
 
       {#if dropZoneActive}
         <div class="absolute inset-0 bg-brand-50/80 backdrop-blur-sm rounded-2xl flex items-center justify-center pointer-events-none animate-fade-in">
@@ -140,12 +144,13 @@
       {/if}
     </div>
 
-    <div class="mt-3 flex items-center justify-between text-sm text-ink-tertiary font-medium">
+    <!-- Статус и TagPanel вне скроллящегося контейнера -->
+    <div class="mt-3 flex items-center justify-between text-sm text-ink-tertiary font-medium shrink-0">
       <span class="flex items-center gap-1.5">
-        {#if saveStatus === 'saving'}
+        {#if saveStatus === "saving"}
           <Save size={14} class="text-amber-500 animate-pulse" />
           <span class="text-amber-600">Сохранение...</span>
-        {:else if saveStatus === 'saved'}
+        {:else if saveStatus === "saved"}
           <CheckCircle size={14} class="text-emerald-500" />
           <span class="text-emerald-600">Сохранено</span>
         {:else}

@@ -64,10 +64,8 @@
 
 <svelte:window onclick={closeMenu} />
 
-<header class="bg-surface border-b border-slate-200 shadow-soft-sm px-6 py-2.5 flex items-center justify-between z-50 relative">
-  <!-- Левая часть: Меню + Имя файла + Экспорт -->
+<header class="bg-surface border-b border-slate-200 shadow-soft-sm px-6 py-2.5 flex items-center justify-between shrink-0">
   <div class="flex items-center gap-3">
-    <!-- Меню Файл -->
     <div class="relative menu-container">
       <button
         onclick={toggleMenu}
@@ -116,10 +114,8 @@
       {/if}
     </div>
 
-    <!-- Разделитель -->
     <div class="w-px h-6 bg-slate-200"></div>
 
-    <!-- Имя файла -->
     <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-secondary border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
       <FileText size={14} class="text-ink-tertiary" />
       <input
@@ -131,10 +127,8 @@
       />
     </div>
 
-    <!-- Разделитель -->
     <div class="w-px h-6 bg-slate-200"></div>
 
-    <!-- Кнопка экспорта -->
     <div class="relative">
       <button
         onclick={handleExport}
@@ -158,6 +152,5 @@
     </div>
   </div>
 
-  <!-- Правая часть: Логотип -->
   <AppLogo size="compact" />
 </header>
