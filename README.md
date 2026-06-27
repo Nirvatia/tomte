@@ -1,42 +1,83 @@
-# sv
+# Tomte — Multi-Format Prompt Builder
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+---
 
-## Creating a project
+## О проекте
 
-If you're seeing this, you've probably already done this step. Congrats!
+**Tomte** — это веб-приложение для создания сложных промптов к языковым моделям (ChatGPT, Claude, Gemini и др.). Оно решает проблему управления контекстом: когда нужно отправить LLM не только текст, но и изображения, код, документы — всё в одном структурированном документе.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+### Ключевые возможности
 
-To recreate this project with the same configuration:
+- **Rich-text редактор** на базе Tiptap с форматированием, таблицами и списками
+- **Вложения** — загрузка изображений и текстовых файлов с drag & drop
+- **Плейсхолдеры** — автоматическая вставка `[IMAGE_1: file.jpg]` и `[FILE_1: code.py]`
+- **Теги-модификаторы** — библиотека быстрых инструкций для промптов
+- **Smart Code Extractor** — извлечение файлов из markdown-ответов LLM
+- **Экспорт** в PDF, DOCX и PNG с сохранением форматирования
+- **Автосохранение** черновика в localStorage
+- **Менеджер файлов** — массовые операции с вложениями
 
-```sh
-# recreate this project
-npx sv@0.16.1 create --template minimal --types ts --install npm ./
-```
+---
 
-## Developing
+## Возможности
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Редактор промптов
+- Rich-text форматирование (жирный, курсив, подчёркивание, зачёркивание, выделение, код)
+- Заголовки H1-H2, цитаты, маркированные и нумерованные списки
+- Интерактивные таблицы с добавлением/удалением строк и столбцов
+- Визуальный пикер размера таблицы (как в Google Docs)
+- Автосохранение каждые 500мс + при закрытии вкладки
+- Индикатор статуса сохранения
 
-```sh
+### Управление вложениями
+- Drag & drop или выбор через диалог
+- Поддержка изображений (PNG, JPG, GIF) и текстовых файлов (20+ расширений)
+- Превью файлов в модальном окне
+- Чекбоксы для массовых операций
+- Опция "Включить в экспорт" для текстовых файлов
+- Dropdown-меню для компактного UI
+
+### Система тегов
+- Библиотека быстрых инструкций (дефолтные + пользовательские)
+- Клик по тегу вставляет текст в позицию курсора
+- Создание/удаление тегов через модальное окно
+- Сохранение в localStorage
+
+### Smart Code Extractor
+- Парсинг markdown-ответов LLM
+- Автоматическое определение имён файлов из контекста
+- Переименование, предпросмотр, скачивание отдельных файлов
+- Массовое скачивание всех файлов
+- Добавление извлечённых файлов в вложения
+
+### Экспорт
+- **PDF** — через jsPDF + html2canvas с многостраничностью
+- **DOCX** — через библиотеку `docx` с форматированием и изображениями
+- **PNG** — через html2canvas в высоком разрешении (scale: 2)
+- Автоматическая замена плейсхолдеров на реальные изображения
+- Подсветка плейсхолдеров файлов
+- Добавление прикреплённых файлов в конец документа
+
+### 💾 Draft System
+- Автосохранение текста, файлов и настроек
+- Восстановление при перезагрузке страницы
+- Ручная очистка черновика
+- Индикатор статуса (Сохранение... / Сохранено)
+
+---
+
+## Установка и запуск
+
+### Требования
+- Node.js 18+
+- npm 9+
+
+### Установка
+
+```bash
+
+# Установить зависимости
+npm install
+
+# Запустить dev-сервер
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
