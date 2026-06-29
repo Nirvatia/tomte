@@ -102,3 +102,73 @@ export async function processFile(file: File): Promise<AttachedFile> {
     });
   }
 }
+/**
+ * Рекурсивно читает файлы из DataTransferItemList при drag-and-drop.
+ * Поддерживает как обычные файлы, так и папки (рекурсивно).
+ */
+export async function readDroppedFiles(items: DataTransferItemList): Promise<File[]> {
+  const result: File[] = [];
+
+  // Собираем все entries
+  const entries: FileSystemEntry[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    // getAsEntry — нестандартный, но широко поддерживаемый API
+    const entry = (item as any).webkitGetAsEntry?.() || (item as any).getAsEntry?.();
+    if (entry) {
+      entries.push(entry);
+    }
+  }
+
+  // Рекурсивный обход
+  async function traverse(entry: FileSystemEntry): Promise<void> {
+    if (entry.isFile) {
+      const file = await new Promise<File>((resolve, reject) => {
+        (entry as FileSystemFileEntry).file(resolve, reject);
+      });
+      result.push(file);
+    } else if (entry.isDirectory) {
+      const reader = (entry as FileSystemDirectoryEntry).createReader();
+      const entriesInDir = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+        const all: FileSystemEntry[] = [];
+        const readBatch = () => {
+          reader.readEntries(
+            (batch) => {
+              if (batch.length === 0) {
+                resolve(all);
+              } else {
+                all.push(...batch);
+                readBatch();
+              }
+            },
+            reject
+          );
+        };
+        readBatch();
+      });
+
+      for (const child of entriesInDir) {
+        await traverse(child);
+      }
+    }
+  }
+
+  for (const entry of entries) {
+    await traverse(entry);
+  }
+
+  return result;
+}
+
+/**
+ * Проверяет, можно ли прочитать файл
+ */
+export async function isFileReadable(file: File): Promise<boolean> {
+  try {
+    // Пробуем прочитать первые 0 байт - это быстрая проверка
+    await file.slice(0, 0).text();
+    return true;
+  } catch {
+    return false;
+  }
+}

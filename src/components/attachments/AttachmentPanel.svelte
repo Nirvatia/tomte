@@ -5,7 +5,7 @@
   import FileItem from './FileItem.svelte';
   import FilePreviewModal from './FilePreviewModal.svelte';
   import type { AttachedFile } from '../../types';
-  import { processFile } from '../../utils/files';
+  import { processFile, readDroppedFiles, isFileReadable } from '../../utils/files';
 
   let {
     editor = null,
@@ -28,21 +28,31 @@
   async function handleFilesSelected(files: File[]) {
     for (const file of files) {
       try {
+        // Проверяем доступность файла перед обработкой
+        const readable = await isFileReadable(file);
+        if (!readable) {
+          console.warn(`Skipping unreadable file: ${file.name}`);
+          continue;
+        }
+        
         const attachedFile = await processFile(file);
         attachedFiles.update(($files) => [...$files, attachedFile]);
       } catch (error) {
-        console.error('Error processing file:', error);
+        console.error(`Error processing file "${file.name}":`, error);
       }
     }
   }
 
-  function handleDrop(e: DragEvent) {
+  async function handleDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
     dropZoneActive = false;
-    const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-      handleFilesSelected(Array.from(files));
+    const items = e.dataTransfer?.items;
+    if (items && items.length > 0) {
+      const files = await readDroppedFiles(items);
+      if (files.length > 0) {
+        handleFilesSelected(files);
+      }
     }
   }
 
