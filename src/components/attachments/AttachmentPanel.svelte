@@ -23,6 +23,7 @@
   let previewFile: AttachedFile | null = $state(null);
   let dropZoneActive = $state(false);
   let fileInput: HTMLInputElement;
+  let folderInput: HTMLInputElement;
 
   async function handleFilesSelected(files: File[]) {
     for (const file of files) {
@@ -67,6 +68,14 @@
     if (input.files && input.files.length > 0) {
       handleFilesSelected(Array.from(input.files));
       input.value = ''; // сброс для повторного выбора того же файла
+    }
+  }
+
+  function handleFolderInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      handleFilesSelected(Array.from(input.files));
+      input.value = ''; // сброс для повторного выбора той же папки
     }
   }
 
@@ -280,21 +289,39 @@
     </div>
   </div>
 
-  <div class="px-4 pt-3 pb-2 border-b border-slate-100 shrink-0">
-  <button
-    on:click={() => fileInput.click()}
-    class="w-full py-2 px-3 bg-surface-tertiary text-ink rounded-lg font-medium text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 border border-slate-200"
-  >
-    <Upload size={16} />
-    Загрузить файлы
-  </button>
-  <input
-    bind:this={fileInput}
-    type="file"
-    multiple
-    class="hidden"
-    on:change={handleFileInputChange}
-    accept="image/*,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv,.sql,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.yaml,.yml,.svelte,.gd"
+  <div class="px-4 pt-3 pb-2 border-b border-slate-100 shrink-0 space-y-2">
+    <button
+      on:click={() => fileInput.click()}
+      class="w-full py-2 px-3 bg-surface-tertiary text-ink rounded-lg font-medium text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 border border-slate-200"
+    >
+      <Upload size={16} />
+      Загрузить файлы
+    </button>
+    <input
+      bind:this={fileInput}
+      type="file"
+      multiple
+      class="hidden"
+      on:change={handleFileInputChange}
+      accept="image/*,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv,.sql,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.yaml,.yml,.svelte,.gd"
+    />
+
+    <button
+      on:click={() => folderInput.click()}
+      class="w-full py-2 px-3 bg-surface-tertiary text-ink rounded-lg font-medium text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 border border-slate-200"
+    >
+      <FolderOpen size={16} />
+      Загрузить папку
+    </button>
+    <input
+      bind:this={folderInput}
+      type="file"
+      multiple
+      class="hidden"
+      on:change={handleFolderInputChange}
+      webkitdirectory
+      directory
+      mozdirectory
     />
   </div>
 

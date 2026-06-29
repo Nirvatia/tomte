@@ -12,8 +12,9 @@
   let selectMenuOpen = $state(false);
   let deleteMenuOpen = $state(false);
 
-    let dropZoneActive = $state(false);
+  let dropZoneActive = $state(false);
   let fileInput: HTMLInputElement;
+  let folderInput: HTMLInputElement;
 
   async function handleFilesSelected(files: File[]) {
     for (const file of files) {
@@ -58,6 +59,14 @@
     if (input.files && input.files.length > 0) {
       handleFilesSelected(Array.from(input.files));
       input.value = ''; // сброс для повторного выбора того же файла
+    }
+  }
+
+  function handleFolderInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      handleFilesSelected(Array.from(input.files));
+      input.value = '';
     }
   }
 
@@ -332,7 +341,18 @@
               class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
             >
               <Upload size={16} />
-              Загрузить
+              Файлы
+            </button>
+          </div>
+
+          <!-- Загрузка папки -->
+          <div class="relative flex-1">
+            <button
+              onclick={() => folderInput.click()}
+              class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+            >
+              <FolderOpen size={16} />
+              Папка
             </button>
           </div>
         </div>
@@ -388,6 +408,17 @@
   class="hidden"
   onchange={handleFileInputChange}
   accept="image/*,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv,.sql,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.yaml,.yml,.svelte,.gd"
+/>
+
+<input
+  bind:this={folderInput}
+  type="file"
+  multiple
+  class="hidden"
+  onchange={handleFolderInputChange}
+  webkitdirectory
+  directory
+  mozdirectory
 />
 
 <!-- Модальное окно предпросмотра -->
