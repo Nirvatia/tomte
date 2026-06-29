@@ -1,9 +1,8 @@
 <script lang="ts">
   import { attachedFiles, selectedFileIds, isFileManagerOpen } from '../../stores';
   import { totalFilesCount, selectedFilesCount } from '../../stores';
-  import { FolderOpen, ChevronDown, CheckSquare, XSquare, Trash2, Download } from '@lucide/svelte';
+  import { FolderOpen, ChevronDown, CheckSquare, XSquare, Trash2, Download, Upload } from '@lucide/svelte';
   import FileItem from './FileItem.svelte';
-  import DropZone from './DropZone.svelte';
   import FilePreviewModal from './FilePreviewModal.svelte';
   import type { AttachedFile } from '../../types';
   import { processFile } from '../../utils/files';
@@ -22,6 +21,8 @@
   let selectMenuOpen = $state(false);
   let deleteMenuOpen = $state(false);
   let previewFile: AttachedFile | null = $state(null);
+  let dropZoneActive = $state(false);
+  let fileInput: HTMLInputElement;
 
   async function handleFilesSelected(files: File[]) {
     for (const file of files) {
@@ -31,6 +32,41 @@
       } catch (error) {
         console.error('Error processing file:', error);
       }
+    }
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZoneActive = false;
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      handleFilesSelected(Array.from(files));
+    }
+  }
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZoneActive = true;
+  }
+
+  function handleDragLeave(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Сбрасываем только если уходим за пределы контейнера списка
+    const related = e.relatedTarget as Node | null;
+    const currentTarget = e.currentTarget as Node;
+    if (!related || !currentTarget.contains(related)) {
+      dropZoneActive = false;
+    }
+  }
+
+  function handleFileInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      handleFilesSelected(Array.from(input.files));
+      input.value = ''; // сброс для повторного выбора того же файла
     }
   }
 
@@ -128,7 +164,7 @@
   }
 </script>
 
-<svelte:window onclick={handleClickOutside} />
+<svelte:window on:click={handleClickOutside} />
 
 <div class="w-[400px] shrink-0 flex flex-col bg-surface border-l border-slate-200 overflow-hidden h-full">
   <div class="p-4 border-b border-slate-100 bg-surface-secondary shrink-0">
@@ -153,7 +189,7 @@
     <div class="flex gap-2">
       <div class="relative flex-1 dropdown-container">
         <button
-          onclick={(e) => {
+          on:click={(e) => {
             e.stopPropagation();
             exportMenuOpen = !exportMenuOpen;
             selectMenuOpen = false;
@@ -169,17 +205,17 @@
         </button>
         {#if exportMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button onclick={() => toggleAllExports(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button on:click={() => toggleAllExports(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Включить все тексты
             </button>
-            <button onclick={() => toggleAllExports(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button on:click={() => toggleAllExports(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Выключить все тексты
             </button>
             <div class="border-t border-slate-100 my-1"></div>
-            <button onclick={() => toggleExportSelected(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
+            <button on:click={() => toggleExportSelected(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Вкл. для выбранных
             </button>
-            <button onclick={() => toggleExportSelected(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
+            <button on:click={() => toggleExportSelected(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Выкл. для выбранных
             </button>
           </div>
@@ -188,7 +224,7 @@
 
       <div class="relative flex-1 dropdown-container">
         <button
-          onclick={(e) => {
+          on:click={(e) => {
             e.stopPropagation();
             selectMenuOpen = !selectMenuOpen;
             exportMenuOpen = false;
@@ -204,10 +240,10 @@
         </button>
         {#if selectMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button onclick={selectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button on:click={selectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Выбрать всё
             </button>
-            <button onclick={deselectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button on:click={deselectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Снять выделение
             </button>
           </div>
@@ -216,7 +252,7 @@
 
       <div class="relative flex-1 dropdown-container">
         <button
-          onclick={(e) => {
+          on:click={(e) => {
             e.stopPropagation();
             deleteMenuOpen = !deleteMenuOpen;
             exportMenuOpen = false;
@@ -232,10 +268,10 @@
         </button>
         {#if deleteMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button onclick={deleteSelected} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
+            <button on:click={deleteSelected} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Удалить выбранные
             </button>
-            <button onclick={deleteAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button on:click={deleteAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Удалить все
             </button>
           </div>
@@ -244,13 +280,27 @@
     </div>
   </div>
 
-  <div class="p-4 border-b border-slate-100 shrink-0">
-    <DropZone onFilesSelected={handleFilesSelected} />
+  <div class="px-4 pt-3 pb-2 border-b border-slate-100 shrink-0">
+  <button
+    on:click={() => fileInput.click()}
+    class="w-full py-2 px-3 bg-surface-tertiary text-ink rounded-lg font-medium text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 border border-slate-200"
+  >
+    <Upload size={16} />
+    Загрузить файлы
+  </button>
+  <input
+    bind:this={fileInput}
+    type="file"
+    multiple
+    class="hidden"
+    on:change={handleFileInputChange}
+    accept="image/*,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv,.sql,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.yaml,.yml,.svelte,.gd"
+    />
   </div>
 
   <div class="px-4 pb-3 shrink-0">
     <button
-      onclick={() => isFileManagerOpen.set(true)}
+      on:click={() => isFileManagerOpen.set(true)}
       class="w-full py-2 px-3 bg-brand-500 text-white rounded-lg font-medium text-sm hover:bg-brand-600 transition-colors flex items-center justify-center gap-2"
     >
       <FolderOpen size={16} />
@@ -258,12 +308,19 @@
     </button>
   </div>
 
-  <div class="flex-1 overflow-y-auto p-4 space-y-2 min-h-0">
+  <div
+    class="flex-1 overflow-y-auto p-4 space-y-2 min-h-0 relative transition-colors {dropZoneActive
+      ? 'bg-brand-50 ring-2 ring-inset ring-brand-400'
+      : ''}"
+    on:drop={handleDrop}
+    on:dragover={handleDragOver}
+    on:dragleave={handleDragLeave}
+  >
     {#if $attachedFiles.length === 0}
       <div class="text-center py-10 text-ink-tertiary">
         <FolderOpen size={32} class="mx-auto mb-3 opacity-50" />
         <p class="text-sm">Нет загруженных файлов</p>
-        <p class="text-xs mt-1">Перетащите файлы в зону выше</p>
+        <p class="text-xs mt-1">Нажмите «Загрузить файлы» или перетащите их сюда</p>
       </div>
     {:else}
       {#each $attachedFiles as file, index (file.id)}
@@ -280,6 +337,15 @@
           onToggleExport={toggleExport}
         />
       {/each}
+    {/if}
+
+    {#if dropZoneActive}
+      <div class="absolute inset-0 bg-brand-50/80 backdrop-blur-sm flex items-center justify-center pointer-events-none animate-fade-in rounded-lg">
+        <div class="text-center">
+          <Upload size={36} class="mx-auto text-brand-500 mb-2" />
+          <p class="text-sm font-semibold text-brand-700">Отпустите файлы для загрузки</p>
+        </div>
+      </div>
     {/if}
   </div>
 </div>
