@@ -1,14 +1,65 @@
 <script lang="ts">
-  import { attachedFiles, selectedFileIds, isFileManagerOpen } from '../../stores';
-  import { X, FolderOpen, Download, Trash2, CheckSquare, XSquare, ChevronDown } from '@lucide/svelte';
+  import { X, FolderOpen, Download, Trash2, CheckSquare, XSquare, ChevronDown, Upload } from '@lucide/svelte';
   import FileItem from './FileItem.svelte';
   import FilePreviewModal from './FilePreviewModal.svelte';
   import type { AttachedFile } from '../../types';
+  import { processFile } from '../../utils/files';
+  import { get } from 'svelte/store';
+  import { attachedFiles, selectedFileIds, isFileManagerOpen } from '../../stores';
 
   let previewFile: AttachedFile | null = $state(null);
   let exportMenuOpen = $state(false);
   let selectMenuOpen = $state(false);
   let deleteMenuOpen = $state(false);
+
+    let dropZoneActive = $state(false);
+  let fileInput: HTMLInputElement;
+
+  async function handleFilesSelected(files: File[]) {
+    for (const file of files) {
+      try {
+        const attachedFile = await processFile(file);
+        attachedFiles.update(($files) => [...$files, attachedFile]);
+      } catch (error) {
+        console.error('Error processing file:', error);
+      }
+    }
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZoneActive = false;
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      handleFilesSelected(Array.from(files));
+    }
+  }
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZoneActive = true;
+  }
+
+  function handleDragLeave(e: DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Сбрасываем только если уходим за пределы контейнера списка
+    const related = e.relatedTarget as Node | null;
+    const currentTarget = e.currentTarget as Node;
+    if (!related || !currentTarget.contains(related)) {
+      dropZoneActive = false;
+    }
+  }
+
+  function handleFileInputChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      handleFilesSelected(Array.from(input.files));
+      input.value = ''; // сброс для повторного выбора того же файла
+    }
+  }
 
   function close() {
     isFileManagerOpen.set(false);
@@ -50,7 +101,7 @@
   }
 
   function selectAll() {
-    selectedFileIds.set(new Set($attachedFiles.map((f) => f.id)));
+    selectedFileIds.set(new Set(get(attachedFiles).map((f) => f.id)));
     selectMenuOpen = false;
   }
 
@@ -67,10 +118,11 @@
   }
 
   function toggleExportSelected(state: boolean) {
-    if ($selectedFileIds.size === 0) return;
+    const selectedIds = get(selectedFileIds);
+    if (selectedFileIds.size === 0) return;
     attachedFiles.update(($files) =>
       $files.map((f) =>
-        $selectedFileIds.has(f.id) && f.type === 'text'
+        selectedIds.has(f.id) && f.type === 'text'
           ? { ...f, includeInExport: state }
           : f
       )
@@ -78,17 +130,19 @@
     exportMenuOpen = false;
   }
 
-  function deleteSelected() {
-    if ($selectedFileIds.size === 0) return;
-    if (!confirm(`Удалить ${$selectedFileIds.size} файл(ов)?`)) return;
-    attachedFiles.update(($files) => $files.filter((f) => !$selectedFileIds.has(f.id)));
+    function deleteSelected() {
+    const selectedIds = get(selectedFileIds); // <-- сохраняем значение в переменную
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Удалить ${selectedIds.size} файл(ов)?`)) return;
+    attachedFiles.update(($files) => $files.filter((f) => !selectedIds.has(f.id))); // <-- используем переменную
     selectedFileIds.set(new Set());
     deleteMenuOpen = false;
   }
 
-  function deleteAll() {
-    if ($attachedFiles.length === 0) return;
-    if (!confirm(`Удалить все ${$attachedFiles.length} файл(ов)?`)) return;
+    function deleteAll() {
+    const files = get(attachedFiles); // <-- сохраняем значение в переменную
+    if (files.length === 0) return;
+    if (!confirm(`Удалить все ${files.length} файл(ов)?`)) return;
     attachedFiles.set([]);
     selectedFileIds.set(new Set());
     deleteMenuOpen = false;
@@ -271,11 +325,26 @@
               </div>
             {/if}
           </div>
+          <!-- Загрузка файлов -->
+          <div class="relative flex-1">
+            <button
+              onclick={() => fileInput.click()}
+              class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
+            >
+              <Upload size={16} />
+              Загрузить
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Список файлов -->
-      <div class="flex-1 overflow-y-auto p-6">
+        <!-- Список файлов (Дроп-зона) -->
+        <div 
+          class="flex-1 overflow-y-auto p-6 relative transition-colors {dropZoneActive ? 'bg-brand-50 ring-2 ring-inset ring-brand-400' : ''}"
+          ondrop={handleDrop}
+          ondragover={handleDragOver}
+          ondragleave={handleDragLeave}
+        >
         {#if $attachedFiles.length === 0}
           <div class="text-center py-20 text-ink-tertiary">
             <FolderOpen size={48} class="mx-auto mb-4 opacity-50" />
@@ -297,11 +366,29 @@
               />
             {/each}
           </div>
+                {/if}
+
+        {#if dropZoneActive}
+          <div class="absolute inset-0 bg-brand-50/80 backdrop-blur-sm flex items-center justify-center pointer-events-none animate-fade-in rounded-lg z-10">
+            <div class="text-center">
+              <Upload size={36} class="mx-auto text-brand-500 mb-2" />
+              <p class="text-sm font-semibold text-brand-700">Отпустите файлы для загрузки</p>
+            </div>
+          </div>
         {/if}
       </div>
     </div>
   </div>
 {/if}
+
+<input
+  bind:this={fileInput}
+  type="file"
+  multiple
+  class="hidden"
+  onchange={handleFileInputChange}
+  accept="image/*,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv,.sql,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.yaml,.yml,.svelte,.gd"
+/>
 
 <!-- Модальное окно предпросмотра -->
 <FilePreviewModal file={previewFile} onClose={closePreview} />
