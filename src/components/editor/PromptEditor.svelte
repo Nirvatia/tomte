@@ -104,6 +104,37 @@
     editorInstance.chain().focus().insertContent(placeholder + " ").run();
   }
 
+  async function handlePaste(e: ClipboardEvent) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageFiles: File[] = [];
+    
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const file = item.getAsFile();
+        if (file) {
+          imageFiles.push(file);
+        }
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      
+      for (const file of imageFiles) {
+        try {
+          const { processFile } = await import('../../utils/files');
+          const attachedFile = await processFile(file);
+          attachedFiles.update(($files) => [...$files, attachedFile]);
+        } catch (error) {
+          console.error('Error processing pasted image:', error);
+        }
+      }
+    }
+  }
+
   function insertContent(file: AttachedFile) {
     if (!editorInstance || file.type !== "text" || !file.content) return;
     const separator = "═".repeat(40);
@@ -112,7 +143,7 @@
   }
 </script>
 
-<!-- ... остальной код без изменений ... -->
+<svelte:window onpaste={handlePaste} />
 
 <div class="h-full grid grid-cols-[auto_1fr_auto] gap-0">
   <ProjectTreeSidebar editor={editorInstance} />
