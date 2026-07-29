@@ -189,7 +189,7 @@
     <div class="flex gap-2">
       <div class="relative flex-1 dropdown-container">
         <button
-          on:click={(e) => {
+          onclick={(e) => {
             e.stopPropagation();
             exportMenuOpen = !exportMenuOpen;
             selectMenuOpen = false;
@@ -205,17 +205,17 @@
         </button>
         {#if exportMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button on:click={() => toggleAllExports(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button onclick={() => toggleAllExports(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Включить все тексты
             </button>
-            <button on:click={() => toggleAllExports(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button onclick={() => toggleAllExports(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Выключить все тексты
             </button>
             <div class="border-t border-slate-100 my-1"></div>
-            <button on:click={() => toggleExportSelected(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
+            <button onclick={() => toggleExportSelected(true)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Вкл. для выбранных
             </button>
-            <button on:click={() => toggleExportSelected(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
+            <button onclick={() => toggleExportSelected(false)} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Выкл. для выбранных
             </button>
           </div>
@@ -224,7 +224,7 @@
 
       <div class="relative flex-1 dropdown-container">
         <button
-          on:click={(e) => {
+          onclick={(e) => {
             e.stopPropagation();
             selectMenuOpen = !selectMenuOpen;
             exportMenuOpen = false;
@@ -240,10 +240,10 @@
         </button>
         {#if selectMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button on:click={selectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button onclick={selectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Выбрать всё
             </button>
-            <button on:click={deselectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button onclick={deselectAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Снять выделение
             </button>
           </div>
@@ -252,7 +252,7 @@
 
       <div class="relative flex-1 dropdown-container">
         <button
-          on:click={(e) => {
+          onclick={(e) => {
             e.stopPropagation();
             deleteMenuOpen = !deleteMenuOpen;
             exportMenuOpen = false;
@@ -268,10 +268,10 @@
         </button>
         {#if deleteMenuOpen}
           <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-            <button on:click={deleteSelected} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
+            <button onclick={deleteSelected} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors" disabled={$selectedFilesCount === 0}>
               Удалить выбранные
             </button>
-            <button on:click={deleteAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
+            <button onclick={deleteAll} class="w-full px-3 py-2 text-xs text-left hover:bg-surface-tertiary transition-colors">
               Удалить все
             </button>
           </div>
@@ -282,7 +282,7 @@
 
   <div class="px-4 pt-3 pb-2 border-b border-slate-100 shrink-0">
   <button
-    on:click={() => fileInput.click()}
+    onclick={() => fileInput.click()}
     class="w-full py-2 px-3 bg-surface-tertiary text-ink rounded-lg font-medium text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 border border-slate-200"
   >
     <Upload size={16} />
@@ -293,14 +293,14 @@
     type="file"
     multiple
     class="hidden"
-    on:change={handleFileInputChange}
+    onchange={handleFileInputChange}
     accept="image/*,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv,.sql,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.yaml,.yml,.svelte,.gd"
     />
   </div>
 
   <div class="px-4 pb-3 shrink-0">
     <button
-      on:click={() => isFileManagerOpen.set(true)}
+      onclick={() => isFileManagerOpen.set(true)}
       class="w-full py-2 px-3 bg-brand-500 text-white rounded-lg font-medium text-sm hover:bg-brand-600 transition-colors flex items-center justify-center gap-2"
     >
       <FolderOpen size={16} />
@@ -312,9 +312,9 @@
     class="flex-1 overflow-y-auto p-4 space-y-2 min-h-0 relative transition-colors {dropZoneActive
       ? 'bg-brand-50 ring-2 ring-inset ring-brand-400'
       : ''}"
-    on:drop={handleDrop}
-    on:dragover={handleDragOver}
-    on:dragleave={handleDragLeave}
+    ondrop={handleDrop}
+    ondragover={handleDragOver}
+    ondragleave={handleDragLeave}
   >
     {#if $attachedFiles.length === 0}
       <div class="text-center py-10 text-ink-tertiary">

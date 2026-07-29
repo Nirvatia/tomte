@@ -9,6 +9,7 @@
     File as FileIcon,
     Download,
     Loader2,
+    ExternalLink,
   } from '@lucide/svelte';
   import AppLogo from './AppLogo.svelte';
   import { exportFile } from '../../utils/export';
@@ -16,6 +17,7 @@
   let isFileMenuOpen = $state(false);
   let isExporting = $state(false);
   let exportError = $state<string | null>(null);
+  let openInNewTab = $state(false);
 
   const formatLabels: Record<string, string> = {
     pdf: 'PDF',
@@ -51,7 +53,7 @@
     exportError = null;
 
     try {
-      await exportFile($exportFormat, $editorHtml, $attachedFiles, $fileName);
+      await exportFile($exportFormat, $editorHtml, $attachedFiles, $fileName, { openInNewTab });
     } catch (e) {
       console.error('Export error:', e);
       exportError = `Ошибка: ${e instanceof Error ? e.message : 'неизвестная ошибка'}`;
@@ -110,6 +112,21 @@
             <Image size={16} />
             <span>PNG Изображение</span>
           </button>
+
+          <div class="border-t border-slate-100 my-1"></div>
+
+<!-- Переключатель опции "Открыть в новой вкладке" -->
+          <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-tertiary cursor-pointer transition-colors select-none">
+            <input
+              type="checkbox"
+              bind:checked={openInNewTab}
+              class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+            />
+            <span class="text-sm text-ink-secondary flex items-center gap-1.5 pointer-events-none">
+              <ExternalLink size={14} />
+              Открыть PDF в новой вкладке
+            </span>
+          </label>
         </div>
       {/if}
     </div>

@@ -1,3 +1,5 @@
+<!-- page.svelte -->
+
 <script lang="ts">
   import AppHeader from '../components/header/AppHeader.svelte';
   import EditorToolbar from '../components/toolbar/EditorToolbar.svelte';

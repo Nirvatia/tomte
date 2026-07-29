@@ -101,15 +101,18 @@
     }
   }
 
-  function handleInsertToEditor() {
-    if (!editor || !$projectTreeString) return;
-    const content = "```\n" + $projectTreeString + "\n```";
-    editor
-      .chain()
-      .focus()
-      .insertContent(content + "\n")
-      .run();
-  }
+function handleInsertToEditor() {
+  if (!editor || !$projectTreeString) return;
+  
+  // Используем setCodeBlock вместо вставки markdown с ```
+  // Это гарантирует, что \n сохранятся и Tiptap создаст правильный code block
+  editor
+    .chain()
+    .focus()
+    .setCodeBlock()
+    .insertContent($projectTreeString)
+    .run();
+}
 
   function handleClose() {
     isProjectTreeOpen.set(false);
@@ -219,7 +222,8 @@
         </div>
       {:else}
         <pre
-          class="text-xs font-mono text-ink whitespace-pre leading-relaxed bg-surface-secondary rounded-lg p-4 border border-slate-100 overflow-x-auto"><code
+          class="tree-output"
+          style="font-family: 'Courier New', Courier, monospace !important; font-size: 12px !important; line-height: 1.3 !important; white-space: pre !important; word-break: normal !important; letter-spacing: 0 !important; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;"><code
             >{$projectTreeString}</code
           ></pre>
       {/if}

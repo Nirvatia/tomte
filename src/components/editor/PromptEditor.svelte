@@ -1,3 +1,5 @@
+<!-- PromptEditor.svelte -->
+
 <script lang="ts">
   import { onMount } from "svelte";
   import { attachedFiles, fileName, exportFormat, editorHtml } from "../../stores";

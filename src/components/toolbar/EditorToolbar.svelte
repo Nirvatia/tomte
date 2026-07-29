@@ -1,3 +1,5 @@
+<!-- EditorToolbar.svelte -->
+
 <script lang="ts">
   import {
     Undo2,
@@ -34,6 +36,7 @@
     fileName,
     exportFormat,
     isProjectTreeOpen,
+    selectedFileIds,
   } from "../../stores";
   import type { Editor } from "@tiptap/core";
   import TablePicker from "./TablePicker.svelte";
@@ -53,6 +56,8 @@
     activeBlocks: new Set<string>(),
     isInsideTable: false,
   });
+
+  
 
   function updateToolbarState() {
     if (!editor) return;
@@ -98,6 +103,106 @@
       editor?.off("transaction", updateToolbarState);
     };
   });
+
+    function generateTestData() {
+    if (!editor) return;
+
+    // 1. HTML со всеми возможными элементами Tiptap
+    const testHtml = `
+      <h1>🧪 Автоматический тест экспорта</h1>
+      <p>Этот документ создан <strong>автоматически</strong> для проверки <em>курсива</em>, <u>подчеркивания</u>, <s>зачеркивания</s>, <mark>выделения</mark> и <code>встроенного кода</code>.</p>
+      
+      <h2>1. Списки</h2>
+      <ul>
+        <li>Маркированный элемент 1</li>
+        <li>Маркированный элемент 2
+          <ul>
+            <li>Вложенный маркированный элемент</li>
+          </ul>
+        </li>
+      </ul>
+      <ol>
+        <li>Нумерованный шаг первый</li>
+        <li>Нумерованный шаг второй</li>
+      </ol>
+      
+      <h2>2. Цитата</h2>
+      <blockquote>Это тестовая цитата для проверки стилей экспорта (левая граница, фон, курсив).</blockquote>
+      
+      <h2>3. Таблица</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Параметр</th>
+            <th>Значение</th>
+            <th>Описание</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Temperature</td>
+            <td>0.7</td>
+            <td>Уровень креативности</td>
+          </tr>
+          <tr>
+            <td>Max Tokens</td>
+            <td>4096</td>
+            <td>Максимальная длина</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <h2>4. Плейсхолдеры файлов</h2>
+      <p>Ниже должны быть обработаны плейсхолдеры при экспорте:</p>
+      <p>Схема архитектуры: [IMAGE_1: test_image.png]</p>
+      <p>Конфигурация: [FILE_1: test_script.py]</p>
+      <p>Этот текст идет в самом конце, чтобы проверить, что он не перекрывается и стили не ломаются.</p>
+    `;
+
+    // 2. Моковые файлы (включая base64 картинки, чтобы не грузить вручную)
+    // Маленький красный квадрат 10x10 в base64
+    const mockImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mNk+M9Qz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC';
+    
+    const mockFiles = [
+      {
+        id: 'mock-img-1',
+        name: 'test_image.png',
+        size: 1024,
+        type: 'image' as const,
+        dataUrl: mockImageBase64,
+        width: 200,
+        height: 200,
+        includeInExport: false
+      },
+      {
+        id: 'mock-txt-1',
+        name: 'test_script.py',
+        size: 45,
+        type: 'text' as const,
+        content: 'print("Hello, Export!")\n# Это тестовый файл для проверки Variant B',
+        ext: 'py',
+        includeInExport: true // Включен в экспорт!
+      },
+      {
+        id: 'mock-img-2',
+        name: 'unused_logo.jpg',
+        size: 2048,
+        type: 'image' as const,
+        dataUrl: mockImageBase64,
+        width: 100,
+        height: 100,
+        includeInExport: false
+      }
+    ];
+
+    // 3. Применяем данные
+    editor.commands.setContent(testHtml);
+    attachedFiles.set(mockFiles);
+    selectedFileIds.set(new Set());
+    
+    // Сбрасываем имя файла для чистоты теста
+    fileName.set('test_export_document');
+  }
 
   function handleClearDraft() {
     if (!confirm("Очистить черновик? Это удалит весь текст и загруженные файлы.")) return;
@@ -364,6 +469,13 @@
   <div class="flex-1"></div>
 
   <div class="flex items-center gap-2">
+      <button
+      onclick={generateTestData}
+      class="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0 bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
+      title="Заполнить редактор тестовыми данными"
+    >
+      <span>🧪 Тест</span>
+    </button>
     <button
       onclick={() => isPreviewOpen.set(true)}
       class={`${ACTION_BTN_BASE} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200`}
