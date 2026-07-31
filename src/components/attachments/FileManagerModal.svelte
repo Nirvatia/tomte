@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { X, FolderOpen, Download, Trash2, CheckSquare, XSquare, ChevronDown, Upload } from '@lucide/svelte';
+  import { X, FolderOpen, Trash2, CheckSquare, XSquare, Upload } from '@lucide/svelte';
   import FileItem from './FileItem.svelte';
   import FilePreviewModal from './FilePreviewModal.svelte';
   import type { AttachedFile } from '../../types';
@@ -8,11 +8,7 @@
   import { attachedFiles, selectedFileIds, isFileManagerOpen } from '../../stores';
 
   let previewFile: AttachedFile | null = $state(null);
-  let exportMenuOpen = $state(false);
-  let selectMenuOpen = $state(false);
-  let deleteMenuOpen = $state(false);
-
-    let dropZoneActive = $state(false);
+  let dropZoneActive = $state(false);
   let fileInput: HTMLInputElement;
 
   async function handleFilesSelected(files: File[]) {
@@ -45,7 +41,6 @@
   function handleDragLeave(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    // Сбрасываем только если уходим за пределы контейнера списка
     const related = e.relatedTarget as Node | null;
     const currentTarget = e.currentTarget as Node;
     if (!related || !currentTarget.contains(related)) {
@@ -57,7 +52,7 @@
     const input = e.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       handleFilesSelected(Array.from(input.files));
-      input.value = ''; // сброс для повторного выбора того же файла
+      input.value = '';
     }
   }
 
@@ -94,71 +89,28 @@
     previewFile = null;
   }
 
-  function toggleExport(id: string) {
-    attachedFiles.update(($files) =>
-      $files.map((f) => (f.id === id ? { ...f, includeInExport: !f.includeInExport } : f))
-    );
-  }
-
   function selectAll() {
     selectedFileIds.set(new Set(get(attachedFiles).map((f) => f.id)));
-    selectMenuOpen = false;
   }
 
   function deselectAll() {
     selectedFileIds.set(new Set());
-    selectMenuOpen = false;
   }
 
-  function toggleAllExports(state: boolean) {
-    attachedFiles.update(($files) =>
-      $files.map((f) => (f.type === 'text' ? { ...f, includeInExport: state } : f))
-    );
-    exportMenuOpen = false;
-  }
-
-  function toggleExportSelected(state: boolean) {
+  function deleteSelected() {
     const selectedIds = get(selectedFileIds);
-    if (selectedFileIds.size === 0) return;
-    attachedFiles.update(($files) =>
-      $files.map((f) =>
-        selectedIds.has(f.id) && f.type === 'text'
-          ? { ...f, includeInExport: state }
-          : f
-      )
-    );
-    exportMenuOpen = false;
-  }
-
-    function deleteSelected() {
-    const selectedIds = get(selectedFileIds); // <-- сохраняем значение в переменную
     if (selectedIds.size === 0) return;
     if (!confirm(`Удалить ${selectedIds.size} файл(ов)?`)) return;
-    attachedFiles.update(($files) => $files.filter((f) => !selectedIds.has(f.id))); // <-- используем переменную
+    attachedFiles.update(($files) => $files.filter((f) => !selectedIds.has(f.id)));
     selectedFileIds.set(new Set());
-    deleteMenuOpen = false;
   }
 
-    function deleteAll() {
-    const files = get(attachedFiles); // <-- сохраняем значение в переменную
+  function deleteAll() {
+    const files = get(attachedFiles);
     if (files.length === 0) return;
     if (!confirm(`Удалить все ${files.length} файл(ов)?`)) return;
     attachedFiles.set([]);
     selectedFileIds.set(new Set());
-    deleteMenuOpen = false;
-  }
-
-  function closeAllMenus() {
-    exportMenuOpen = false;
-    selectMenuOpen = false;
-    deleteMenuOpen = false;
-  }
-
-  function handleClickOutside(e: MouseEvent) {
-    const target = e.target as HTMLElement;
-    if (!target.closest('.dropdown-container')) {
-      closeAllMenus();
-    }
   }
 
   function handleBackdropClick(e: MouseEvent) {
@@ -168,11 +120,7 @@
   }
 </script>
 
-<svelte:window onclick={handleClickOutside} />
-
 {#if $isFileManagerOpen}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
     onclick={handleBackdropClick}
@@ -205,146 +153,45 @@
       <!-- Панель инструментов -->
       <div class="px-6 py-4 border-b border-slate-100 bg-surface-secondary">
         <div class="flex gap-2">
-          <!-- Экспорт -->
-          <div class="relative flex-1 dropdown-container">
-            <button
-              onclick={(e) => {
-                e.stopPropagation();
-                exportMenuOpen = !exportMenuOpen;
-                selectMenuOpen = false;
-                deleteMenuOpen = false;
-              }}
-              class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-surface hover:bg-surface-tertiary transition-colors flex items-center justify-between gap-2"
-            >
-              <span class="flex items-center gap-2">
-                <Download size={16} />
-                Экспорт
-              </span>
-              <ChevronDown size={14} class="transition-transform {exportMenuOpen ? 'rotate-180' : ''}" />
-            </button>
-            {#if exportMenuOpen}
-              <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-                <button
-                  onclick={() => toggleAllExports(true)}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                >
-                  Включить все тексты
-                </button>
-                <button
-                  onclick={() => toggleAllExports(false)}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                >
-                  Выключить все тексты
-                </button>
-                <div class="border-t border-slate-100 my-1"></div>
-                <button
-                  onclick={() => toggleExportSelected(true)}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                  disabled={$selectedFileIds.size === 0}
-                >
-                  Вкл. для выбранных
-                </button>
-                <button
-                  onclick={() => toggleExportSelected(false)}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                  disabled={$selectedFileIds.size === 0}
-                >
-                  Выкл. для выбранных
-                </button>
-              </div>
-            {/if}
-          </div>
-
-          <!-- Выделение -->
-          <div class="relative flex-1 dropdown-container">
-            <button
-              onclick={(e) => {
-                e.stopPropagation();
-                selectMenuOpen = !selectMenuOpen;
-                exportMenuOpen = false;
-                deleteMenuOpen = false;
-              }}
-              class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-surface hover:bg-surface-tertiary transition-colors flex items-center justify-between gap-2"
-            >
-              <span class="flex items-center gap-2">
-                <CheckSquare size={16} />
-                Выбор
-              </span>
-              <ChevronDown size={14} class="transition-transform {selectMenuOpen ? 'rotate-180' : ''}" />
-            </button>
-            {#if selectMenuOpen}
-              <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-                <button
-                  onclick={selectAll}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                >
-                  Выбрать всё
-                </button>
-                <button
-                  onclick={deselectAll}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                >
-                  Снять выделение
-                </button>
-              </div>
-            {/if}
-          </div>
-
-          <!-- Удаление -->
-          <div class="relative flex-1 dropdown-container">
-            <button
-              onclick={(e) => {
-                e.stopPropagation();
-                deleteMenuOpen = !deleteMenuOpen;
-                exportMenuOpen = false;
-                selectMenuOpen = false;
-              }}
-              class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center justify-between gap-2"
-            >
-              <span class="flex items-center gap-2">
-                <Trash2 size={16} />
-                Удалить
-              </span>
-              <ChevronDown size={14} class="transition-transform {deleteMenuOpen ? 'rotate-180' : ''}" />
-            </button>
-            {#if deleteMenuOpen}
-              <div class="absolute top-full left-0 right-0 mt-1 bg-surface rounded-lg shadow-lg border border-slate-200 py-1 z-10">
-                <button
-                  onclick={deleteSelected}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                  disabled={$selectedFileIds.size === 0}
-                >
-                  Удалить выбранные
-                </button>
-                <button
-                  onclick={deleteAll}
-                  class="w-full px-4 py-2.5 text-sm text-left hover:bg-surface-tertiary transition-colors"
-                >
-                  Удалить все
-                </button>
-              </div>
-            {/if}
-          </div>
-          <!-- Загрузка файлов -->
-          <div class="relative flex-1">
-            <button
-              onclick={() => fileInput.click()}
-              class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
-            >
-              <Upload size={16} />
-              Загрузить
-            </button>
-          </div>
+          <button
+            onclick={selectAll}
+            class="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg bg-surface hover:bg-surface-tertiary transition-colors flex items-center justify-center gap-2"
+          >
+            <CheckSquare size={16} />
+            Выбрать всё
+          </button>
+          <button
+            onclick={deselectAll}
+            class="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg bg-surface hover:bg-surface-tertiary transition-colors flex items-center justify-center gap-2"
+          >
+            <XSquare size={16} />
+            Снять выделение
+          </button>
+          <button
+            onclick={deleteSelected}
+            class="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+            disabled={$selectedFileIds.size === 0}
+          >
+            <Trash2 size={16} />
+            Удалить выбранные
+          </button>
+          <button
+            onclick={() => fileInput.click()}
+            class="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
+          >
+            <Upload size={16} />
+            Загрузить
+          </button>
         </div>
       </div>
 
-        <!-- Список файлов (Дроп-зона) -->
-        <div 
-          class="flex-1 overflow-y-auto p-6 relative transition-colors {dropZoneActive ? 'bg-brand-50 ring-2 ring-inset ring-brand-400' : ''}"
-          ondrop={handleDrop}
-          ondragover={handleDragOver}
-          ondragleave={handleDragLeave}
-        >
+      <!-- Список файлов -->
+      <div
+        class="flex-1 overflow-y-auto p-6 relative transition-colors {dropZoneActive ? 'bg-brand-50 ring-2 ring-inset ring-brand-400' : ''}"
+        ondrop={handleDrop}
+        ondragover={handleDragOver}
+        ondragleave={handleDragLeave}
+      >
         {#if $attachedFiles.length === 0}
           <div class="text-center py-20 text-ink-tertiary">
             <FolderOpen size={48} class="mx-auto mb-4 opacity-50" />
@@ -353,20 +200,18 @@
           </div>
         {:else}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {#each $attachedFiles as file, index (file.id)}
+            {#each $attachedFiles as file (file.id)}
               <FileItem
                 {file}
-                {index}
-                isSelected={$selectedFileIds.has(file.id)}
                 allFiles={$attachedFiles}
+                isSelected={$selectedFileIds.has(file.id)}
                 onToggleSelect={toggleSelect}
                 onRemove={removeFile}
                 onPreview={openPreview}
-                onToggleExport={toggleExport}
               />
             {/each}
           </div>
-                {/if}
+        {/if}
 
         {#if dropZoneActive}
           <div class="absolute inset-0 bg-brand-50/80 backdrop-blur-sm flex items-center justify-center pointer-events-none animate-fade-in rounded-lg z-10">
@@ -390,5 +235,4 @@
   accept="image/*,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv,.sql,.java,.cpp,.c,.h,.php,.rb,.go,.rs,.ts,.jsx,.tsx,.yaml,.yml,.svelte,.gd"
 />
 
-<!-- Модальное окно предпросмотра -->
 <FilePreviewModal file={previewFile} onClose={closePreview} />

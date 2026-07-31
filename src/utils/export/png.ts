@@ -1,3 +1,5 @@
+/** export/png.ts */
+
 import { domToPng } from 'modern-screenshot';
 import type { AttachedFile } from '../../types';
 import { buildPreviewHtml } from '../preview';

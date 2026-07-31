@@ -1,3 +1,5 @@
+/** export/docx.ts */
+
 import {
   Document,
   Packer,
@@ -320,6 +322,7 @@ function createDocxImage(
     type: imageType,
   });
 }
+// ... (весь код parseHtmlToDocx и createDocxImage без изменений)
 
 export async function exportToDOCX(
   editorHtml: string,
@@ -327,14 +330,9 @@ export async function exportToDOCX(
   fileName: string,
 ): Promise<void> {
   try {
+    // buildPreviewHtml теперь должен вызывать buildAttachmentsHtml(files) без selectedIds
     const { html: mainHtml } = buildPreviewHtml(editorHtml, files);
-
-    // Парсим HTML в параграфы DOCX
     const content: (Paragraph | Table)[] = parseHtmlToDocx(mainHtml);
-
-    // Добавляем вложения
-    const images = files.filter((f) => f.type === "image" && f.dataUrl);
-    const textFiles = files.filter((f) => f.type === "text");
 
     if (files.length > 0) {
       content.push(
@@ -358,6 +356,7 @@ export async function exportToDOCX(
         }),
       );
 
+      const images = files.filter((f) => f.type === "image" && f.dataUrl);
       if (images.length > 0) {
         content.push(
           new Paragraph({
@@ -372,7 +371,6 @@ export async function exportToDOCX(
             spacing: { before: 200, after: 200 },
           }),
         );
-
         images.forEach((img, i) => {
           content.push(
             new Paragraph({
@@ -387,7 +385,6 @@ export async function exportToDOCX(
               spacing: { after: 100 },
             }),
           );
-
           if (img.dataUrl && img.width && img.height) {
             content.push(
               new Paragraph({
@@ -399,6 +396,7 @@ export async function exportToDOCX(
         });
       }
 
+      const textFiles = files.filter((f) => f.type === "text" && f.content);
       if (textFiles.length > 0) {
         content.push(
           new Paragraph({
@@ -413,7 +411,6 @@ export async function exportToDOCX(
             spacing: { before: 200, after: 200 },
           }),
         );
-
         textFiles.forEach((file, i) => {
           content.push(
             new Paragraph({
@@ -428,19 +425,16 @@ export async function exportToDOCX(
               spacing: { after: 100 },
             }),
           );
-
-          if (file.includeInExport && file.content) {
-            file.content.split("\n").forEach((line) => {
-              content.push(
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: line, font: "Courier New", size: 20 }),
-                  ],
-                  spacing: { after: 50 },
-                }),
-              );
-            });
-          }
+          file.content.split("\n").forEach((line) => {
+            content.push(
+              new Paragraph({
+                children: [
+                  new TextRun({ text: line, font: "Courier New", size: 20 }),
+                ],
+                spacing: { after: 50 },
+              }),
+            );
+          });
         });
       }
     }
@@ -450,7 +444,6 @@ export async function exportToDOCX(
       creator: "Tomte",
       title: fileName,
     });
-
     const blob = await Packer.toBlob(doc);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

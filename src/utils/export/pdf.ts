@@ -1,3 +1,5 @@
+/** export/pdf.ts */
+
 import jsPDF from 'jspdf';
 import { domToPng } from 'modern-screenshot';
 import type { AttachedFile } from '../../types';

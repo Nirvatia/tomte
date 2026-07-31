@@ -16,6 +16,7 @@
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.1",
+		"@types/turndown": "^5.0.6",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.1",
@@ -43,6 +44,8 @@
 		"idb": "^8.0.3",
 		"jspdf": "^4.2.1",
 		"modern-screenshot": "^4.7.0",
-		"svelte-sonner": "^1.1.1"
+		"svelte-sonner": "^1.1.1",
+		"turndown": "^7.2.4",
+		"turndown-plugin-gfm": "^1.0.2"
 	}
 }

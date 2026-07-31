@@ -59,11 +59,13 @@ export function getPlaceholder(
   return `[${prefix}_${index}: ${file.name}]`;
 }
 
+// ... (TEXT_EXTENSIONS и другие функции без изменений)
+
 export async function processFile(file: File): Promise<AttachedFile> {
   const id = generateId();
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   const isText = isTextFile(file.name);
-
+  
   if (isText) {
     const content = await file.text();
     return {
@@ -73,7 +75,6 @@ export async function processFile(file: File): Promise<AttachedFile> {
       type: "text",
       content,
       ext,
-      includeInExport: false,
     };
   } else {
     return new Promise((resolve, reject) => {
@@ -91,7 +92,6 @@ export async function processFile(file: File): Promise<AttachedFile> {
             ext,
             width: img.naturalWidth,
             height: img.naturalHeight,
-            includeInExport: false,
           });
         };
         img.onerror = reject;

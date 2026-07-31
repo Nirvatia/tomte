@@ -1,17 +1,16 @@
-export type ExportFormat = 'pdf' | 'docx' | 'png' | 'md' | 'txt';
+export type ExportFormat = 'md' | 'pdf' | 'docx' | 'png' | 'md' | 'txt';
 
 export interface AttachedFile {
   id: string;
   name: string;
   size: number;
-  type: 'image' | 'text';
-  dataUrl?: string; // base64 для изображений
-  content?: string; // содержимое для текстовых файлов
-  ext?: string; // расширение файла
-  includeInExport: boolean; // включать ли содержимое в финальный экспорт
-  // Для изображений
+  type: 'text' | 'image';
+  content: string;
+  dataUrl?: string;
+  ext?: string;
   width?: number;
   height?: number;
+  // Убрали includeInExport - теперь это определяется через selectedFileIds
 }
 
 export interface EditorHistoryState {
