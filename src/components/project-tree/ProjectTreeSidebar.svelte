@@ -176,7 +176,7 @@
       {:else}
         <div class="font-sans text-sm">
           {#each $projectTreeNodes as node}
-            <TreeNodeItem {node} depth={0} />
+            <TreeNodeItem {node} depth={0} {editor} />
           {/each}
         </div>
       {/if}
