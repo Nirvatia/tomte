@@ -46,6 +46,12 @@ export function addTag(name: string, value: string): Tag {
   return tag;
 }
 
+export function updateTag(id: string, name: string, value: string) {
+  const tags = loadTags();
+  const updatedTags = tags.map(t => t.id === id ? { ...t, name, value } : t);
+  saveTags(updatedTags); 
+}
+
 export function removeTag(id: string): void {
   const tags = loadTags().filter((t) => t.id !== id);
   saveTags(tags);

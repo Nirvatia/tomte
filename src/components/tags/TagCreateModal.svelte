@@ -1,33 +1,47 @@
 <script lang="ts">
+  import type { Tag } from "../../types";
   import { X } from "@lucide/svelte";
 
   let {
-    isOpen = false,
-    onClose = () => {},
-    onCreate = (name: string, value: string) => {},
-  }: {
-    isOpen?: boolean;
-    onClose?: () => void;
-    onCreate?: (name: string, value: string) => void;
-  } = $props();
+  isOpen = false,
+  onClose = () => {},
+  onCreate = (name: string, value: string) => {},
+  onUpdate = (id: string, name: string, value: string) => {},
+  editingTag = null as Tag | null,
+}: {
+  isOpen?: boolean;
+  onClose?: () => void;
+  onCreate?: (name: string, value: string) => void;
+  onUpdate?: (id: string, name: string, value: string) => void;
+  editingTag?: Tag | null;
+} = $props();
 
   let tagName = $state("");
   let tagValue = $state("");
   let nameInput: HTMLInputElement;
 
   $effect(() => {
-    if (isOpen) {
+  if (isOpen) {
+    if (editingTag) {
+      tagName = editingTag.name;
+      tagValue = editingTag.value;
+    } else {
       tagName = "";
       tagValue = "";
-      setTimeout(() => nameInput?.focus(), 50);
     }
-  });
+    setTimeout(() => nameInput?.focus(), 50);
+  }
+});
 
   function handleSubmit() {
-    if (!tagName.trim() || !tagValue.trim()) return;
+  if (!tagName.trim() || !tagValue.trim()) return;
+  if (editingTag) {
+    onUpdate(editingTag.id, tagName.trim(), tagValue.trim());
+  } else {
     onCreate(tagName.trim(), tagValue.trim());
-    handleClose();
   }
+  handleClose();
+}
 
   function handleClose() {
     tagName = "";
@@ -74,7 +88,7 @@
       <div
         class="flex items-center justify-between p-6 border-b border-slate-100"
       >
-        <h2 class="text-lg font-bold text-ink">Новый тег</h2>
+        <h2 class="text-lg font-bold text-ink">{editingTag ? 'Редактировать тег' : 'Новый тег'}</h2>
         <button
           onclick={handleClose}
           class="p-2 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
@@ -144,7 +158,7 @@
           disabled={!tagName.trim() || !tagValue.trim()}
           class="px-4 py-2 text-sm font-medium rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Создать
+          {editingTag ? 'Сохранить' : 'Создать'}
         </button>
       </div>
     </div>
