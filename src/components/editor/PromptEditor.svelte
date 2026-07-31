@@ -2,7 +2,7 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import { attachedFiles, fileName, exportFormat, editorHtml } from "../../stores";
+  import { attachedFiles, fileName, exportFormat, editorHtml, projectTreeNodes, projectTreeRootName, projectTreeString, selectedProjectFiles } from "../../stores";
   import { Upload, Save, CheckCircle } from "@lucide/svelte";
   import TiptapEditor from "./TiptapEditor.svelte";
   import AttachmentsPanel from "../attachments/AttachmentPanel.svelte";
@@ -12,7 +12,8 @@
   import type { Editor } from "@tiptap/core";
   import type { AttachedFile } from "../../types";
   import { getPlaceholder } from "../../utils/files";
-  import { saveDraft, loadDraft } from "../../utils/draft";
+  import { saveDraft, loadDraft, loadProjectSource, clearProjectSource } from "../../utils/draft";
+  import { readDirectoryRecursive, readDirectoryViaInput, buildTreeString } from "../../utils/projectTree";
   import { debounce } from "../../utils";
 
   let { onEditorReady = (editor: Editor) => {} }: { onEditorReady?: (editor: Editor) => void } = $props();
@@ -30,6 +31,8 @@
       attachedFiles: $attachedFiles,
       fileName: $fileName,
       exportFormat: $exportFormat,
+      projectTreeRootName: $projectTreeRootName,
+      selectedProjectFiles: $selectedProjectFiles,
     });
     setTimeout(() => {
       saveStatus = "saved";
@@ -40,7 +43,7 @@
   }, 500);
 
   $effect(() => {
-    if (currentHtml || $attachedFiles.length > 0) {
+    if (currentHtml || $attachedFiles.length > 0 || $projectTreeNodes.length > 0) {
       debouncedSaveDraft();
     }
   });
@@ -56,19 +59,58 @@
       attachedFiles.set(draft.attachedFiles);
       fileName.set(draft.fileName);
       exportFormat.set(draft.exportFormat);
+      if (draft.projectTreeRootName) projectTreeRootName.set(draft.projectTreeRootName);
+      if (draft.selectedProjectFiles) selectedProjectFiles.set(draft.selectedProjectFiles);
       saveStatus = "saved";
       setTimeout(() => {
         saveStatus = "idle";
       }, 3000);
     }
 
+    // Восстановление дерева проекта из IndexedDB (с живыми fileRef)
+    (async () => {
+      try {
+        const source = await loadProjectSource();
+        if (!source) return;
+        let nodes: any[] = [];
+        let rootName = "";
+        if (source.type === "handle") {
+          const handle = source.handle as any;
+          if (handle.queryPermission) {
+            let perm = await handle.queryPermission({ mode: "read" });
+            if (perm !== "granted") {
+              perm = await handle.requestPermission({ mode: "read" });
+            }
+            if (perm !== "granted") {
+              await clearProjectSource();
+              return;
+            }
+          }
+          nodes = await readDirectoryRecursive(source.handle);
+          rootName = source.handle.name;
+        } else {
+          const result = await readDirectoryViaInput(source.files as any);
+          nodes = result.nodes;
+          rootName = result.rootName;
+        }
+        projectTreeNodes.set(nodes);
+        projectTreeRootName.set(rootName);
+        projectTreeString.set(buildTreeString(rootName, nodes));
+      } catch (e) {
+        console.warn("Не удалось восстановить дерево проекта:", e);
+        await clearProjectSource();
+      }
+    })();
+
     const handleBeforeUnload = () => {
-      if (currentHtml || $attachedFiles.length > 0) {
+      if (currentHtml || $attachedFiles.length > 0 || $projectTreeNodes.length > 0) {
         saveDraft({
           editorHtml: currentHtml,
           attachedFiles: $attachedFiles,
           fileName: $fileName,
           exportFormat: $exportFormat,
+          projectTreeRootName: $projectTreeRootName,
+          selectedProjectFiles: $selectedProjectFiles,
         });
       }
     };

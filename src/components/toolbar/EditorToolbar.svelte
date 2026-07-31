@@ -40,7 +40,7 @@
   } from "../../stores";
   import type { Editor } from "@tiptap/core";
   import TablePicker from "./TablePicker.svelte";
-  import { clearDraft } from "../../utils/draft";
+  import { clearDraft, clearProjectSource } from "../../utils/draft";
   import FontSizePicker from "./FontSizePicker.svelte";
 
   let { editor = null }: { editor?: Editor | null } = $props();
@@ -212,6 +212,7 @@
     fileName.set("prompt");
     exportFormat.set("pdf");
     clearDraft();
+    clearProjectSource();
   }
 
   function isActive(mark: string): boolean {

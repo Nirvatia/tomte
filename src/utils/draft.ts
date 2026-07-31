@@ -74,3 +74,68 @@ export function formatDraftTime(isoString: string): string {
     minute: '2-digit',
   });
 }
+
+// ====== Сохранение источника дерева проекта в IndexedDB ======
+const DB_NAME = "tomte-draft-db";
+const STORE_NAME = "project-source";
+const HANDLE_KEY = "root-source";
+
+function openProjectDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(STORE_NAME)) {
+        request.result.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export type ProjectSource =
+  | { type: "handle"; handle: FileSystemDirectoryHandle }
+  | { type: "files"; files: File[]; rootName: string };
+
+export async function saveProjectSource(source: ProjectSource): Promise<void> {
+  try {
+    const db = await openProjectDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).put(source, HANDLE_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    console.warn("saveProjectSource failed:", e);
+  }
+}
+
+export async function loadProjectSource(): Promise<ProjectSource | null> {
+  try {
+    const db = await openProjectDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).get(HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result ?? null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.warn("loadProjectSource failed:", e);
+    return null;
+  }
+}
+
+export async function clearProjectSource(): Promise<void> {
+  try {
+    const db = await openProjectDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).delete(HANDLE_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    console.warn("clearProjectSource failed:", e);
+  }
+}

@@ -1,8 +1,10 @@
 <script lang="ts">
   import { browser } from "$app/environment";
+  import { onMount } from "svelte";
   import { X, FolderTree, Copy, FileInput, FolderOpen, Loader2, AlertCircle, CheckSquare, Square } from "@lucide/svelte";
   import { isProjectTreeOpen, projectTreeNodes, projectTreeRootName, projectTreeString, selectedProjectFiles, previewFileFromTree } from "../../stores";
   import { readDirectoryRecursive, readDirectoryViaInput, buildTreeString, calculateStats, hasFileSystemAccess } from "../../utils/projectTree";
+  import { saveProjectSource, clearProjectSource } from "../../utils/draft";
   import type { Editor } from "@tiptap/core";
   import { directoryPicker } from "$lib/actions/directoryPicker";
   import TreeNodeItem from "./TreeNodeItem.svelte";
@@ -15,6 +17,21 @@
   let copied = $state(false);
   let fileInput: HTMLInputElement;
   let supportsFileSystem = $state(false);
+  let treeStateInitialized = $state(false);
+
+  onMount(() => {
+    if (!browser) return;
+    const saved = localStorage.getItem("projectTreeOpen");
+    if (saved !== null) {
+      isProjectTreeOpen.set(saved === "true");
+    }
+    treeStateInitialized = true;
+  });
+
+  $effect(() => {
+    if (!browser || !treeStateInitialized) return;
+    localStorage.setItem("projectTreeOpen", String($isProjectTreeOpen));
+  });
 
   $effect(() => {
     if (browser) supportsFileSystem = hasFileSystemAccess();
@@ -49,6 +66,7 @@
         projectTreeRootName.set(dirHandle.name);
         projectTreeString.set(buildTreeString(dirHandle.name, nodes));
         selectedProjectFiles.set([]);
+        await saveProjectSource({ type: "handle", handle: dirHandle });
       } else {
         fileInput?.click();
       }
@@ -73,6 +91,7 @@
       projectTreeRootName.set(rootName);
       projectTreeString.set(buildTreeString(rootName, nodes));
       selectedProjectFiles.set([]);
+      await saveProjectSource({ type: "files", files: Array.from(input.files), rootName });
     } catch (e: any) {
       error = e.message || "Не удалось прочитать папку";
     } finally {
