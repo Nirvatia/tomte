@@ -13,8 +13,7 @@ export function saveDraft(data: Omit<Draft, 'savedAt' | 'version'>): void {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   } catch (error) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      console.error('localStorage quota exceeded');
-      // Можно показать уведомление пользователю
+      console.error('localStorage quota exceeded. Очистите старые данные или используйте меньше вложений.');
     } else {
       console.error('Failed to save draft:', error);
     }
@@ -28,7 +27,6 @@ export function loadDraft(): Draft | null {
 
     const draft = JSON.parse(data) as Draft;
 
-    // Проверка версии для будущих миграций
     if (draft.version !== CURRENT_VERSION) {
       console.warn('Draft version mismatch, clearing old draft');
       clearDraft();

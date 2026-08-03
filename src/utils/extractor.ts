@@ -125,7 +125,6 @@ export function convertToAttachedFile(extracted: ExtractedFile): AttachedFile {
     type: "text",
     content: extracted.code,
     ext: extracted.name.split(".").pop()?.toLowerCase() || "txt",
-    includeInExport: false,
   };
 }
 

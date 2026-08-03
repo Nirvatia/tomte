@@ -89,6 +89,7 @@ export async function processFile(file: File): Promise<AttachedFile> {
             size: file.size,
             type: "image",
             dataUrl,
+            content: "",
             ext,
             width: img.naturalWidth,
             height: img.naturalHeight,

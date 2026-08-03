@@ -28,6 +28,9 @@ export interface Draft {
   attachedFiles: AttachedFile[];
   fileName: string;
   exportFormat: ExportFormat;
+  // Добавляем эти поля для полноценного автосохранения состояния
+  projectTreeRootName?: string;
+  selectedProjectFiles?: string[];
   savedAt: string; // ISO timestamp
   version: string; // версия схемы для миграций
 }

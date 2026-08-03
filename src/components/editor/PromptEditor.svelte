@@ -1,8 +1,15 @@
-<!-- PromptEditor.svelte -->
-
 <script lang="ts">
   import { onMount } from "svelte";
-  import { attachedFiles, fileName, exportFormat, editorHtml, projectTreeNodes, projectTreeRootName, projectTreeString, selectedProjectFiles } from "../../stores";
+  import { 
+    attachedFiles, 
+    fileName, 
+    exportFormat, 
+    editorHtml, 
+    projectTreeNodes, 
+    projectTreeRootName, 
+    projectTreeString, 
+    selectedProjectFiles 
+  } from "../../stores";
   import { Upload, Save, CheckCircle } from "@lucide/svelte";
   import TiptapEditor from "./TiptapEditor.svelte";
   import AttachmentsPanel from "../attachments/AttachmentPanel.svelte";
@@ -42,66 +49,78 @@
     }, 300);
   }, 500);
 
+  // Сохраняем черновик при изменении ключевых данных
   $effect(() => {
     if (currentHtml || $attachedFiles.length > 0 || $projectTreeNodes.length > 0) {
       debouncedSaveDraft();
     }
   });
 
+  // Синхронизируем HTML со стором для экспорта
   $effect(() => {
     editorHtml.set(currentHtml);
   });
 
   onMount(() => {
+    // 1. Загрузка текстового драфта
     const draft = loadDraft();
     if (draft) {
       currentHtml = draft.editorHtml;
       attachedFiles.set(draft.attachedFiles);
       fileName.set(draft.fileName);
       exportFormat.set(draft.exportFormat);
-      if (draft.projectTreeRootName) projectTreeRootName.set(draft.projectTreeRootName);
-      if (draft.selectedProjectFiles) selectedProjectFiles.set(draft.selectedProjectFiles);
+      
+      if (draft.projectTreeRootName) {
+        projectTreeRootName.set(draft.projectTreeRootName);
+      }
+      if (draft.selectedProjectFiles) {
+        selectedProjectFiles.set(draft.selectedProjectFiles);
+      }
+      
       saveStatus = "saved";
-      setTimeout(() => {
-        saveStatus = "idle";
-      }, 3000);
+      setTimeout(() => { saveStatus = "idle"; }, 3000);
     }
 
-    // Восстановление дерева проекта из IndexedDB (с живыми fileRef)
+    // 2. Восстановление дерева проекта из IndexedDB (живые fileRef для локальных файлов)
     (async () => {
       try {
         const source = await loadProjectSource();
         if (!source) return;
+        
         let nodes: any[] = [];
         let rootName = "";
+        
         if (source.type === "handle") {
-          const handle = source.handle as any;
-          if (handle.queryPermission) {
-            let perm = await handle.queryPermission({ mode: "read" });
+          const handle = source.handle as FileSystemDirectoryHandle;
+          // Проверяем и запрашиваем разрешение
+          if ((handle as any).queryPermission) {
+            let perm = await (handle as any).queryPermission({ mode: "read" });
             if (perm !== "granted") {
-              perm = await handle.requestPermission({ mode: "read" });
+              perm = await (handle as any).requestPermission({ mode: "read" });
             }
             if (perm !== "granted") {
               await clearProjectSource();
               return;
             }
           }
-          nodes = await readDirectoryRecursive(source.handle);
-          rootName = source.handle.name;
+          nodes = await readDirectoryRecursive(handle);
+          rootName = handle.name;
         } else {
-          const result = await readDirectoryViaInput(source.files as any);
+          const result = await readDirectoryViaInput(source.files as unknown as FileList);
           nodes = result.nodes;
           rootName = result.rootName;
         }
+        
         projectTreeNodes.set(nodes);
         projectTreeRootName.set(rootName);
         projectTreeString.set(buildTreeString(rootName, nodes));
       } catch (e) {
-        console.warn("Не удалось восстановить дерево проекта:", e);
+        console.warn("Не удалось восстановить дерево проекта из IndexedDB:", e);
         await clearProjectSource();
       }
     })();
 
+    // 3. Сохранение перед закрытием вкладки
     const handleBeforeUnload = () => {
       if (currentHtml || $attachedFiles.length > 0 || $projectTreeNodes.length > 0) {
         saveDraft({
@@ -153,20 +172,16 @@
     if (!items) return;
 
     const imageFiles: File[] = [];
-    
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (item.type.indexOf('image') !== -1) {
         const file = item.getAsFile();
-        if (file) {
-          imageFiles.push(file);
-        }
+        if (file) imageFiles.push(file);
       }
     }
 
     if (imageFiles.length > 0) {
       e.preventDefault();
-      
       for (const file of imageFiles) {
         try {
           const { processFile } = await import('../../utils/files');
@@ -193,18 +208,14 @@
   <ProjectTreeSidebar editor={editorInstance} />
 
   <div class="flex flex-col min-w-0 overflow-hidden p-6">
-    <!-- Белый блок с фиксированной высотой и overflow-hidden -->
     <div
-      class="flex-1 bg-surface rounded-2xl shadow-xl border border-slate-100 relative transition-all duration-300 overflow-hidden {dropZoneActive
-        ? 'ring-4 ring-brand-500/30 border-brand-500'
-        : ''}"
+      class="flex-1 bg-surface rounded-2xl shadow-xl border border-slate-100 relative transition-all duration-300 overflow-hidden {dropZoneActive ? 'ring-4 ring-brand-500/30 border-brand-500' : ''}"
       role="region"
       aria-label="Область редактора"
       ondrop={handleDrop}
       ondragover={handleDragOver}
       ondragleave={handleDragLeave}
     >
-      <!-- Скроллящийся контейнер внутри белого блока -->
       <div class="h-full overflow-y-auto p-12">
         <TiptapEditor content={currentHtml} onReady={handleReady} onUpdate={handleUpdate} />
       </div>
@@ -219,7 +230,6 @@
       {/if}
     </div>
 
-    <!-- Статус и TagPanel вне скроллящегося контейнера -->
     <div class="mt-3 flex items-center justify-between text-sm text-ink-tertiary font-medium shrink-0">
       <span class="flex items-center gap-1.5">
         {#if saveStatus === "saving"}
