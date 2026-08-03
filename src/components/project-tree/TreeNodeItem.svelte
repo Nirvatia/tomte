@@ -63,7 +63,6 @@
         size,
         type: "text",
         content,
-        includeInExport: false,
       });
     } catch (error) {
       console.error("Ошибка чтения файла:", error);

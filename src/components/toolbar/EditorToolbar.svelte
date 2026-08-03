@@ -159,46 +159,8 @@
       <p>Этот текст идет в самом конце, чтобы проверить, что он не перекрывается и стили не ломаются.</p>
     `;
 
-    // 2. Моковые файлы (включая base64 картинки, чтобы не грузить вручную)
-    // Маленький красный квадрат 10x10 в base64
-    const mockImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mNk+M9Qz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC';
-    
-    const mockFiles = [
-      {
-        id: 'mock-img-1',
-        name: 'test_image.png',
-        size: 1024,
-        type: 'image' as const,
-        dataUrl: mockImageBase64,
-        width: 200,
-        height: 200,
-        includeInExport: false
-      },
-      {
-        id: 'mock-txt-1',
-        name: 'test_script.py',
-        size: 45,
-        type: 'text' as const,
-        content: 'print("Hello, Export!")\n# Это тестовый файл для проверки Variant B',
-        ext: 'py',
-        includeInExport: true // Включен в экспорт!
-      },
-      {
-        id: 'mock-img-2',
-        name: 'unused_logo.jpg',
-        size: 2048,
-        type: 'image' as const,
-        dataUrl: mockImageBase64,
-        width: 100,
-        height: 100,
-        includeInExport: false
-      }
-    ];
-
     // 3. Применяем данные
     editor.commands.setContent(testHtml);
-    attachedFiles.set(mockFiles);
-    selectedFileIds.set(new Set());
     
     // Сбрасываем имя файла для чистоты теста
     fileName.set('test_export_document');
