@@ -86,7 +86,7 @@ export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): Pre
       const hasPlaceholder = editorHtml.includes(placeholderPattern);
       
       // Добавляем в конец, если включён экспорт И нет плейсхолдера в тексте
-      if (f.includeInExport && !hasPlaceholder) {
+      if (!hasPlaceholder) {
         const separator = '═'.repeat(40);
         appendixHtml += `
           <div class="preview-attached-file">
