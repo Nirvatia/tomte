@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { Folder, FileText, ChevronRight, ChevronDown, Eye, Link } from "@lucide/svelte";
+  import { Folder, FileText, ChevronRight, ChevronDown, Eye, Link, Loader2 } from "@lucide/svelte";
   import type { TreeNode } from "../../utils/projectTree";
   import type { Editor } from "@tiptap/core";
   import TreeNodeItem from "./TreeNodeItem.svelte";
   import { selectedProjectFiles, previewFileFromTree } from "../../stores";
+  import { fetchGithubFileContent } from "../../utils/github";
 
   let { node, depth = 0, editor = null }: { node: TreeNode; depth?: number; editor?: Editor | null } = $props();
   let isOpen = $state(node.type === "directory");
+  let isPreviewLoading = $state(false);
 
   function getAllFilePaths(n: TreeNode): string[] {
     if (n.type === "file") return [n.path];
@@ -39,22 +41,28 @@
     }
   }
 
-  // ЧТЕНИЕ ПО ЗАПРОСУ
   async function handlePreview(e: Event) {
     e.stopPropagation();
-    if (node.type !== "file" || !node.fileRef) return;
+    if (node.type !== "file") return;
 
+    isPreviewLoading = true;
     try {
       let content = "";
       let size = 0;
 
-      if (node.fileRef instanceof File) {
-        content = await node.fileRef.text();
-        size = node.fileRef.size;
-      } else {
-        const file = await (node.fileRef as FileSystemFileHandle).getFile();
-        content = await file.text();
-        size = file.size;
+      if (node.fileRef) {
+        if (node.fileRef instanceof File) {
+          content = await node.fileRef.text();
+          size = node.fileRef.size;
+        } else {
+          const file = await (node.fileRef as FileSystemFileHandle).getFile();
+          content = await file.text();
+          size = file.size;
+        }
+      } else if (node.githubRef) {
+        const githubFile = await fetchGithubFileContent(node);
+        content = githubFile.content;
+        size = githubFile.size;
       }
 
       previewFileFromTree.set({
@@ -66,10 +74,13 @@
       });
     } catch (error) {
       console.error("Ошибка чтения файла:", error);
+      alert(`Не удалось прочитать файл: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } finally {
+      isPreviewLoading = false;
     }
   }
 
-    function handleInsertLink(e: Event) {
+  function handleInsertLink(e: Event) {
     e.stopPropagation();
     if (!editor || node.type !== "file") return;
     const linkText = `[${node.path}]`;
@@ -100,12 +111,21 @@
 
     <span class="text-sm text-ink truncate font-mono flex-1">{node.name}</span>
 
-        {#if node.type === "file"}
+    {#if node.type === "file"}
       <button onclick={handleInsertLink} class="p-1 rounded hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity" title="Вставить ссылку на файл">
         <Link size={14} class="text-ink-secondary hover:text-brand-600" />
       </button>
-      <button onclick={handlePreview} class="p-1 rounded hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity" title="Просмотреть содержимое">
-        <Eye size={14} class="text-ink-secondary hover:text-ink" />
+      <button 
+        onclick={handlePreview} 
+        disabled={isPreviewLoading}
+        class="p-1 rounded hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50" 
+        title="Просмотреть содержимое"
+      >
+        {#if isPreviewLoading}
+          <Loader2 size={14} class="animate-spin text-ink-secondary" />
+        {:else}
+          <Eye size={14} class="text-ink-secondary hover:text-ink" />
+        {/if}
       </button>
     {/if}
   </div>

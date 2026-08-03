@@ -1,13 +1,14 @@
 import type { AttachedFile } from "../types";
+import { fetchGithubFileContent } from "./github";
 
 export interface TreeNode {
   name: string;
   path: string;
   type: "file" | "directory";
   children: TreeNode[];
-  fileRef?: File | FileSystemFileHandle; // <-- Ссылка на файл, читаем только по запросу
+  fileRef?: File | FileSystemFileHandle;
+  githubRef?: { owner: string; repo: string; branch: string; token?: string }; // <-- Добавь это
 }
-
 export interface TreeStats {
   totalFiles: number;
   totalDirs: number;
@@ -199,10 +200,9 @@ export async function getSelectedTreeFilesAsAttachments(
   const selectedSet = new Set(selectedPaths);
   const fileNodes: TreeNode[] = [];
 
-  // 1. Собираем только выбранные файлы
   function collect(items: TreeNode[]) {
     for (const item of items) {
-      if (item.type === "file" && selectedSet.has(item.path) && item.fileRef) {
+      if (item.type === "file" && selectedSet.has(item.path)) {
         fileNodes.push(item);
       } else if (item.type === "directory") {
         collect(item.children);
@@ -213,38 +213,45 @@ export async function getSelectedTreeFilesAsAttachments(
 
   if (fileNodes.length === 0) return [];
 
-  // 2. Явно указываем, что Promise возвращает AttachedFile или null
   const promises = fileNodes.map(async (node): Promise<AttachedFile | null> => {
     try {
       let content = "";
       let size = 0;
 
-      if (node.fileRef instanceof File) {
-        content = await node.fileRef.text();
-        size = node.fileRef.size;
+      // 1. Локальный файл
+      if (node.fileRef) {
+        if (node.fileRef instanceof File) {
+          content = await node.fileRef.text();
+          size = node.fileRef.size;
+        } else {
+          const file = await (node.fileRef as FileSystemFileHandle).getFile();
+          content = await file.text();
+          size = file.size;
+        }
+      } 
+      // 2. Файл из GitHub
+      else if (node.githubRef) {
+        const githubFile = await fetchGithubFileContent(node);
+        content = githubFile.content;
+        size = githubFile.size;
       } else {
-        const file = await (node.fileRef as FileSystemFileHandle).getFile();
-        content = await file.text();
-        size = file.size;
+        return null;
       }
 
-      // 3. Явно приводим объект к типу AttachedFile и используем 'as const' для type
+      // Убрали includeInExport, так как его больше нет в типе AttachedFile
       return {
         id: node.path,
         name: node.path,
         size,
-        type: "text" as const, // <-- КРИТИЧЕСКИ ВАЖНО: as const
+        type: "text" as const,
         content,
-        includeInExport: true,
       } as AttachedFile;
     } catch (e) {
-      console.warn(`Не удалось прочитать ${node.path}`);
+      console.warn(`Не удалось прочитать ${node.path}:`, e);
       return null;
     }
   });
 
   const results = await Promise.all(promises);
-
-  // 4. Теперь TypeScript точно знает, что фильтрует массив (AttachedFile | null)[]
   return results.filter((f): f is AttachedFile => f !== null);
 }
