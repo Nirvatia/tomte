@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { attachedFiles, isPreviewOpen } from '../../stores';
-  import { X, FileText, Image as ImageIcon, AlertCircle } from '@lucide/svelte';
-  import { buildPreviewHtml } from '../../utils/preview';
+  import { attachedFiles, isPreviewOpen } from "../../stores";
+  import { X, FileText, Image as ImageIcon, CircleAlert } from "@lucide/svelte";
+  import { buildPreviewHtml } from "../../utils/preview";
 
-  let { editorHtml = '' }: { editorHtml?: string } = $props();
+  let { editorHtml = "" }: { editorHtml?: string } = $props();
 
   let previewData = $derived(buildPreviewHtml(editorHtml, $attachedFiles));
 
@@ -17,38 +17,56 @@
     }
   }
 
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
+  function handleBackdropKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      close();
+    }
+  }
+
+  function handleWindowKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
       close();
     }
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={handleWindowKeydown} />
 
 {#if $isPreviewOpen}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
+    role="button"
+    tabindex="0"
     onclick={handleBackdropClick}
+    onkeydown={handleBackdropKeydown}
+    aria-label="Закрыть предпросмотр"
   >
-    <div class="bg-surface rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col">
+    <div
+      class="bg-surface rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col"
+      role="presentation"
+      onclick={(e) => e.stopPropagation()}
+    >
       <!-- Заголовок -->
-      <div class="flex items-center justify-between p-6 border-b border-slate-100">
+      <div
+        class="flex items-center justify-between p-6 border-b border-slate-100"
+      >
         <div>
           <h2 class="text-xl font-bold text-ink flex items-center gap-2">
             <FileText size={24} class="text-brand-500" />
             Предпросмотр финального промпта
           </h2>
           <p class="text-sm text-ink-tertiary mt-1">
-            Файлов: <strong class="text-ink">{previewData.stats.totalFiles}</strong>
+            Файлов: <strong class="text-ink"
+              >{previewData.stats.totalFiles}</strong
+            >
           </p>
         </div>
         <button
+          type="button"
           onclick={close}
           class="p-2 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
-          aria-label="Закрыть"
+          aria-label="Закрыть предпросмотр"
         >
           <X size={20} />
         </button>
@@ -60,28 +78,36 @@
           <div class="flex items-center gap-2">
             <ImageIcon size={14} class="text-brand-500" />
             <span class="text-ink-tertiary">
-              Изображений использовано: <strong class="text-ink">{previewData.stats.usedImages}</strong>
+              Изображений использовано: <strong class="text-ink"
+                >{previewData.stats.usedImages}</strong
+              >
             </span>
           </div>
           {#if previewData.stats.unusedImages > 0}
             <div class="flex items-center gap-2">
-              <AlertCircle size={14} class="text-amber-500" />
+              <CircleAlert size={14} class="text-amber-500" />
               <span class="text-ink-tertiary">
-                Без плейсхолдера: <strong class="text-amber-600">{previewData.stats.unusedImages}</strong>
+                Без плейсхолдера: <strong class="text-amber-600"
+                  >{previewData.stats.unusedImages}</strong
+                >
               </span>
             </div>
           {/if}
           <div class="flex items-center gap-2">
             <FileText size={14} class="text-emerald-500" />
             <span class="text-ink-tertiary">
-              Файлов использовано: <strong class="text-ink">{previewData.stats.usedFiles}</strong>
+              Файлов использовано: <strong class="text-ink"
+                >{previewData.stats.usedFiles}</strong
+              >
             </span>
           </div>
           {#if previewData.stats.attachedTexts > 0}
             <div class="flex items-center gap-2">
               <FileText size={14} class="text-emerald-500" />
               <span class="text-ink-tertiary">
-                Прикреплено в конец: <strong class="text-emerald-600">{previewData.stats.attachedTexts}</strong>
+                Прикреплено в конец: <strong class="text-emerald-600"
+                  >{previewData.stats.attachedTexts}</strong
+                >
               </span>
             </div>
           {/if}
@@ -94,7 +120,9 @@
           <div class="text-center py-20 text-ink-tertiary">
             <FileText size={48} class="mx-auto mb-4 opacity-50" />
             <p class="text-lg">Нечего просматривать</p>
-            <p class="text-sm mt-2">Добавьте текст в редактор или загрузите файлы</p>
+            <p class="text-sm mt-2">
+              Добавьте текст в редактор или загрузите файлы
+            </p>
           </div>
         {:else}
           <div class="preview-content prose max-w-none">

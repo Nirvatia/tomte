@@ -1,5 +1,4 @@
 <!-- TiptapEditor.svelte -->
-
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { Editor } from "@tiptap/core";
@@ -35,7 +34,6 @@
           class: "tiptap-prose",
           spellcheck: "true",
         },
-        // Предотвращаем клик вне контента
       },
       onUpdate: ({ editor: e }) => {
         onUpdate({

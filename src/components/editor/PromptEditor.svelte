@@ -1,16 +1,18 @@
+<!-- PromptEditor.svelte -->
 <script lang="ts">
   import { onMount } from "svelte";
-  import { 
-    attachedFiles, 
-    fileName, 
-    exportFormat, 
-    editorHtml, 
-    projectTreeNodes, 
-    projectTreeRootName, 
-    projectTreeString, 
-    selectedProjectFiles 
+  import {
+    attachedFiles,
+    fileName,
+    exportFormat,
+    editorHtml,
+    projectTreeNodes,
+    projectTreeRootName,
+    projectTreeString,
+    selectedProjectFiles,
   } from "../../stores";
   import { Upload, Save, CheckCircle } from "@lucide/svelte";
+  import { dropzone } from "$lib/actions/dropzone";
   import TiptapEditor from "./TiptapEditor.svelte";
   import AttachmentsPanel from "../attachments/AttachmentPanel.svelte";
   import PreviewModal from "../preview/PreviewModal.svelte";
@@ -19,11 +21,22 @@
   import type { Editor } from "@tiptap/core";
   import type { AttachedFile } from "../../types";
   import { getPlaceholder } from "../../utils/files";
-  import { saveDraft, loadDraft, loadProjectSource, clearProjectSource } from "../../utils/draft";
-  import { readDirectoryRecursive, readDirectoryViaInput, buildTreeString } from "../../utils/projectTree";
+  import {
+    saveDraft,
+    loadDraft,
+    loadProjectSource,
+    clearProjectSource,
+  } from "../../utils/draft";
+  import {
+    readDirectoryRecursive,
+    readDirectoryViaInput,
+    buildTreeString,
+  } from "../../utils/projectTree";
   import { debounce } from "../../utils";
 
-  let { onEditorReady = (editor: Editor) => {} }: { onEditorReady?: (editor: Editor) => void } = $props();
+  let {
+    onEditorReady = (editor: Editor) => {},
+  }: { onEditorReady?: (editor: Editor) => void } = $props();
 
   let charCount = $state(0);
   let currentHtml = $state("");
@@ -49,50 +62,52 @@
     }, 300);
   }, 500);
 
-  // Сохраняем черновик при изменении ключевых данных
   $effect(() => {
-    if (currentHtml || $attachedFiles.length > 0 || $projectTreeNodes.length > 0) {
+    if (
+      currentHtml ||
+      $attachedFiles.length > 0 ||
+      $projectTreeNodes.length > 0
+    ) {
       debouncedSaveDraft();
     }
   });
 
-  // Синхронизируем HTML со стором для экспорта
   $effect(() => {
     editorHtml.set(currentHtml);
   });
 
   onMount(() => {
-    // 1. Загрузка текстового драфта
     const draft = loadDraft();
     if (draft) {
       currentHtml = draft.editorHtml;
       attachedFiles.set(draft.attachedFiles);
       fileName.set(draft.fileName);
       exportFormat.set(draft.exportFormat);
-      
+
       if (draft.projectTreeRootName) {
         projectTreeRootName.set(draft.projectTreeRootName);
       }
       if (draft.selectedProjectFiles) {
         selectedProjectFiles.set(draft.selectedProjectFiles);
       }
-      
+
       saveStatus = "saved";
-      setTimeout(() => { saveStatus = "idle"; }, 3000);
+      setTimeout(() => {
+        saveStatus = "idle";
+      }, 3000);
     }
 
-    // 2. Восстановление дерева проекта из IndexedDB (живые fileRef для локальных файлов)
     (async () => {
       try {
         const source = await loadProjectSource();
         if (!source) return;
-        
+
         let nodes: any[] = [];
         let rootName = "";
-        
+
         if (source.type === "handle") {
           const handle = source.handle as FileSystemDirectoryHandle;
-          // Проверяем и запрашиваем разрешение
+
           if ((handle as any).queryPermission) {
             let perm = await (handle as any).queryPermission({ mode: "read" });
             if (perm !== "granted") {
@@ -103,14 +118,17 @@
               return;
             }
           }
+
           nodes = await readDirectoryRecursive(handle);
           rootName = handle.name;
         } else {
-          const result = await readDirectoryViaInput(source.files as unknown as FileList);
+          const result = await readDirectoryViaInput(
+            source.files as unknown as FileList,
+          );
           nodes = result.nodes;
           rootName = result.rootName;
         }
-        
+
         projectTreeNodes.set(nodes);
         projectTreeRootName.set(rootName);
         projectTreeString.set(buildTreeString(rootName, nodes));
@@ -120,9 +138,12 @@
       }
     })();
 
-    // 3. Сохранение перед закрытием вкладки
     const handleBeforeUnload = () => {
-      if (currentHtml || $attachedFiles.length > 0 || $projectTreeNodes.length > 0) {
+      if (
+        currentHtml ||
+        $attachedFiles.length > 0 ||
+        $projectTreeNodes.length > 0
+      ) {
         saveDraft({
           editorHtml: currentHtml,
           attachedFiles: $attachedFiles,
@@ -133,11 +154,16 @@
         });
       }
     };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   });
 
-  function handleUpdate(data: { html: string; text: string; charCount: number }) {
+  function handleUpdate(data: {
+    html: string;
+    text: string;
+    charCount: number;
+  }) {
     currentHtml = data.html;
     charCount = data.charCount;
   }
@@ -147,24 +173,18 @@
     onEditorReady(editor);
   }
 
-  function handleDrop(e: DragEvent) {
-    e.preventDefault();
-    dropZoneActive = false;
-  }
-
-  function handleDragOver(e: DragEvent) {
-    e.preventDefault();
-    dropZoneActive = true;
-  }
-
-  function handleDragLeave() {
+  function handleFilesDropped(files: File[]) {
     dropZoneActive = false;
   }
 
   function insertPlaceholder(file: AttachedFile) {
     if (!editorInstance) return;
     const placeholder = getPlaceholder(file, $attachedFiles);
-    editorInstance.chain().focus().insertContent(placeholder + " ").run();
+    editorInstance
+      .chain()
+      .focus()
+      .insertContent(placeholder + " ")
+      .run();
   }
 
   async function handlePaste(e: ClipboardEvent) {
@@ -174,7 +194,7 @@
     const imageFiles: File[] = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      if (item.type.indexOf('image') !== -1) {
+      if (item.type.indexOf("image") !== -1) {
         const file = item.getAsFile();
         if (file) imageFiles.push(file);
       }
@@ -184,11 +204,11 @@
       e.preventDefault();
       for (const file of imageFiles) {
         try {
-          const { processFile } = await import('../../utils/files');
+          const { processFile } = await import("../../utils/files");
           const attachedFile = await processFile(file);
           attachedFiles.update(($files) => [...$files, attachedFile]);
         } catch (error) {
-          console.error('Error processing pasted image:', error);
+          console.error("Error processing pasted image:", error);
         }
       }
     }
@@ -209,28 +229,36 @@
 
   <div class="flex flex-col min-w-0 overflow-hidden p-6">
     <div
-      class="flex-1 bg-surface rounded-2xl shadow-xl border border-slate-100 relative transition-all duration-300 overflow-hidden {dropZoneActive ? 'ring-4 ring-brand-500/30 border-brand-500' : ''}"
+      use:dropzone={handleFilesDropped}
+      class="flex-1 bg-surface rounded-2xl shadow-xl border border-slate-100 relative transition-all duration-300 overflow-hidden"
       role="region"
       aria-label="Область редактора"
-      ondrop={handleDrop}
-      ondragover={handleDragOver}
-      ondragleave={handleDragLeave}
     >
       <div class="h-full overflow-y-auto p-12">
-        <TiptapEditor content={currentHtml} onReady={handleReady} onUpdate={handleUpdate} />
+        <TiptapEditor
+          content={currentHtml}
+          onReady={handleReady}
+          onUpdate={handleUpdate}
+        />
       </div>
 
       {#if dropZoneActive}
-        <div class="absolute inset-0 bg-brand-50/80 backdrop-blur-sm rounded-2xl flex items-center justify-center pointer-events-none animate-fade-in">
+        <div
+          class="absolute inset-0 bg-brand-50/80 backdrop-blur-sm rounded-2xl flex items-center justify-center pointer-events-none animate-fade-in"
+        >
           <div class="text-center">
             <Upload size={48} class="mx-auto text-brand-500 mb-3" />
-            <p class="text-xl font-semibold text-brand-700">Отпустите файлы для загрузки</p>
+            <p class="text-xl font-semibold text-brand-700">
+              Отпустите файлы для загрузки
+            </p>
           </div>
         </div>
       {/if}
     </div>
 
-    <div class="mt-3 flex items-center justify-between text-sm text-ink-tertiary font-medium shrink-0">
+    <div
+      class="mt-3 flex items-center justify-between text-sm text-ink-tertiary font-medium shrink-0"
+    >
       <span class="flex items-center gap-1.5">
         {#if saveStatus === "saving"}
           <Save size={14} class="text-amber-500 animate-pulse" />
@@ -239,7 +267,8 @@
           <CheckCircle size={14} class="text-emerald-500" />
           <span class="text-emerald-600">Сохранено</span>
         {:else}
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+          ></span>
           <span>Автосохранение включено</span>
         {/if}
       </span>
@@ -252,7 +281,6 @@
   <AttachmentsPanel
     editor={editorInstance}
     onInsertPlaceholder={insertPlaceholder}
-    onInsertContent={insertContent}
   />
 </div>
 

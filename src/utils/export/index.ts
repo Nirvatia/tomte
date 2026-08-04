@@ -1,52 +1,53 @@
-/** export/index.ts */
-
-import type { ExportFormat, AttachedFile } from '../../types';
-import { exportToPDF } from './pdf';
-import { exportToPNG } from './png';
-import { exportToDOCX } from './docx';
-import { exportToMD } from './md';
-import { validateExportLimits } from './limits'; // <-- Новый импорт
+import type { ExportFormat, AttachedFile } from "../../types";
+import { exportToPDF } from "./pdf";
+import { exportToPNG } from "./png";
+import { exportToDOCX } from "./docx";
+import { exportToMD } from "./md";
+import { validateExportLimits } from "./limits";
 
 export interface ExportOptions {
   openInNewTab?: boolean;
 }
 
+/**
+ * Главная функция экспорта. Проверяет лимиты и делегирует работу нужному модулю.
+ */
 export async function exportFile(
   format: ExportFormat,
   editorHtml: string,
   files: AttachedFile[],
   fileName: string,
-  options: ExportOptions = {}
+  options: ExportOptions = {},
 ): Promise<void> {
   try {
-    // 1. МГНОВЕННАЯ ПРОВЕРКА ЛИМИТОВ (занимает < 1 мс)
+    // 1. Мгновенная проверка лимитов (занимает < 1 мс)
     validateExportLimits(format, files);
 
-    // 2. Если проверка пройдена, запускаем тяжёлый экспорт
+    // 2. Выполнение экспорта в зависимости от формата
     switch (format) {
-      case 'md':
+      case "md":
         await exportToMD(editorHtml, files, fileName);
         break;
-      case 'pdf':
+      case "pdf":
         await exportToPDF(editorHtml, files, fileName, options);
         break;
-      case 'docx':
+      case "docx":
         await exportToDOCX(editorHtml, files, fileName);
         break;
-      case 'png':
+      case "png":
         await exportToPNG(editorHtml, files, fileName);
         break;
       default:
         throw new Error(`Неподдерживаемый формат экспорта: ${format}`);
     }
   } catch (error) {
-    console.error('Global Export Error:', error);
-    // Пробрасываем ошибку дальше, чтобы AppHeader её поймал и показал
+    console.error("Global Export Error:", error);
+    // Пробрасываем ошибку дальше, чтобы UI (AppHeader) мог её перехватить и показать
     throw error;
   }
 }
 
-export { exportToMD } from './md';
-export { exportToPDF } from './pdf';
-export { exportToPNG } from './png';
-export { exportToDOCX } from './docx';
+export { exportToMD } from "./md";
+export { exportToPDF } from "./pdf";
+export { exportToPNG } from "./png";
+export { exportToDOCX } from "./docx";

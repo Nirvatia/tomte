@@ -2,31 +2,9 @@ import type { AttachedFile } from "../types";
 import { generateId } from "./index";
 
 export const TEXT_EXTENSIONS = [
-  "txt",
-  "md",
-  "py",
-  "js",
-  "html",
-  "css",
-  "json",
-  "xml",
-  "csv",
-  "sql",
-  "java",
-  "cpp",
-  "c",
-  "h",
-  "php",
-  "rb",
-  "go",
-  "rs",
-  "ts",
-  "jsx",
-  "tsx",
-  "yaml",
-  "yml",
-  "svelte",
-  "gd"
+  "txt", "md", "py", "js", "html", "css", "json", "xml", "csv", "sql",
+  "java", "cpp", "c", "h", "php", "rb", "go", "rs", "ts", "jsx", "tsx",
+  "yaml", "yml", "svelte", "gd"
 ];
 
 export function isTextFile(filename: string): boolean {
@@ -59,8 +37,6 @@ export function getPlaceholder(
   return `[${prefix}_${index}: ${file.name}]`;
 }
 
-// ... (TEXT_EXTENSIONS и другие функции без изменений)
-
 export async function processFile(file: File): Promise<AttachedFile> {
   const id = generateId();
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
@@ -89,7 +65,6 @@ export async function processFile(file: File): Promise<AttachedFile> {
             size: file.size,
             type: "image",
             dataUrl,
-            content: "",
             ext,
             width: img.naturalWidth,
             height: img.naturalHeight,

@@ -1,5 +1,3 @@
-<!-- EditorToolbar.svelte -->
-
 <script lang="ts">
   import {
     Undo2,
@@ -8,8 +6,8 @@
     Trash2,
     List,
     ListOrdered,
-    Indent,
-    Outdent,
+    ListIndentIncrease,
+    ListIndentDecrease,
     Eye,
     Brain,
     Bold,
@@ -28,7 +26,6 @@
     Eraser,
     FolderTree,
   } from "@lucide/svelte";
-
   import {
     isPreviewOpen,
     isExtractorOpen,
@@ -42,6 +39,7 @@
   import TablePicker from "./TablePicker.svelte";
   import { clearDraft, clearProjectSource } from "../../utils/draft";
   import FontSizePicker from "./FontSizePicker.svelte";
+  import { applyTestData } from "../../utils/testData";
 
   let { editor = null }: { editor?: Editor | null } = $props();
 
@@ -57,11 +55,8 @@
     isInsideTable: false,
   });
 
-  
-
   function updateToolbarState() {
     if (!editor) return;
-
     const marks = new Set<string>();
     const blocks = new Set<string>();
 
@@ -71,7 +66,6 @@
     if (editor.isActive("strike")) marks.add("strike");
     if (editor.isActive("highlight")) marks.add("highlight");
     if (editor.isActive("code")) marks.add("code");
-
     if (editor.isActive("heading", { level: 1 })) blocks.add("h1");
     if (editor.isActive("heading", { level: 2 })) blocks.add("h2");
     if (editor.isActive("bulletList")) blocks.add("bulletList");
@@ -90,13 +84,10 @@
 
   $effect(() => {
     if (!editor) return;
-
     updateToolbarState();
-
     editor.on("update", updateToolbarState);
     editor.on("selectionUpdate", updateToolbarState);
     editor.on("transaction", updateToolbarState);
-
     return () => {
       editor?.off("update", updateToolbarState);
       editor?.off("selectionUpdate", updateToolbarState);
@@ -104,71 +95,11 @@
     };
   });
 
-    function generateTestData() {
-    if (!editor) return;
-
-    // 1. HTML со всеми возможными элементами Tiptap
-    const testHtml = `
-      <h1>🧪 Автоматический тест экспорта</h1>
-      <p>Этот документ создан <strong>автоматически</strong> для проверки <em>курсива</em>, <u>подчеркивания</u>, <s>зачеркивания</s>, <mark>выделения</mark> и <code>встроенного кода</code>.</p>
-      
-      <h2>1. Списки</h2>
-      <ul>
-        <li>Маркированный элемент 1</li>
-        <li>Маркированный элемент 2
-          <ul>
-            <li>Вложенный маркированный элемент</li>
-          </ul>
-        </li>
-      </ul>
-      <ol>
-        <li>Нумерованный шаг первый</li>
-        <li>Нумерованный шаг второй</li>
-      </ol>
-      
-      <h2>2. Цитата</h2>
-      <blockquote>Это тестовая цитата для проверки стилей экспорта (левая граница, фон, курсив).</blockquote>
-      
-      <h2>3. Таблица</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Параметр</th>
-            <th>Значение</th>
-            <th>Описание</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Temperature</td>
-            <td>0.7</td>
-            <td>Уровень креативности</td>
-          </tr>
-          <tr>
-            <td>Max Tokens</td>
-            <td>4096</td>
-            <td>Максимальная длина</td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <h2>4. Плейсхолдеры файлов</h2>
-      <p>Ниже должны быть обработаны плейсхолдеры при экспорте:</p>
-      <p>Схема архитектуры: [IMAGE_1: test_image.png]</p>
-      <p>Конфигурация: [FILE_1: test_script.py]</p>
-      <p>Этот текст идет в самом конце, чтобы проверить, что он не перекрывается и стили не ломаются.</p>
-    `;
-
-    // 3. Применяем данные
-    editor.commands.setContent(testHtml);
-    
-    // Сбрасываем имя файла для чистоты теста
-    fileName.set('test_export_document');
-  }
-
   function handleClearDraft() {
-    if (!confirm("Очистить черновик? Это удалит весь текст и загруженные файлы.")) return;
-
+    if (
+      !confirm("Очистить черновик? Это удалит весь текст и загруженные файлы.")
+    )
+      return;
     editor?.commands.clearContent();
     attachedFiles.set([]);
     fileName.set("prompt");
@@ -225,6 +156,7 @@
   function deleteColumn() {
     run(() => editor?.chain().focus().deleteColumn().run());
   }
+
   function deleteTable() {
     if (!editor) return;
     if (confirm("Удалить таблицу?")) {
@@ -239,11 +171,15 @@
     "flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0";
 </script>
 
-<div class="bg-surface border-b border-slate-200 px-6 py-2 flex items-center gap-1 shadow-soft-sm shrink-0">
+<div
+  class="bg-surface border-b border-slate-200 px-6 py-2 flex items-center gap-1 shadow-soft-sm shrink-0"
+>
   <button
+    type="button"
     onclick={toggleProjectTree}
-    class="p-2 rounded-lg transition-all duration-200 {$isProjectTreeOpen ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'text-ink-secondary hover:bg-surface-tertiary hover:text-ink hover:-translate-y-0.5 hover:shadow-soft'}"
-    title="Структура проекта"
+    class="p-2 rounded-lg transition-all duration-200 {$isProjectTreeOpen
+      ? 'bg-blue-100 text-blue-700 border border-blue-300'
+      : 'text-ink-secondary hover:bg-surface-tertiary hover:text-ink hover:-translate-y-0.5 hover:shadow-soft'}"
     aria-label="Открыть панель структуры проекта"
   >
     <FolderTree size={18} />
@@ -253,17 +189,21 @@
 
   <div class="flex items-center gap-0.5 pr-2 mr-1 border-r border-slate-200">
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().undo().run())}
       disabled={!toolbarState.canUndo}
       class={TOOLBAR_BTN_BASE}
+      aria-label="Отменить"
       title="Отменить (Ctrl+Z)"
     >
       <Undo2 size={18} />
     </button>
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().redo().run())}
       disabled={!toolbarState.canRedo}
       class={TOOLBAR_BTN_BASE}
+      aria-label="Повторить"
       title="Повторить (Ctrl+Y)"
     >
       <Redo2 size={18} />
@@ -272,15 +212,21 @@
 
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
     <button
-      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
+      type="button"
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
       class={btnClass(isBlockActive("h1"))}
+      aria-label="Заголовок 1"
       title="Заголовок 1"
     >
       <Heading1 size={18} />
     </button>
     <button
-      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
+      type="button"
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
       class={btnClass(isBlockActive("h2"))}
+      aria-label="Заголовок 2"
       title="Заголовок 2"
     >
       <Heading2 size={18} />
@@ -293,162 +239,208 @@
 
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().toggleBold().run())}
       class={btnClass(isActive("bold"))}
-      title="Жирный (Ctrl+B)"
+      aria-label="Жирный"
+      title="Жирный (Ctrl+B)"><Bold size={18} /></button
     >
-      <Bold size={18} />
-    </button>
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().toggleItalic().run())}
       class={btnClass(isActive("italic"))}
-      title="Курсив (Ctrl+I)"
+      aria-label="Курсив"
+      title="Курсив (Ctrl+I)"><Italic size={18} /></button
     >
-      <Italic size={18} />
-    </button>
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().toggleUnderline().run())}
       class={btnClass(isActive("underline"))}
-      title="Подчёркнутый (Ctrl+U)"
+      aria-label="Подчёркнутый"
+      title="Подчёркнутый (Ctrl+U)"><UnderlineIcon size={18} /></button
     >
-      <UnderlineIcon size={18} />
-    </button>
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().toggleStrike().run())}
       class={btnClass(isActive("strike"))}
-      title="Зачёркнутый"
+      aria-label="Зачёркнутый"
+      title="Зачёркнутый"><Strikethrough size={18} /></button
     >
-      <Strikethrough size={18} />
-    </button>
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().toggleHighlight().run())}
       class={btnClass(isActive("highlight"))}
-      title="Выделение"
+      aria-label="Выделение"
+      title="Выделение"><Highlighter size={18} /></button
     >
-      <Highlighter size={18} />
-    </button>
     <button
+      type="button"
       onclick={() => run(() => editor?.chain().focus().toggleCode().run())}
       class={btnClass(isActive("code"))}
-      title="Код"
+      aria-label="Код"
+      title="Код"><Code size={18} /></button
     >
-      <Code size={18} />
-    </button>
   </div>
 
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
     <button
-      onclick={() => run(() => editor?.chain().focus().toggleBulletList().run())}
+      type="button"
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleBulletList().run())}
       class={btnClass(isBlockActive("bulletList"))}
-      title="Маркированный список"
+      aria-label="Маркированный список"
+      title="Маркированный список"><List size={18} /></button
     >
-      <List size={18} />
-    </button>
     <button
-      onclick={() => run(() => editor?.chain().focus().toggleOrderedList().run())}
+      type="button"
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleOrderedList().run())}
       class={btnClass(isBlockActive("orderedList"))}
-      title="Нумерованный список"
+      aria-label="Нумерованный список"
+      title="Нумерованный список"><ListOrdered size={18} /></button
     >
-      <ListOrdered size={18} />
-    </button>
     <button
-      onclick={() => run(() => editor?.chain().focus().liftListItem("listItem").run())}
+      type="button"
+      onclick={() =>
+        run(() => editor?.chain().focus().liftListItem("listItem").run())}
       class={TOOLBAR_BTN_BASE}
-      title="Уменьшить отступ"
+      aria-label="Уменьшить отступ"
+      title="Уменьшить отступ"><ListIndentDecrease size={18} /></button
     >
-      <Outdent size={18} />
-    </button>
     <button
-      onclick={() => run(() => editor?.chain().focus().sinkListItem("listItem").run())}
+      type="button"
+      onclick={() =>
+        run(() => editor?.chain().focus().sinkListItem("listItem").run())}
       class={TOOLBAR_BTN_BASE}
-      title="Увеличить отступ"
+      aria-label="Увеличить отступ"
+      title="Увеличить отступ"><ListIndentIncrease size={18} /></button
     >
-      <Indent size={18} />
-    </button>
     <button
-      onclick={() => run(() => editor?.chain().focus().toggleBlockquote().run())}
+      type="button"
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleBlockquote().run())}
       class={btnClass(isBlockActive("blockquote"))}
-      title="Цитата"
+      aria-label="Цитата"
+      title="Цитата"><Quote size={18} /></button
     >
-      <Quote size={18} />
-    </button>
-
     <TablePicker {editor} />
   </div>
 
   {#if toolbarState.isInsideTable}
-    <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200 animate-fade-in">
-      <div class="text-[10px] font-semibold text-brand-600 uppercase tracking-wider px-1 select-none">
+    <div
+      class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200 animate-fade-in"
+    >
+      <div
+        class="text-[10px] font-semibold text-brand-600 uppercase tracking-wider px-1 select-none"
+      >
         Таблица
       </div>
-      <button onclick={addRowBefore} class={TOOLBAR_BTN_BASE} title="Добавить строку выше">
-        <Rows3 size={18} />
-      </button>
-      <button onclick={addRowAfter} class={TOOLBAR_BTN_BASE} title="Добавить строку ниже">
-        <Rows3 size={18} class="rotate-180" />
-      </button>
-      <button onclick={addColumnBefore} class={TOOLBAR_BTN_BASE} title="Добавить столбец слева">
-        <Columns3 size={18} />
-      </button>
-      <button onclick={addColumnAfter} class={TOOLBAR_BTN_BASE} title="Добавить столбец справа">
-        <Columns3 size={18} class="rotate-180" />
-      </button>
-      <button onclick={deleteRow} class={TOOLBAR_BTN_BASE} title="Удалить строку">
-        <Minus size={18} class="text-orange-500" />
-      </button>
-      <button onclick={deleteColumn} class={TOOLBAR_BTN_BASE} title="Удалить столбец">
-        <Minus size={18} class="text-orange-500 rotate-90" />
-      </button>
       <button
+        type="button"
+        onclick={addRowBefore}
+        class={TOOLBAR_BTN_BASE}
+        aria-label="Добавить строку выше"
+        title="Добавить строку выше"><Rows3 size={18} /></button
+      >
+      <button
+        type="button"
+        onclick={addRowAfter}
+        class={TOOLBAR_BTN_BASE}
+        aria-label="Добавить строку ниже"
+        title="Добавить строку ниже"
+        ><Rows3 size={18} class="rotate-180" /></button
+      >
+      <button
+        type="button"
+        onclick={addColumnBefore}
+        class={TOOLBAR_BTN_BASE}
+        aria-label="Добавить столбец слева"
+        title="Добавить столбец слева"><Columns3 size={18} /></button
+      >
+      <button
+        type="button"
+        onclick={addColumnAfter}
+        class={TOOLBAR_BTN_BASE}
+        aria-label="Добавить столбец справа"
+        title="Добавить столбец справа"
+        ><Columns3 size={18} class="rotate-180" /></button
+      >
+      <button
+        type="button"
+        onclick={deleteRow}
+        class={TOOLBAR_BTN_BASE}
+        aria-label="Удалить строку"
+        title="Удалить строку"
+        ><Minus size={18} class="text-orange-500" /></button
+      >
+      <button
+        type="button"
+        onclick={deleteColumn}
+        class={TOOLBAR_BTN_BASE}
+        aria-label="Удалить столбец"
+        title="Удалить столбец"
+        ><Minus size={18} class="text-orange-500 rotate-90" /></button
+      >
+      <button
+        type="button"
         onclick={deleteTable}
         class={`${TOOLBAR_BTN_BASE} text-red-500 hover:bg-red-50 hover:text-red-600`}
-        title="Удалить таблицу"
+        aria-label="Удалить таблицу"
+        title="Удалить таблицу"><Trash size={18} /></button
       >
-        <Trash size={18} />
-      </button>
     </div>
   {/if}
 
   <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
-    <button onclick={handleCopy} class={TOOLBAR_BTN_BASE} title="Копировать текст">
-      <Copy size={18} />
-    </button>
     <button
+      type="button"
+      onclick={handleCopy}
+      class={TOOLBAR_BTN_BASE}
+      aria-label="Копировать текст"
+      title="Копировать текст"><Copy size={18} /></button
+    >
+    <button
+      type="button"
       onclick={handleClear}
       class={`${TOOLBAR_BTN_BASE} text-red-500 hover:bg-red-50 hover:text-red-600`}
-      title="Очистить весь текст"
+      aria-label="Очистить весь текст"
+      title="Очистить весь текст"><Trash2 size={18} /></button
     >
-      <Trash2 size={18} />
-    </button>
     <button
+      type="button"
       onclick={handleClearDraft}
       class={`${TOOLBAR_BTN_BASE} text-amber-500 hover:bg-amber-50 hover:text-amber-600`}
-      title="Очистить черновик (текст + файлы)"
+      aria-label="Очистить черновик"
+      title="Очистить черновик (текст + файлы)"><Eraser size={18} /></button
     >
-      <Eraser size={18} />
-    </button>
   </div>
 
   <div class="flex-1"></div>
 
   <div class="flex items-center gap-2">
-      <button
-      onclick={generateTestData}
+    <button
+      type="button"
+      onclick={() => applyTestData(editor, (name) => fileName.set(name))}
       class="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0 bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
+      aria-label="Заполнить редактор тестовыми данными"
       title="Заполнить редактор тестовыми данными"
     >
       <span>🧪 Тест</span>
     </button>
     <button
+      type="button"
       onclick={() => isPreviewOpen.set(true)}
       class={`${ACTION_BTN_BASE} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200`}
+      aria-label="Открыть предпросмотр"
     >
       <Eye size={16} />
       <span>Предпросмотр</span>
     </button>
     <button
+      type="button"
       onclick={() => isExtractorOpen.set(true)}
       class={`${ACTION_BTN_BASE} bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200`}
+      aria-label="Открыть Smart Extractor"
     >
       <Brain size={16} />
       <span>Smart Extractor</span>

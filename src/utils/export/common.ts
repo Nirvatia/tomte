@@ -1,7 +1,8 @@
-/** export/common.ts */
-
 import type { AttachedFile } from "../../types";
 
+/**
+ * Создает скрытый контейнер для рендеринга HTML перед экспортом (PDF/PNG)
+ */
 export function createExportContainer(html: string): HTMLDivElement {
   const container = document.createElement("div");
   // 794px = ровно 210mm (ширина A4) при 96 DPI
@@ -24,24 +25,33 @@ export function createExportContainer(html: string): HTMLDivElement {
   return container;
 }
 
+/**
+ * Безопасно удаляет контейнер из DOM
+ */
 export function removeContainer(container: HTMLDivElement): void {
   if (document.body.contains(container)) {
     document.body.removeChild(container);
   }
 }
 
+/**
+ * Ожидает загрузки всех изображений в контейнере перед созданием скриншота
+ */
 export async function waitForImages(container: HTMLElement): Promise<void> {
   const images = Array.from(container.querySelectorAll("img"));
   const promises = images.map((img) => {
     if (img.complete) return Promise.resolve();
     return new Promise<void>((resolve) => {
       img.onload = () => resolve();
-      img.onerror = () => resolve();
+      img.onerror = () => resolve(); // Разрешаем промис даже при ошибке, чтобы не блокировать экспорт
     });
   });
   await Promise.all(promises);
 }
 
+/**
+ * Экранирует специальные символы HTML для безопасной вставки в текст
+ */
 export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -50,6 +60,10 @@ export function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+/**
+ * Генерирует HTML-разметку для списка вложений в конце документа
+ */
 export function buildAttachmentsHtml(files: AttachedFile[]): string {
   if (files.length === 0) return "";
 
@@ -71,17 +85,16 @@ export function buildAttachmentsHtml(files: AttachedFile[]): string {
     });
   }
 
-  // Теперь здесь просто f.content, без лишних проверок includeInExport
   const textFiles = files.filter((f) => f.type === "text" && f.content);
   if (textFiles.length > 0) {
     html += `<h3 style="color: #059669; font-size: 1.25rem; font-weight: bold; margin-top: 1.5rem;">Текстовые файлы</h3>`;
     textFiles.forEach((file, i) => {
       html += `
-        <div style="margin: 1rem 0;">
-          <p style="font-weight: bold; color: #059669;">FILE_${i + 1}: ${escapeHtml(file.name)}</p>
-          <pre style="background: #f1f5f9; padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; white-space: pre-wrap; overflow-x: auto;">${escapeHtml(file.content)}</pre>
-        </div>
-      `;
+      <div style="margin: 1rem 0;">
+        <p style="font-weight: bold; color: #059669;">FILE_${i + 1}: ${escapeHtml(file.name)}</p>
+        <pre style="background: #f1f5f9; padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; white-space: pre-wrap; overflow-x: auto;">${file.content ? escapeHtml(file.content) : ""}</pre>
+      </div>
+    `;
     });
   }
 

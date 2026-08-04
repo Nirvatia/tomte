@@ -3,7 +3,6 @@
   import type { Editor } from "@tiptap/core";
 
   let { editor = null }: { editor?: Editor | null } = $props();
-
   const GRID_SIZE = 8;
 
   let isOpen = $state(false);
@@ -33,18 +32,13 @@
     editor
       .chain()
       .focus()
-      .insertTable({
-        rows: row + 1,
-        cols: col + 1,
-        withHeaderRow: true,
-      })
+      .insertTable({ rows: row + 1, cols: col + 1, withHeaderRow: true })
       .run();
     close();
   }
 
   function handleKeydown(e: KeyboardEvent) {
     if (!isOpen) return;
-
     if (e.key === "Escape") {
       e.preventDefault();
       close();
@@ -84,11 +78,12 @@
 
 <div bind:this={container} class="relative">
   <button
+    type="button"
     onclick={toggle}
     class={BTN_BASE}
     class:active={editor?.isActive("table")}
-    title="Вставить таблицу"
     aria-label="Вставить таблицу"
+    title="Вставить таблицу"
     aria-haspopup="dialog"
     aria-expanded={isOpen}
   >
@@ -106,7 +101,6 @@
       >
         Выберите размер
       </div>
-
       <div
         class="grid gap-0.5"
         style="grid-template-columns: repeat({GRID_SIZE}, 1fr);"
@@ -124,12 +118,10 @@
                 ? 'bg-brand-100 border-brand-400'
                 : 'bg-surface-secondary border-slate-200 hover:border-brand-300'}"
               aria-label="Таблица {row + 1}×{col + 1}"
-            >
-            </button>
+            ></button>
           {/each}
         {/each}
       </div>
-
       <div class="mt-2 text-center text-xs font-medium text-ink-secondary">
         {hoveredRow + 1} × {hoveredCol + 1}
       </div>

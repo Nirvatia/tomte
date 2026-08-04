@@ -3,45 +3,45 @@
   import { X } from "@lucide/svelte";
 
   let {
-  isOpen = false,
-  onClose = () => {},
-  onCreate = (name: string, value: string) => {},
-  onUpdate = (id: string, name: string, value: string) => {},
-  editingTag = null as Tag | null,
-}: {
-  isOpen?: boolean;
-  onClose?: () => void;
-  onCreate?: (name: string, value: string) => void;
-  onUpdate?: (id: string, name: string, value: string) => void;
-  editingTag?: Tag | null;
-} = $props();
+    isOpen = false,
+    onClose = () => {},
+    onCreate = (name: string, value: string) => {},
+    onUpdate = (id: string, name: string, value: string) => {},
+    editingTag = null as Tag | null,
+  }: {
+    isOpen?: boolean;
+    onClose?: () => void;
+    onCreate?: (name: string, value: string) => void;
+    onUpdate?: (id: string, name: string, value: string) => void;
+    editingTag?: Tag | null;
+  } = $props();
 
   let tagName = $state("");
   let tagValue = $state("");
-  let nameInput: HTMLInputElement;
+  let nameInput: HTMLInputElement | null = $state(null);
 
   $effect(() => {
-  if (isOpen) {
-    if (editingTag) {
-      tagName = editingTag.name;
-      tagValue = editingTag.value;
-    } else {
-      tagName = "";
-      tagValue = "";
+    if (isOpen) {
+      if (editingTag) {
+        tagName = editingTag.name;
+        tagValue = editingTag.value;
+      } else {
+        tagName = "";
+        tagValue = "";
+      }
+      setTimeout(() => nameInput?.focus(), 50);
     }
-    setTimeout(() => nameInput?.focus(), 50);
-  }
-});
+  });
 
   function handleSubmit() {
-  if (!tagName.trim() || !tagValue.trim()) return;
-  if (editingTag) {
-    onUpdate(editingTag.id, tagName.trim(), tagValue.trim());
-  } else {
-    onCreate(tagName.trim(), tagValue.trim());
+    if (!tagName.trim() || !tagValue.trim()) return;
+    if (editingTag) {
+      onUpdate(editingTag.id, tagName.trim(), tagValue.trim());
+    } else {
+      onCreate(tagName.trim(), tagValue.trim());
+    }
+    handleClose();
   }
-  handleClose();
-}
 
   function handleClose() {
     tagName = "";
@@ -55,10 +55,15 @@
     }
   }
 
-  // ✅ <svelte:window> на верхнем уровне, проверяем isOpen внутри
-  function handleKeydown(e: KeyboardEvent) {
-    if (!isOpen) return; // Игнорируем, если модалка закрыта
-    if (e.key === "Escape") {
+  function handleBackdropKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleClose();
+    }
+  }
+
+  function handleWindowKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape" && isOpen) {
       handleClose();
     }
   }
@@ -71,25 +76,31 @@
   }
 </script>
 
-<!-- ✅ <svelte:window> на верхнем уровне компонента -->
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={handleWindowKeydown} />
 
 {#if isOpen}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
+    role="button"
+    tabindex="0"
     onclick={handleBackdropClick}
+    onkeydown={handleBackdropKeydown}
+    aria-label="Закрыть окно тега"
   >
     <div
       class="bg-surface rounded-2xl shadow-2xl max-w-lg w-full flex flex-col"
+      role="presentation"
+      onclick={(e) => e.stopPropagation()}
     >
       <!-- Заголовок -->
       <div
         class="flex items-center justify-between p-6 border-b border-slate-100"
       >
-        <h2 class="text-lg font-bold text-ink">{editingTag ? 'Редактировать тег' : 'Новый тег'}</h2>
+        <h2 class="text-lg font-bold text-ink">
+          {editingTag ? "Редактировать тег" : "Новый тег"}
+        </h2>
         <button
+          type="button"
           onclick={handleClose}
           class="p-2 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
           aria-label="Закрыть"
@@ -118,7 +129,6 @@
             Короткое название для кнопки (макс. 50 символов)
           </p>
         </div>
-
         <div>
           <label
             for="tag-value"
@@ -158,7 +168,7 @@
           disabled={!tagName.trim() || !tagValue.trim()}
           class="px-4 py-2 text-sm font-medium rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {editingTag ? 'Сохранить' : 'Создать'}
+          {editingTag ? "Сохранить" : "Создать"}
         </button>
       </div>
     </div>

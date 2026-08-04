@@ -7,7 +7,7 @@ export interface TreeNode {
   type: "file" | "directory";
   children: TreeNode[];
   fileRef?: File | FileSystemFileHandle;
-  githubRef?: { owner: string; repo: string; branch: string; token?: string }; // <-- Добавь это
+  githubRef?: { owner: string; repo: string; branch: string; token?: string };
 }
 export interface TreeStats {
   totalFiles: number;
@@ -63,7 +63,7 @@ export async function readDirectoryRecursive(
         path: entryPath,
         type: "file",
         children: [],
-        fileRef: entry as FileSystemFileHandle, // <-- Сохраняем ссылку, НЕ читаем содержимое
+        fileRef: entry as FileSystemFileHandle,
       });
     }
   }
@@ -156,7 +156,7 @@ export async function readDirectoryViaInput(
           path: parts.slice(0, i + 1).join("/"),
           type: isFile ? "file" : "directory",
           children: [],
-          fileRef: isFile ? file : undefined, // <-- Сохраняем File объект, НЕ читаем содержимое
+          fileRef: isFile ? file : undefined,
         };
         current.children.push(child);
       }
@@ -190,9 +190,6 @@ export function hasFileSystemAccess(): boolean {
   return "showDirectoryPicker" in window;
 }
 
-// ==========================================
-// ЧТЕНИЕ ВЫБРАННЫХ ФАЙЛОВ ТОЛЬКО ПРИ ЭКСПОРТЕ
-// ==========================================
 export async function getSelectedTreeFilesAsAttachments(
   nodes: TreeNode[],
   selectedPaths: string[],
@@ -218,7 +215,6 @@ export async function getSelectedTreeFilesAsAttachments(
       let content = "";
       let size = 0;
 
-      // 1. Локальный файл
       if (node.fileRef) {
         if (node.fileRef instanceof File) {
           content = await node.fileRef.text();
@@ -228,9 +224,7 @@ export async function getSelectedTreeFilesAsAttachments(
           content = await file.text();
           size = file.size;
         }
-      } 
-      // 2. Файл из GitHub
-      else if (node.githubRef) {
+      } else if (node.githubRef) {
         const githubFile = await fetchGithubFileContent(node);
         content = githubFile.content;
         size = githubFile.size;
@@ -238,7 +232,6 @@ export async function getSelectedTreeFilesAsAttachments(
         return null;
       }
 
-      // Убрали includeInExport, так как его больше нет в типе AttachedFile
       return {
         id: node.path,
         name: node.path,

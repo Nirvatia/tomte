@@ -1,16 +1,15 @@
-export type ExportFormat = 'md' | 'pdf' | 'docx' | 'png' | 'md' | 'txt';
+export type ExportFormat = "md" | "pdf" | "docx" | "png" | "md" | "txt";
 
 export interface AttachedFile {
   id: string;
   name: string;
   size: number;
-  type: 'text' | 'image';
-  content: string;
+  type: "text" | "image";
+  content?: string;
   dataUrl?: string;
   ext?: string;
   width?: number;
   height?: number;
-  // Убрали includeInExport - теперь это определяется через selectedFileIds
 }
 
 export interface EditorHistoryState {
@@ -28,11 +27,10 @@ export interface Draft {
   attachedFiles: AttachedFile[];
   fileName: string;
   exportFormat: ExportFormat;
-  // Добавляем эти поля для полноценного автосохранения состояния
   projectTreeRootName?: string;
   selectedProjectFiles?: string[];
-  savedAt: string; // ISO timestamp
-  version: string; // версия схемы для миграций
+  savedAt: string;
+  version: string;
 }
 
 export interface Tag {

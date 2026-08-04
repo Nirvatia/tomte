@@ -1,9 +1,13 @@
+<!-- AppHeader.svelte -->
 <script lang="ts">
   import {
     exportFormat,
     fileName,
     editorHtml,
     attachedFiles,
+    projectTreeNodes,
+    selectedProjectFiles,
+    selectedFileIds,
   } from "../../stores";
   import type { ExportFormat } from "../../types";
   import {
@@ -13,18 +17,12 @@
     FileCode,
     File as FileIcon,
     Download,
-    Loader2,
+    LoaderCircle,
     ExternalLink,
-    AlertCircle, // <-- Добавили иконку для модалки
+    CircleAlert,
   } from "@lucide/svelte";
   import AppLogo from "./AppLogo.svelte";
   import { exportFile } from "../../utils/export";
-
-  import {
-    projectTreeNodes,
-    selectedProjectFiles,
-    selectedFileIds,
-  } from "../../stores";
   import { getSelectedTreeFilesAsAttachments } from "../../utils/projectTree";
 
   let isFileMenuOpen = $state(false);
@@ -55,6 +53,17 @@
     }
   }
 
+  function closeErrorModal() {
+    exportError = null;
+  }
+
+  function handleModalBackdropKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      closeErrorModal();
+    }
+  }
+
   async function handleExport() {
     if (isExporting) return;
 
@@ -62,45 +71,44 @@
     exportError = null;
 
     try {
-      // 1. Берем ТОЛЬКО выбранные файлы из панели вложений
-      const selectedAttachments = $attachedFiles.filter(f => $selectedFileIds.has(f.id));
+      const selectedAttachments = $attachedFiles.filter((f) =>
+        $selectedFileIds.has(f.id),
+      );
 
-      // 2. Берем ТОЛЬКО выбранные файлы из дерева проекта
-      // (Функция уже возвращает только выбранные, но мы добавим префикс ID для безопасности)
       const rawTreeFiles = await getSelectedTreeFilesAsAttachments(
         $projectTreeNodes,
-        $selectedProjectFiles
+        $selectedProjectFiles,
       );
-      
-      // Гарантируем уникальность ID, чтобы они не пересеклись с attachments
-      const selectedTreeFiles = rawTreeFiles.map(f => ({
+
+      const selectedTreeFiles = rawTreeFiles.map((f) => ({
         ...f,
-        id: `tree_${f.id}` 
+        id: `tree_${f.id}`,
       }));
 
-      // 3. Объединяем в один чистый массив для экспорта
       const filesToExport = [...selectedAttachments, ...selectedTreeFiles];
 
-      // 4. Проверка
       if (!$editorHtml.trim() && filesToExport.length === 0) {
-        throw new Error("Нечего экспортировать. Добавьте текст или выберите файлы.");
+        throw new Error(
+          "Нечего экспортировать. Добавьте текст или выберите файлы.",
+        );
       }
 
-      // 5. Передаем в экспорт УЖЕ отфильтрованный массив. 
-      // Модули экспорта больше не должны ничего фильтровать!
       await exportFile($exportFormat, $editorHtml, filesToExport, $fileName, {
         openInNewTab,
       });
     } catch (e) {
-      console.error("Export error:", e);
-      const errorMessage = e instanceof Error ? e.message : "Неизвестная ошибка";
-      
-      if (errorMessage.includes("Слишком много") || errorMessage.includes("Слишком большой")) {
+      const errorMessage =
+        e instanceof Error ? e.message : "Неизвестная ошибка";
+
+      if (
+        errorMessage.includes("Слишком много") ||
+        errorMessage.includes("Слишком большой")
+      ) {
         console.warn("⚠️ Превышен лимит экспорта:", errorMessage);
       } else {
         console.error("❌ Ошибка экспорта:", e);
       }
-      
+
       exportError = errorMessage;
     } finally {
       isExporting = false;
@@ -116,6 +124,7 @@
   <div class="flex items-center gap-3">
     <div class="relative menu-container">
       <button
+        type="button"
         onclick={toggleMenu}
         class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-all duration-200 text-ink-secondary hover:text-ink font-medium"
         aria-haspopup="menu"
@@ -140,33 +149,37 @@
             Экспортировать как...
           </div>
           <button
+            type="button"
             role="menuitem"
             onclick={() => setFormat("md")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors font-semibold"
+            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors font-semibold text-left"
           >
             <FileCode size={16} />
             <span>Markdown</span>
           </button>
           <button
+            type="button"
             role="menuitem"
             onclick={() => setFormat("pdf")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors"
+            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors text-left"
           >
             <FileCode size={16} />
             <span>PDF Документ</span>
           </button>
           <button
+            type="button"
             role="menuitem"
             onclick={() => setFormat("docx")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors"
+            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors text-left"
           >
             <FileText size={16} />
             <span>DOCX Документ</span>
           </button>
           <button
+            type="button"
             role="menuitem"
             onclick={() => setFormat("png")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors"
+            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors text-left"
           >
             <Image size={16} />
             <span>PNG Изображение</span>
@@ -174,14 +187,28 @@
 
           <div class="border-t border-slate-100 my-1"></div>
 
-          <label
-            class="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-tertiary cursor-pointer transition-colors select-none"
-            onclick={(e) => e.stopPropagation()}
+          <div
+            class="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-tertiary transition-colors select-none cursor-pointer text-left w-full"
+            role="button"
+            tabindex="0"
+            onclick={(e) => {
+              e.stopPropagation();
+              openInNewTab = !openInNewTab;
+            }}
+            onkeydown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                openInNewTab = !openInNewTab;
+              }
+            }}
           >
             <input
               type="checkbox"
-              bind:checked={openInNewTab}
-              class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+              checked={openInNewTab}
+              class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 pointer-events-none"
+              tabindex="-1"
+              aria-hidden="true"
             />
             <span
               class="text-sm text-ink-secondary flex items-center gap-1.5 pointer-events-none"
@@ -189,7 +216,7 @@
               <ExternalLink size={14} />
               Открыть PDF в новой вкладке
             </span>
-          </label>
+          </div>
         </div>
       {/if}
     </div>
@@ -213,12 +240,13 @@
 
     <div class="relative">
       <button
+        type="button"
         onclick={handleExport}
         disabled={isExporting}
         class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg font-medium text-sm hover:bg-brand-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {#if isExporting}
-          <Loader2 size={16} class="animate-spin" />
+          <LoaderCircle size={16} class="animate-spin" />
           <span>Экспорт...</span>
         {:else}
           <Download size={16} />
@@ -231,29 +259,27 @@
   <AppLogo size="compact" />
 </header>
 
-<!-- ========================================== -->
-<!-- МИНИ-МОДАЛЬНОЕ ОКНО ОШИБКИ -->
-<!-- ========================================== -->
 {#if exportError}
-  <!-- Затемненный фон (закрывается по клику) -->
   <div
-    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in"
-    onclick={() => (exportError = null)}
+    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-100 flex items-center justify-center p-4 animate-fade-in"
+    role="button"
+    tabindex="0"
+    onclick={closeErrorModal}
+    onkeydown={handleModalBackdropKeydown}
+    aria-label="Закрыть окно ошибки"
   >
-    <!-- Само окно (клик внутри не закрывает его) -->
     <div
       class="bg-surface border border-red-200 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in"
+      role="presentation"
       onclick={(e) => e.stopPropagation()}
     >
       <div class="flex items-start gap-4">
-        <!-- Иконка ошибки -->
         <div
           class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0"
         >
-          <AlertCircle size={20} class="text-red-600" />
+          <CircleAlert size={20} class="text-red-600" />
         </div>
 
-        <!-- Текст ошибки -->
         <div class="flex-1">
           <h3 class="text-base font-bold text-ink mb-1">Ошибка экспорта</h3>
           <p
@@ -264,10 +290,10 @@
         </div>
       </div>
 
-      <!-- Кнопка закрытия -->
       <div class="mt-6 flex justify-end">
         <button
-          onclick={() => (exportError = null)}
+          type="button"
+          onclick={closeErrorModal}
           class="px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30"
         >
           Понятно

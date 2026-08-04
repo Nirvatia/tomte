@@ -3,7 +3,6 @@
   import type { Editor } from "@tiptap/core";
 
   let { editor = null }: { editor?: Editor | null } = $props();
-
   let isOpen = $state(false);
   let container: HTMLDivElement;
 
@@ -54,10 +53,11 @@
 
 <div bind:this={container} class="relative">
   <button
+    type="button"
     onclick={toggle}
     class={BTN_BASE}
-    title="Размер шрифта"
     aria-label="Размер шрифта"
+    title="Размер шрифта"
   >
     <Type size={18} />
   </button>
@@ -69,6 +69,7 @@
       class="absolute top-full left-0 mt-2 bg-surface rounded-xl shadow-xl border border-slate-100 p-2 animate-fade-in z-50 w-48"
     >
       <button
+        type="button"
         onclick={resetSize}
         class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-colors text-left"
       >
@@ -78,6 +79,7 @@
       <div class="border-t border-slate-100 my-1"></div>
       {#each FONT_SIZES as size}
         <button
+          type="button"
           onclick={() => setSize(size.value)}
           class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-colors text-left {currentSize() ===
           size.value

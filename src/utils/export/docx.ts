@@ -1,5 +1,3 @@
-/** export/docx.ts */
-
 import {
   Document,
   Packer,
@@ -12,14 +10,14 @@ import {
   TableCell,
   WidthType,
   BorderStyle,
-  AlignmentType,
 } from "docx";
 import type { AttachedFile } from "../../types";
 import { buildPreviewHtml } from "../preview";
 import { sanitizeFileName } from "../index";
-import { escapeHtml, buildAttachmentsHtml } from "./common";
 
-// Простой HTML-парсер для DOCX
+/**
+ * Простой HTML-парсер для преобразования DOM-узлов в элементы DOCX
+ */
 function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
@@ -40,7 +38,6 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
     }
 
     if (node.nodeType !== Node.ELEMENT_NODE) return;
-
     const el = node as HTMLElement;
     const tag = el.tagName.toLowerCase();
 
@@ -56,7 +53,6 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
           }),
         );
         break;
-
       case "h2":
         elements.push(
           new Paragraph({
@@ -68,7 +64,6 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
           }),
         );
         break;
-
       case "h3":
         elements.push(
           new Paragraph({
@@ -80,16 +75,13 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
           }),
         );
         break;
-
       case "p":
         elements.push(createParagraphFromInline(el));
         break;
-
       case "ul":
       case "ol":
         processList(el, tag === "ol");
         break;
-
       case "blockquote":
         elements.push(
           new Paragraph({
@@ -110,20 +102,14 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
                 space: 10,
               },
             },
-            shading: {
-              type: "clear",
-              color: "auto",
-              fill: "EEF2FF", // Синеватый фон (аналог brand-50)
-            },
+            shading: { type: "clear", color: "auto", fill: "EEF2FF" },
             spacing: { after: 100, before: 100 },
           }),
         );
         break;
-
       case "table":
         processTable(el);
         break;
-
       case "pre":
         const codeText = el.textContent || "";
         codeText.split("\n").forEach((line) => {
@@ -137,9 +123,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
           );
         });
         break;
-
       default:
-        // Рекурсивно обрабатываем детей
         Array.from(el.childNodes).forEach(processNode);
     }
   }
@@ -150,16 +134,13 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
     function extractRuns(node: Node): void {
       if (node.nodeType === Node.TEXT_NODE) {
         const text = node.textContent;
-        if (text) {
-          runs.push(new TextRun({ text, size: 24 }));
-        }
+        if (text) runs.push(new TextRun({ text, size: 24 }));
         return;
       }
 
       if (node.nodeType !== Node.ELEMENT_NODE) return;
       const child = node as HTMLElement;
       const tag = child.tagName.toLowerCase();
-
       const baseProps: any = { text: child.textContent || "", size: 24 };
 
       if (tag === "strong" || tag === "b") baseProps.bold = true;
@@ -167,9 +148,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
       if (tag === "u") baseProps.underline = {};
       if (tag === "s" || tag === "strike" || tag === "del")
         baseProps.strike = true;
-      if (tag === "mark") {
-        baseProps.highlight = "yellow";
-      }
+      if (tag === "mark") baseProps.highlight = "yellow";
       if (tag === "code") {
         baseProps.font = "Courier New";
         baseProps.size = 20;
@@ -186,10 +165,8 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
     }
 
     Array.from(el.childNodes).forEach(extractRuns);
-
-    if (runs.length === 0) {
+    if (runs.length === 0)
       runs.push(new TextRun({ text: el.textContent || "", size: 24 }));
-    }
 
     return new Paragraph({ children: runs, spacing: { after: 100 } });
   }
@@ -204,7 +181,6 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
     );
 
     items.forEach((li, index) => {
-      // Извлекаем только прямой текст li (без вложенных списков)
       const textParts: string[] = [];
       Array.from(li.childNodes).forEach((node) => {
         if (node.nodeType === Node.TEXT_NODE) {
@@ -212,9 +188,10 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
           if (text) textParts.push(text);
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           const child = node as HTMLElement;
-          const tag = child.tagName.toLowerCase();
-          // Пропускаем вложенные списки
-          if (tag !== "ul" && tag !== "ol") {
+          if (
+            child.tagName.toLowerCase() !== "ul" &&
+            child.tagName.toLowerCase() !== "ol"
+          ) {
             const text = child.textContent?.trim();
             if (text) textParts.push(text);
           }
@@ -222,7 +199,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
       });
 
       const text = textParts.join(" ");
-      const indent = 360 + level * 360; // Увеличиваем отступ для каждого уровня
+      const indent = 360 + level * 360;
       const prefix = ordered ? `${index + 1}. ` : "• ";
 
       elements.push(
@@ -233,18 +210,20 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
         }),
       );
 
-      // Рекурсивно обрабатываем вложенные списки
       const nestedLists = Array.from(li.children).filter(
         (c) =>
           c.tagName.toLowerCase() === "ul" || c.tagName.toLowerCase() === "ol",
       );
-
       nestedLists.forEach((nestedList) => {
-        const isOrdered = nestedList.tagName.toLowerCase() === "ol";
-        processList(nestedList as HTMLElement, isOrdered, level + 1);
+        processList(
+          nestedList as HTMLElement,
+          nestedList.tagName.toLowerCase() === "ol",
+          level + 1,
+        );
       });
     });
   }
+
   function processTable(tableEl: HTMLElement): void {
     const rows = Array.from(tableEl.querySelectorAll("tr"));
     if (rows.length === 0) return;
@@ -267,30 +246,21 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
               }),
             ],
             width: { size: 100 / cells.length, type: WidthType.PERCENTAGE },
-            margins: {
-              top: 80,
-              bottom: 80,
-              left: 120,
-              right: 120,
-            },
+            margins: { top: 80, bottom: 80, left: 120, right: 120 },
             shading: isHeader
-              ? {
-                  type: "clear",
-                  color: "auto",
-                  fill: "F8FAFC",
-                }
+              ? { type: "clear", color: "auto", fill: "F8FAFC" }
               : undefined,
           });
         }),
       });
     });
 
-    const table = new Table({
-      rows: tableRows,
-      width: { size: 100, type: WidthType.PERCENTAGE },
-    });
-
-    elements.push(table);
+    elements.push(
+      new Table({
+        rows: tableRows,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+      }),
+    );
     elements.push(new Paragraph({ children: [], spacing: { after: 100 } }));
   }
 
@@ -298,6 +268,9 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
   return elements;
 }
 
+/**
+ * Создает ImageRun для DOCX из base64 data URL
+ */
 function createDocxImage(
   dataUrl: string,
   width: number,
@@ -310,7 +283,6 @@ function createDocxImage(
   const scale = Math.min(1, maxWidth / width);
   const finalWidth = Math.round(width * scale);
   const finalHeight = Math.round(height * scale);
-
   const imageType =
     header.includes("image/jpeg") || header.includes("image/jpg")
       ? "jpg"
@@ -322,15 +294,16 @@ function createDocxImage(
     type: imageType,
   });
 }
-// ... (весь код parseHtmlToDocx и createDocxImage без изменений)
 
+/**
+ * Экспортирует содержимое в формат DOCX
+ */
 export async function exportToDOCX(
   editorHtml: string,
   files: AttachedFile[],
   fileName: string,
 ): Promise<void> {
   try {
-    // buildPreviewHtml теперь должен вызывать buildAttachmentsHtml(files) без selectedIds
     const { html: mainHtml } = buildPreviewHtml(editorHtml, files);
     const content: (Paragraph | Table)[] = parseHtmlToDocx(mainHtml);
 
@@ -444,6 +417,7 @@ export async function exportToDOCX(
       creator: "Tomte",
       title: fileName,
     });
+
     const blob = await Packer.toBlob(doc);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { FileText, Eye, Trash2, Link } from '@lucide/svelte';
-  import type { AttachedFile } from '../../types';
-  import { formatFileSize } from '../../utils';
-  import { getPlaceholderPrefix, getPlaceholderIndex } from '../../utils/files';
+  import { FileText, Eye, Trash2, Link } from "@lucide/svelte";
+  import type { AttachedFile } from "../../types";
+  import { formatFileSize } from "../../utils";
+  import { getPlaceholderPrefix, getPlaceholderIndex } from "../../utils/files";
 
   let {
     file,
@@ -11,7 +11,7 @@
     onToggleSelect = () => {},
     onRemove = () => {},
     onPreview = () => {},
-    onInsertPlaceholder = () => {}
+    onInsertPlaceholder = () => {},
   }: {
     file: AttachedFile;
     allFiles?: AttachedFile[];
@@ -24,7 +24,11 @@
 
   const prefix = $derived(getPlaceholderPrefix(file));
   const placeholderIndex = $derived(getPlaceholderIndex(file, allFiles));
-  const badgeColor = $derived(file.type === 'image' ? 'text-brand-600 bg-brand-50' : 'text-emerald-600 bg-emerald-50');
+  const badgeColor = $derived(
+    file.type === "image"
+      ? "text-brand-600 bg-brand-50"
+      : "text-emerald-600 bg-emerald-50",
+  );
 
   function handleCheckboxClick(e: Event) {
     e.stopPropagation();
@@ -47,30 +51,35 @@
   }
 </script>
 
+<!-- Внешний div используется только для layout, вся интерактивность внутри на честных элементах -->
 <div
   class="group flex items-center gap-3 p-3 rounded-xl border transition-all {isSelected
     ? 'border-brand-400 bg-brand-50 shadow-soft-sm'
     : 'border-slate-100 bg-surface-secondary hover:border-brand-200 hover:shadow-soft'}"
-  role="region"
-  aria-label="Файл {file.name}"
 >
   <input
     type="checkbox"
     checked={isSelected}
     onclick={handleCheckboxClick}
     class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 focus:ring-2 cursor-pointer shrink-0 mt-1"
-    aria-label="Выбрать файл"
+    aria-label="Выбрать файл {file.name}"
   />
 
-  <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-surface-tertiary flex items-center justify-center">
-    {#if file.type === 'image' && file.dataUrl}
-      <img src={file.dataUrl} alt={file.name} class="w-full h-full object-cover" />
+  <div
+    class="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-surface-tertiary flex items-center justify-center"
+  >
+    {#if file.type === "image" && file.dataUrl}
+      <img
+        src={file.dataUrl}
+        alt={file.name}
+        class="w-full h-full object-cover"
+      />
     {:else}
       <FileText size={20} class="text-brand-600" />
     {/if}
   </div>
 
-  <div class="flex-1 min-w-0 cursor-default">
+  <div class="flex-1 min-w-0">
     <p class="text-sm font-medium text-ink truncate">{file.name}</p>
     <div class="flex items-center gap-2 mt-0.5">
       <p class="text-xs text-ink-tertiary">{formatFileSize(file.size)}</p>
@@ -80,27 +89,35 @@
     </div>
   </div>
 
-  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+  <div
+    class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+  >
     <button
+      type="button"
       onclick={handleInsertPlaceholderClick}
       class="p-1.5 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
       title="Вставить ссылку на файл"
+      aria-label="Вставить ссылку на файл {file.name}"
     >
       <Link size={16} />
     </button>
 
     <button
+      type="button"
       onclick={handlePreviewClick}
       class="p-1.5 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
       title="Просмотреть файл"
+      aria-label="Просмотреть файл {file.name}"
     >
       <Eye size={16} />
     </button>
 
     <button
+      type="button"
       onclick={handleRemoveClick}
       class="p-1.5 rounded-lg hover:bg-red-50 text-ink-secondary hover:text-red-500 transition-colors"
       title="Удалить файл"
+      aria-label="Удалить файл {file.name}"
     >
       <Trash2 size={16} />
     </button>

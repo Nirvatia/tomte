@@ -1,3 +1,4 @@
+<!-- AppLogo.svelte -->
 <script lang="ts">
   let { size = "default" }: { size?: "default" | "compact" } = $props();
 
@@ -23,7 +24,7 @@
   let s = $derived(sizes[size]);
 </script>
 
-<div class={s.container}>
+<div class={s.container} aria-label="Tomte - Prompt Builder">
   <div class={s.icon}>
     <span class={s.iconText}>T</span>
   </div>
