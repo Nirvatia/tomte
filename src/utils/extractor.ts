@@ -21,13 +21,35 @@ const FILE_PATTERNS = [
 ];
 
 const LANG_EXT_MAP: Record<string, string> = {
-  javascript: "js", js: "js", typescript: "ts", ts: "ts",
-  python: "py", py: "py", html: "html", css: "css",
-  java: "java", cpp: "cpp", c: "c", "c#": "cs", csharp: "cs",
-  php: "php", ruby: "rb", go: "go", rust: "rs",
-  json: "json", xml: "xml", yaml: "yaml", yml: "yml",
-  sql: "sql", bash: "sh", sh: "sh", markdown: "md", md: "md",
-  txt: "txt", svelte: "svelte", gdscript: "gd"
+  javascript: "js",
+  js: "js",
+  typescript: "ts",
+  ts: "ts",
+  python: "py",
+  py: "py",
+  html: "html",
+  css: "css",
+  java: "java",
+  cpp: "cpp",
+  c: "c",
+  "c#": "cs",
+  csharp: "cs",
+  php: "php",
+  ruby: "rb",
+  go: "go",
+  rust: "rs",
+  json: "json",
+  xml: "xml",
+  yaml: "yaml",
+  yml: "yml",
+  sql: "sql",
+  bash: "sh",
+  sh: "sh",
+  markdown: "md",
+  md: "md",
+  txt: "txt",
+  svelte: "svelte",
+  gdscript: "gd",
 };
 
 function findFileName(text: string): string | null {
@@ -39,29 +61,19 @@ function findFileName(text: string): string | null {
 }
 
 function normalizeMarkdown(text: string): string {
-  // Заменяем только "умные" кавычки на обычные. 
-  // Обратные кавычки не трогаем, они и так правильные.
-  return text
-    .replace(/['']/g, "'")
-    .replace(/[""]/g, '"');
+  return text.replace(/['']/g, "'").replace(/[""]/g, '"');
 }
 
 export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
-  console.log("🔍 Начинаем поиск блоков кода в тексте длиной:", markdown.length);
-  
+  console.log("Начинаем поиск блоков кода в тексте длиной:", markdown.length);
+
   const normalizedMarkdown = normalizeMarkdown(markdown);
   const extracted: ExtractedFile[] = [];
   const usedNames = new Set<string>();
-  
-  // ✅ ИСПРАВЛЕННЫЙ REGEX:
-  // 1. (?:^|\n) — блок должен начинаться с начала строки или после переноса
-  // 2. \s*``` — допускаем пробелы перед кавычками
-  // 3. ([a-zA-Z0-9_+\-#]+) — ✅ ТРЕБУЕМ хотя бы 1 символ языка (убирает ложные срабатывания на пустых ```)
-  // 4. \s*\r?\n — перенос строки после языка (работает и с \r\n, и с \n)
-  // 5. ([\s\S]*?) — содержимое (нежадный захват)
-  // 6. \r?\n\s*``` — закрывающие кавычки должны быть на новой строке
-  const blockRegex = /(?:^|\n)\s*```([a-zA-Z0-9_+\-#]+)\s*\r?\n([\s\S]*?)\r?\n\s*```/g;
-  
+
+  const blockRegex =
+    /(?:^|\n)\s*```([a-zA-Z0-9_+\-#]+)\s*\r?\n([\s\S]*?)\r?\n\s*```/g;
+
   let match;
   let fileCounter = 1;
   let matchCount = 0;
@@ -70,43 +82,48 @@ export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
     matchCount++;
     const lang = match[1].trim().toLowerCase();
     let code = match[2].trim();
-    
-    // Дополнительная защита: пропускаем блоки, которые слишком короткие и выглядят как обычный текст
-    if (code.length < 15 && !code.includes('\n') && !lang) {
-      console.log(`⚠️ Пропускаем блок #${matchCount}: слишком короткий, похож на текст`);
+
+    if (code.length < 15 && !code.includes("\n") && !lang) {
+      console.log(
+        `Пропускаем блок #${matchCount}: слишком короткий, похож на текст`,
+      );
       continue;
     }
-    
-    console.log(`📦 Найден блок #${matchCount}:`);
+
+    console.log(`Найден блок #${matchCount}:`);
     console.log(`   - Язык: "${lang}"`);
-    console.log(`   - Начало кода: "${code.substring(0, 50).replace(/\n/g, '\\n')}"`);
-    
+    console.log(
+      `   - Начало кода: "${code.substring(0, 50).replace(/\n/g, "\\n")}"`,
+    );
+
     let fileName: string | null = null;
 
-    // 1. Ищем имя файла до блока (500 символов)
-    fileName = findFileName(normalizedMarkdown.substring(Math.max(0, match.index - 500), match.index));
-    
-    // 2. Если не нашли: после блока (300 символов)
+    fileName = findFileName(
+      normalizedMarkdown.substring(Math.max(0, match.index - 500), match.index),
+    );
+
     if (!fileName) {
-      fileName = findFileName(normalizedMarkdown.substring(match.index + match[0].length, match.index + match[0].length + 300));
+      fileName = findFileName(
+        normalizedMarkdown.substring(
+          match.index + match[0].length,
+          match.index + match[0].length + 300,
+        ),
+      );
     }
-    
-    // 3. Если не нашли: в первых 5 строках самого кода
+
     if (!fileName) {
       fileName = findFileName(code.split("\n").slice(0, 5).join("\n"));
     }
 
-    // 4. Фоллбэк: генерируем имя из языка
     if (!fileName) {
       const ext = LANG_EXT_MAP[lang] || "txt";
       fileName = `file_${fileCounter}.${ext}`;
     }
 
-    // 5. Проверяем на дубликаты и добавляем суффикс
     let uniqueName = fileName;
     let counter = 1;
     while (usedNames.has(uniqueName)) {
-      const lastDot = fileName.lastIndexOf('.');
+      const lastDot = fileName.lastIndexOf(".");
       if (lastDot > 0) {
         const baseName = fileName.substring(0, lastDot);
         const ext = fileName.substring(lastDot);
@@ -118,13 +135,13 @@ export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
     }
     usedNames.add(uniqueName);
 
-    console.log(`✅ Итоговое имя файла: ${uniqueName} (lang: ${lang})`);
-    
-    extracted.push({ 
-      id: generateId(), 
-      name: uniqueName, 
-      lang: lang, 
-      code 
+    console.log(`Итоговое имя файла: ${uniqueName} (lang: ${lang})`);
+
+    extracted.push({
+      id: generateId(),
+      name: uniqueName,
+      lang: lang,
+      code,
     });
     fileCounter++;
   }
