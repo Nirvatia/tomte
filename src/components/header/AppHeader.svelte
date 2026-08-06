@@ -119,149 +119,179 @@
 <svelte:window onclick={closeMenu} />
 
 <header
-  class="bg-surface border-b border-slate-200 shadow-soft-sm px-6 py-2.5 flex items-center justify-between shrink-0"
+  class="relative z-30 flex h-15 shrink-0 items-center justify-between gap-4 border-b border-line bg-[#131416] px-5"
 >
-  <div class="flex items-center gap-3">
-    <div class="relative menu-container">
-      <button
-        type="button"
-        onclick={toggleMenu}
-        class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-all duration-200 text-ink-secondary hover:text-ink font-medium"
-        aria-haspopup="menu"
-        aria-expanded={isFileMenuOpen}
-      >
-        <FileIcon size={16} />
-        <span>Файл</span>
-        <ChevronDown
-          size={14}
-          class="transition-transform {isFileMenuOpen ? 'rotate-180' : ''}"
-        />
-      </button>
+  <!-- Лого + имя файла -->
+  <div class="flex min-w-0 items-center gap-4">
+    <AppLogo size="compact" />
 
-      {#if isFileMenuOpen}
-        <div
-          role="menu"
-          class="absolute top-full left-0 mt-2 w-56 bg-surface rounded-xl shadow-xl border border-slate-100 py-2 animate-fade-in z-50"
-        >
-          <div
-            class="px-4 py-2 text-xs font-semibold text-ink-tertiary uppercase tracking-wider"
-          >
-            Экспортировать как...
-          </div>
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => setFormat("md")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors font-semibold text-left"
-          >
-            <FileCode size={16} />
-            <span>Markdown</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => setFormat("pdf")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors text-left"
-          >
-            <FileCode size={16} />
-            <span>PDF Документ</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => setFormat("docx")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors text-left"
-          >
-            <FileText size={16} />
-            <span>DOCX Документ</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => setFormat("png")}
-            class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-50 text-ink-secondary hover:text-brand-600 transition-colors text-left"
-          >
-            <Image size={16} />
-            <span>PNG Изображение</span>
-          </button>
-
-          <div class="border-t border-slate-100 my-1"></div>
-
-          <div
-            class="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-tertiary transition-colors select-none cursor-pointer text-left w-full"
-            role="button"
-            tabindex="0"
-            onclick={(e) => {
-              e.stopPropagation();
-              openInNewTab = !openInNewTab;
-            }}
-            onkeydown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-                openInNewTab = !openInNewTab;
-              }
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={openInNewTab}
-              class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 pointer-events-none"
-              tabindex="-1"
-              aria-hidden="true"
-            />
-            <span
-              class="text-sm text-ink-secondary flex items-center gap-1.5 pointer-events-none"
-            >
-              <ExternalLink size={14} />
-              Открыть PDF в новой вкладке
-            </span>
-          </div>
-        </div>
-      {/if}
-    </div>
-
-    <div class="w-px h-6 bg-slate-200"></div>
+    <div class="h-6 w-px bg-line"></div>
 
     <div
-      class="flex items-center gap-2 px-3 py-1.5 bg-surface-secondary border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
+      class="flex h-9.5 items-center gap-2.5 rounded-md border border-line bg-inset px-3 transition-colors focus-within:border-amb/60"
     >
-      <FileText size={14} class="text-ink-tertiary" />
+      <FileText size={14} class="shrink-0 text-txt3" />
       <input
         type="text"
         bind:value={$fileName}
         placeholder="Имя файла..."
-        class="w-40 px-2 py-0.5 bg-transparent text-sm text-ink font-medium focus:outline-none focus:ring-1 focus:ring-brand-500/30 focus:border-brand-500 transition-all"
+        class="w-44 bg-transparent font-mono text-[13px] text-txt placeholder:text-txt3 focus:outline-none"
         aria-label="Имя файла"
       />
     </div>
-
-    <div class="w-px h-6 bg-slate-200"></div>
-
-    <div class="relative">
-      <button
-        type="button"
-        onclick={handleExport}
-        disabled={isExporting}
-        class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg font-medium text-sm hover:bg-brand-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {#if isExporting}
-          <LoaderCircle size={16} class="animate-spin" />
-          <span>Экспорт...</span>
-        {:else}
-          <Download size={16} />
-          <span>Экспорт в {formatLabels[$exportFormat]}</span>
-        {/if}
-      </button>
-    </div>
   </div>
 
-  <AppLogo size="compact" />
+  <!-- Сплит-кнопка: выбор формата + экспорт -->
+  <div class="menu-container relative flex items-stretch">
+    <button
+      type="button"
+      onclick={toggleMenu}
+      class="flex h-9.5 items-center gap-2 rounded-l-md border border-line2 bg-raised px-3.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors duration-150 {isFileMenuOpen
+        ? 'border-amb/50 bg-raised2 text-amb'
+        : 'text-txt2 hover:bg-raised2 hover:text-txt'}"
+      aria-haspopup="menu"
+      aria-expanded={isFileMenuOpen}
+    >
+      <FileIcon size={15} />
+      <span>{formatLabels[$exportFormat]}</span>
+      <ChevronDown
+        size={13}
+        class="transition-transform duration-150 {isFileMenuOpen
+          ? 'rotate-180'
+          : ''}"
+      />
+    </button>
+
+    <button
+      type="button"
+      onclick={handleExport}
+      disabled={isExporting}
+      class="flex h-9.5 items-center gap-2 rounded-r-md bg-amb px-4 font-mono text-xs font-bold uppercase tracking-wider text-[#16130c] shadow-[0_2px_14px_rgba(255,160,40,0.28)] transition-all hover:brightness-105 active:translate-y-px disabled:pointer-events-none disabled:opacity-50"
+    >
+      {#if isExporting}
+        <LoaderCircle size={15} class="animate-spin" />
+        <span>Экспорт...</span>
+      {:else}
+        <Download size={15} />
+        <span>Экспорт</span>
+      {/if}
+    </button>
+
+    {#if isFileMenuOpen}
+      <div
+        role="menu"
+        class="absolute right-0 top-full z-50 mt-2 w-72 animate-fade-in rounded-lg border border-line2 bg-raised p-1.5 shadow-drop"
+      >
+        <div
+          class="px-3 pb-1.5 pt-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-txt3"
+        >
+          Экспортировать как
+        </div>
+
+        <button
+          type="button"
+          role="menuitem"
+          onclick={() => setFormat("md")}
+          class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors {$exportFormat ===
+          'md'
+            ? 'text-amb'
+            : 'text-txt2 hover:bg-raised2 hover:text-txt'}"
+        >
+          <FileCode size={15} class="shrink-0" />
+          <span class="flex-1">Markdown</span>
+          {#if $exportFormat === "md"}
+            <span class="h-2 w-2 rounded-xs bg-amb"></span>
+          {/if}
+        </button>
+
+        <button
+          type="button"
+          role="menuitem"
+          onclick={() => setFormat("pdf")}
+          class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors {$exportFormat ===
+          'pdf'
+            ? 'text-amb'
+            : 'text-txt2 hover:bg-raised2 hover:text-txt'}"
+        >
+          <FileCode size={15} class="shrink-0" />
+          <span class="flex-1">PDF Документ</span>
+          {#if $exportFormat === "pdf"}
+            <span class="h-2 w-2 rounded-xs bg-amb"></span>
+          {/if}
+        </button>
+
+        <button
+          type="button"
+          role="menuitem"
+          onclick={() => setFormat("docx")}
+          class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors {$exportFormat ===
+          'docx'
+            ? 'text-amb'
+            : 'text-txt2 hover:bg-raised2 hover:text-txt'}"
+        >
+          <FileText size={15} class="shrink-0" />
+          <span class="flex-1">DOCX Документ</span>
+          {#if $exportFormat === "docx"}
+            <span class="h-2 w-2 rounded-xs bg-amb"></span>
+          {/if}
+        </button>
+
+        <button
+          type="button"
+          role="menuitem"
+          onclick={() => setFormat("png")}
+          class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors {$exportFormat ===
+          'png'
+            ? 'text-amb'
+            : 'text-txt2 hover:bg-raised2 hover:text-txt'}"
+        >
+          <Image size={15} class="shrink-0" />
+          <span class="flex-1">PNG Изображение</span>
+          {#if $exportFormat === "png"}
+            <span class="h-2 w-2 rounded-xs bg-amb"></span>
+          {/if}
+        </button>
+
+        <div class="mx-1 my-1.5 h-px bg-line"></div>
+
+        <div
+          class="flex w-full cursor-pointer select-none items-center gap-2.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-raised2"
+          role="button"
+          tabindex="0"
+          onclick={(e) => {
+            e.stopPropagation();
+            openInNewTab = !openInNewTab;
+          }}
+          onkeydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              openInNewTab = !openInNewTab;
+            }
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={openInNewTab}
+            class="h-4 w-4 accent-amb pointer-events-none"
+            tabindex="-1"
+            aria-hidden="true"
+          />
+          <span
+            class="flex flex-1 items-center gap-2 text-[13px] text-txt2 pointer-events-none"
+          >
+            <ExternalLink size={14} />
+            Открывать PDF в новой вкладке
+          </span>
+        </div>
+      </div>
+    {/if}
+  </div>
 </header>
 
 {#if exportError}
   <div
-    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-100 flex items-center justify-center p-4 animate-fade-in"
+    class="fixed inset-0 z-100 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     role="button"
     tabindex="0"
     onclick={closeErrorModal}
@@ -269,22 +299,25 @@
     aria-label="Закрыть окно ошибки"
   >
     <div
-      class="bg-surface border border-red-200 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in"
+      class="relative w-full max-w-md animate-scale-in rounded-xl border border-red-200 bg-panel p-6 shadow-deep"
       role="presentation"
       onclick={(e) => e.stopPropagation()}
     >
+      <span
+        class="absolute left-0 top-6 h-9 w-0.75 rounded-r bg-red-600"
+        aria-hidden="true"
+      ></span>
+
       <div class="flex items-start gap-4">
         <div
-          class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-200 bg-red-50"
         >
           <CircleAlert size={20} class="text-red-600" />
         </div>
 
-        <div class="flex-1">
-          <h3 class="text-base font-bold text-ink mb-1">Ошибка экспорта</h3>
-          <p
-            class="text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap"
-          >
+        <div class="min-w-0 flex-1">
+          <h3 class="mb-1 text-[15px] font-bold text-txt">Ошибка экспорта</h3>
+          <p class="whitespace-pre-wrap text-sm leading-relaxed text-txt2">
             {exportError}
           </p>
         </div>
@@ -294,7 +327,7 @@
         <button
           type="button"
           onclick={closeErrorModal}
-          class="px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+          class="h-9 rounded-md bg-amb px-4 text-sm font-semibold text-[#16130c] transition-all hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-amb/30"
         >
           Понятно
         </button>

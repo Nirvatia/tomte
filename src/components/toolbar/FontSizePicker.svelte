@@ -1,11 +1,9 @@
 <script lang="ts">
   import { Type } from "@lucide/svelte";
   import type { Editor } from "@tiptap/core";
-
   let { editor = null }: { editor?: Editor | null } = $props();
   let isOpen = $state(false);
   let container: HTMLDivElement;
-
   const FONT_SIZES = [
     { label: "XS", value: "0.75rem" },
     { label: "SM", value: "0.875rem" },
@@ -16,35 +14,29 @@
     { label: "3XL", value: "1.875rem" },
     { label: "4XL", value: "2.25rem" },
   ];
-
   let currentSize = $derived(() => {
     if (!editor) return null;
     const mark = editor.getAttributes("textStyle");
     return mark?.fontSize || null;
   });
-
   function toggle() {
     isOpen = !isOpen;
   }
-
   function setSize(size: string) {
     if (!editor) return;
     editor.chain().focus().setFontSize(size).run();
     isOpen = false;
   }
-
   function resetSize() {
     if (!editor) return;
     editor.chain().focus().unsetFontSize().run();
     isOpen = false;
   }
-
   function handleClickOutside(e: MouseEvent) {
     if (isOpen && container && !container.contains(e.target as Node)) {
       isOpen = false;
     }
   }
-
   const BTN_BASE =
     "p-2 rounded-lg text-ink-secondary transition-all duration-200 hover:bg-surface-tertiary hover:text-ink hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0";
 </script>
@@ -66,32 +58,34 @@
     <div
       role="dialog"
       aria-label="Выбор размера шрифта"
-      class="absolute top-full left-0 mt-2 bg-surface rounded-xl shadow-xl border border-slate-100 p-2 animate-fade-in z-50 w-48"
+      class="absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in rounded-lg border border-line2 bg-raised p-1.5 shadow-drop"
     >
       <button
         type="button"
         onclick={resetSize}
-        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-colors text-left"
+        class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-raised2"
       >
-        <Type size={16} class="text-ink-tertiary" />
-        <span class="text-sm text-ink-secondary">По умолчанию</span>
+        <Type size={16} class="shrink-0 text-txt3" />
+        <span class="text-[13px] text-txt2">По умолчанию</span>
       </button>
-      <div class="border-t border-slate-100 my-1"></div>
+
+      <div class="mx-1 my-1 h-px bg-line"></div>
+
       {#each FONT_SIZES as size}
         <button
           type="button"
           onclick={() => setSize(size.value)}
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-colors text-left {currentSize() ===
+          class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-raised2 {currentSize() ===
           size.value
             ? 'bg-brand-50'
             : ''}"
         >
           <span
-            class="w-8 h-8 rounded bg-surface-secondary flex items-center justify-center text-xs font-mono text-ink-tertiary"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-line bg-inset font-mono text-[10px] text-txt3"
           >
             {size.label}
           </span>
-          <span style="font-size: {size.value}" class="text-ink truncate">
+          <span style="font-size: {size.value}" class="truncate text-txt">
             Пример текста
           </span>
         </button>

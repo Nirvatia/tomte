@@ -4,20 +4,20 @@
 
   const sizes = {
     default: {
-      container: "flex items-center gap-3",
-      icon: "w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center shadow-glow",
-      iconText: "text-white text-xl font-black",
-      title: "text-xl font-bold text-ink tracking-tight",
+      container: "flex select-none items-center gap-3",
+      icon: "relative grid h-10 w-10 place-items-center rounded-[10px] bg-gradient-to-br from-brand-500 to-purple-600 shadow-glow",
+      iconText: "text-xl font-black text-[#16130c]",
+      title: "text-[17px] font-extrabold leading-none tracking-tight text-txt",
       subtitle:
-        "text-[10px] text-ink-tertiary font-medium uppercase tracking-widest -mt-0.5",
+        "mt-1 font-mono text-[9.5px] font-medium uppercase leading-none tracking-[0.2em] text-txt3",
     },
     compact: {
-      container: "flex items-center gap-2",
-      icon: "w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center",
-      iconText: "text-white text-sm font-black",
-      title: "text-base font-bold text-ink tracking-tight",
+      container: "flex select-none items-center gap-2.5",
+      icon: "relative grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-500 to-purple-600 shadow-glow",
+      iconText: "text-sm font-black text-[#16130c]",
+      title: "text-[15px] font-extrabold leading-none tracking-tight text-txt",
       subtitle:
-        "text-[9px] text-ink-tertiary font-medium uppercase tracking-widest -mt-0.5",
+        "mt-0.5 font-mono text-[9px] font-medium uppercase leading-none tracking-[0.2em] text-txt3",
     },
   };
 
@@ -27,8 +27,14 @@
 <div class={s.container} aria-label="Tomte - Prompt Builder">
   <div class={s.icon}>
     <span class={s.iconText}>T</span>
+    {#if size === "default"}
+      <span
+        class="absolute -bottom-1 -right-1 h-2 w-2 rounded-xs bg-amb"
+        aria-hidden="true"
+      ></span>
+    {/if}
   </div>
-  <div class="text-left">
+  <div>
     <h1 class={s.title}>Tomte</h1>
     <p class={s.subtitle}>Prompt Builder</p>
   </div>

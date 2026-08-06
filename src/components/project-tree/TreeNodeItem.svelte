@@ -1,3 +1,4 @@
+<!-- TreeNodeItem.svelte -->
 <script lang="ts">
   import {
     Folder,
@@ -13,38 +14,31 @@
   import TreeNodeItem from "./TreeNodeItem.svelte";
   import { selectedProjectFiles, previewFileFromTree } from "../../stores";
   import { fetchGithubFileContent } from "../../utils/github";
-
   let {
     node,
     depth = 0,
     editor = null,
   }: { node: TreeNode; depth?: number; editor?: Editor | null } = $props();
-
   let isOpen = $state(false);
   let isPreviewLoading = $state(false);
-
   $effect(() => {
     isOpen = node.type === "directory";
   });
-
   function getAllFilePaths(n: TreeNode): string[] {
     if (n.type === "file") return [n.path];
     return n.children.flatMap(getAllFilePaths);
   }
-
   let isSelected = $derived(
     node.type === "file"
       ? $selectedProjectFiles.includes(node.path)
       : getAllFilePaths(node).every((p) => $selectedProjectFiles.includes(p)) &&
           getAllFilePaths(node).length > 0,
   );
-
   let isPartial = $derived(
     node.type === "directory" &&
       !isSelected &&
       getAllFilePaths(node).some((p) => $selectedProjectFiles.includes(p)),
   );
-
   function toggleSelect(e: Event) {
     e.stopPropagation();
     const paths = node.type === "file" ? [node.path] : getAllFilePaths(node);
@@ -60,16 +54,13 @@
       });
     }
   }
-
   async function handlePreview(e: Event) {
     e.stopPropagation();
     if (node.type !== "file") return;
-
     isPreviewLoading = true;
     try {
       let content = "";
       let size = 0;
-
       if (node.fileRef) {
         if (node.fileRef instanceof File) {
           content = await node.fileRef.text();
@@ -84,7 +75,6 @@
         content = githubFile.content;
         size = githubFile.size;
       }
-
       previewFileFromTree.set({
         id: node.path,
         name: node.name,
@@ -101,7 +91,6 @@
       isPreviewLoading = false;
     }
   }
-
   function handleInsertLink(e: Event) {
     e.stopPropagation();
     if (!editor || node.type !== "file") return;
@@ -112,7 +101,6 @@
       .insertContent(linkText + " ")
       .run();
   }
-
   function toggle(e: Event) {
     e.stopPropagation();
     if (node.type === "directory") {
@@ -122,7 +110,7 @@
 </script>
 
 <div
-  class="flex items-center gap-1.5 py-1 px-2 rounded-md hover:bg-surface-tertiary transition-colors group"
+  class="group flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-raised"
   style="padding-left: {depth * 16 + 8}px"
 >
   <input
@@ -130,7 +118,7 @@
     checked={isSelected}
     indeterminate={isPartial}
     onclick={toggleSelect}
-    class="w-3.5 h-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer shrink-0 accent-brand-500"
+    class="h-3.5 w-3.5 shrink-0 cursor-pointer rounded-sm accent-amb"
     aria-label="Выбрать {node.name}"
   />
 
@@ -138,7 +126,7 @@
   <button
     type="button"
     onclick={toggle}
-    class="p-1 rounded hover:bg-surface-tertiary transition-colors shrink-0 flex items-center justify-center"
+    class="flex shrink-0 items-center justify-center rounded p-1 transition-colors hover:bg-raised2"
     aria-expanded={node.type === "directory" ? isOpen : undefined}
     aria-label={node.type === "directory"
       ? isOpen
@@ -148,25 +136,28 @@
   >
     {#if node.type === "directory"}
       {#if isOpen}
-        <ChevronDown size={14} class="text-ink-tertiary" />
+        <ChevronDown size={14} class="text-txt3" />
       {:else}
-        <ChevronRight size={14} class="text-ink-tertiary" />
+        <ChevronRight size={14} class="text-txt3" />
       {/if}
     {:else}
-      <span class="w-3.5 block"></span>
+      <span class="block w-3.5"></span>
     {/if}
   </button>
 
   {#if node.type === "directory"}
-    <Folder size={16} class="text-brand-500 shrink-0" />
+    <Folder
+      size={16}
+      class="shrink-0 text-txt3 transition-colors group-hover:text-amb2"
+    />
   {:else}
     <FileText
       size={16}
-      class="text-ink-tertiary shrink-0 group-hover:text-ink transition-colors"
+      class="shrink-0 text-txt3 transition-colors group-hover:text-txt"
     />
   {/if}
 
-  <span class="text-sm text-ink truncate font-mono flex-1 cursor-default"
+  <span class="flex-1 cursor-default truncate font-mono text-sm text-txt"
     >{node.name}</span
   >
 
@@ -174,32 +165,31 @@
     <button
       type="button"
       onclick={handleInsertLink}
-      class="p-1 rounded hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+      class="rounded p-1 text-txt2 opacity-0 transition-all hover:bg-raised2 hover:text-amb group-hover:opacity-100"
       title="Вставить ссылку на файл"
       aria-label="Вставить ссылку на файл {node.name}"
     >
-      <Link size={14} class="text-ink-secondary hover:text-brand-600" />
+      <Link size={14} />
     </button>
-
     <button
       type="button"
       onclick={handlePreview}
       disabled={isPreviewLoading}
-      class="p-1 rounded hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+      class="rounded p-1 text-txt2 opacity-0 transition-all hover:bg-raised2 hover:text-txt group-hover:opacity-100 disabled:pointer-events-none"
       title="Просмотреть содержимое"
       aria-label="Просмотреть содержимое {node.name}"
     >
       {#if isPreviewLoading}
-        <LoaderCircle size={14} class="animate-spin text-ink-secondary" />
+        <LoaderCircle size={14} class="animate-spin" />
       {:else}
-        <Eye size={14} class="text-ink-secondary hover:text-ink" />
+        <Eye size={14} />
       {/if}
     </button>
   {/if}
 </div>
 
 {#if node.type === "directory" && isOpen && node.children.length > 0}
-  <div class="border-l border-slate-200 ml-4">
+  <div class="ml-4 border-l border-line">
     {#each node.children as child}
       <TreeNodeItem node={child} depth={depth + 1} {editor} />
     {/each}

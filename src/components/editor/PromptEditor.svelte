@@ -11,7 +11,7 @@
     projectTreeString,
     selectedProjectFiles,
   } from "../../stores";
-  import { Upload, Save, CheckCircle } from "@lucide/svelte";
+  import { Upload, Save, CircleCheck } from "@lucide/svelte";
   import { dropzone } from "$lib/actions/dropzone";
   import TiptapEditor from "./TiptapEditor.svelte";
   import AttachmentsPanel from "../attachments/AttachmentPanel.svelte";
@@ -154,7 +154,6 @@
         });
       }
     };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   });
@@ -224,17 +223,20 @@
 
 <svelte:window onpaste={handlePaste} />
 
-<div class="h-full grid grid-cols-[auto_1fr_auto] gap-0">
+<div class="grid h-full grid-cols-[auto_1fr_auto] gap-0">
   <ProjectTreeSidebar editor={editorInstance} />
 
-  <div class="flex flex-col min-w-0 overflow-hidden p-6">
+  <!-- Центральная колонка: канвас + лист документа -->
+  <div class="editor-canvas flex min-w-0 flex-col overflow-hidden p-5">
     <div
       use:dropzone={handleFilesDropped}
-      class="flex-1 bg-surface rounded-2xl shadow-xl border border-slate-100 relative transition-all duration-300 overflow-hidden"
+      class="relative flex-1 overflow-hidden rounded-xl border bg-panel shadow-deep transition-all duration-300 {dropZoneActive
+        ? 'border-amb'
+        : 'border-line'}"
       role="region"
       aria-label="Область редактора"
     >
-      <div class="h-full overflow-y-auto p-12">
+      <div class="h-full overflow-y-auto p-8 lg:px-14 lg:py-12">
         <TiptapEditor
           content={currentHtml}
           onReady={handleReady}
@@ -244,11 +246,11 @@
 
       {#if dropZoneActive}
         <div
-          class="absolute inset-0 bg-brand-50/80 backdrop-blur-sm rounded-2xl flex items-center justify-center pointer-events-none animate-fade-in"
+          class="pointer-events-none absolute inset-0 flex animate-fade-in items-center justify-center bg-black/60 backdrop-blur-sm"
         >
           <div class="text-center">
-            <Upload size={48} class="mx-auto text-brand-500 mb-3" />
-            <p class="text-xl font-semibold text-brand-700">
+            <Upload size={44} class="mx-auto mb-3 text-amb" />
+            <p class="text-lg font-semibold text-txt">
               Отпустите файлы для загрузки
             </p>
           </div>
@@ -256,18 +258,20 @@
       {/if}
     </div>
 
+    <!-- Строка статуса -->
     <div
-      class="mt-3 flex items-center justify-between text-sm text-ink-tertiary font-medium shrink-0"
+      class="mt-3 flex shrink-0 items-center justify-between font-mono text-xs text-txt3"
     >
       <span class="flex items-center gap-1.5">
         {#if saveStatus === "saving"}
-          <Save size={14} class="text-amber-500 animate-pulse" />
-          <span class="text-amber-600">Сохранение...</span>
+          <Save size={13} class="animate-pulse text-amb" />
+          <span class="text-amb2">Сохранение...</span>
         {:else if saveStatus === "saved"}
-          <CheckCircle size={14} class="text-emerald-500" />
-          <span class="text-emerald-600">Сохранено</span>
+          <CircleCheck size={13} class="text-ok" />
+          <span class="text-ok">Сохранено</span>
         {:else}
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+          <span
+            class="h-1.5 w-1.5 animate-pulse rounded-full bg-ok shadow-[0_0_7px_rgba(67,209,124,0.8)]"
           ></span>
           <span>Автосохранение включено</span>
         {/if}

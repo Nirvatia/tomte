@@ -1,18 +1,16 @@
+<!-- FilePreviewModal.svelte -->
 <script lang="ts">
   import { X, FileText, Image as ImageIcon } from "@lucide/svelte";
   import type { AttachedFile } from "../../types";
-
   let {
     file = null,
     onClose = () => {},
   }: { file?: AttachedFile | null; onClose?: () => void } = $props();
-
   function handleBackdropClick(e: MouseEvent) {
     if (e.target === e.currentTarget) {
       onClose();
     }
   }
-
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       onClose();
@@ -24,7 +22,7 @@
 
 {#if file}
   <div
-    class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
+    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
     onkeydown={handleKeydown}
     role="dialog"
@@ -33,38 +31,36 @@
     tabindex="-1"
   >
     <div
-      class="bg-surface rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col"
+      class="flex max-h-[85vh] w-full max-w-4xl flex-col rounded-xl border border-line2 bg-panel shadow-deep"
     >
       <!-- Заголовок -->
-      <div
-        class="flex items-center justify-between p-6 border-b border-slate-100"
-      >
+      <div class="flex items-center justify-between border-b border-line p-6">
         <div class="flex items-center gap-3">
           {#if file.type === "image"}
             <div
-              class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center"
+              class="flex h-10 w-10 items-center justify-center rounded-lg bg-amb/10"
             >
-              <ImageIcon size={20} class="text-brand-600" />
+              <ImageIcon size={20} class="text-amb2" />
             </div>
           {:else}
             <div
-              class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center"
+              class="flex h-10 w-10 items-center justify-center rounded-lg bg-ok/10"
             >
-              <FileText size={20} class="text-emerald-600" />
+              <FileText size={20} class="text-ok" />
             </div>
           {/if}
           <div>
-            <h2 class="text-lg font-bold text-ink">{file.name}</h2>
-            <p class="text-xs text-ink-tertiary mt-0.5">
-              {file.type === "image" ? "Изображение" : "Текстовый файл"} · {file.size.toLocaleString()}
-              байт
+            <h2 class="text-lg font-bold text-txt">{file.name}</h2>
+            <p class="mt-0.5 font-mono text-xs text-txt3">
+              {file.type === "image" ? "Изображение" : "Текстовый файл"} ·
+              {file.size.toLocaleString()} байт
             </p>
           </div>
         </div>
         <button
           type="button"
           onclick={onClose}
-          class="p-2 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
+          class="rounded-lg p-2 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
           aria-label="Закрыть просмотр файла"
         >
           <X size={20} />
@@ -78,14 +74,14 @@
             <img
               src={file.dataUrl}
               alt={file.name}
-              class="max-w-full max-h-[70vh] rounded-lg shadow-lg"
+              class="max-h-[70vh] max-w-full rounded-lg border border-line2 shadow-deep"
             />
           </div>
         {:else if file.type === "text" && file.content}
           <pre
-            class="bg-surface-tertiary rounded-lg p-4 overflow-auto text-sm font-mono text-ink whitespace-pre-wrap">{file.content}</pre>
+            class="overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-inset p-4 font-mono text-sm text-txt2">{file.content}</pre>
         {:else}
-          <div class="text-center py-20 text-ink-tertiary">
+          <div class="py-20 text-center text-txt3">
             <p>Не удалось загрузить содержимое файла</p>
           </div>
         {/if}

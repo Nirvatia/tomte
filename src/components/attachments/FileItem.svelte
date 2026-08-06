@@ -1,9 +1,9 @@
+<!-- FileItem.svelte -->
 <script lang="ts">
   import { FileText, Eye, Trash2, Link } from "@lucide/svelte";
   import type { AttachedFile } from "../../types";
   import { formatFileSize } from "../../utils";
   import { getPlaceholderPrefix, getPlaceholderIndex } from "../../utils/files";
-
   let {
     file,
     allFiles = [],
@@ -21,7 +21,6 @@
     onPreview?: (file: AttachedFile) => void;
     onInsertPlaceholder?: (file: AttachedFile) => void;
   } = $props();
-
   const prefix = $derived(getPlaceholderPrefix(file));
   const placeholderIndex = $derived(getPlaceholderIndex(file, allFiles));
   const badgeColor = $derived(
@@ -29,22 +28,18 @@
       ? "text-brand-600 bg-brand-50"
       : "text-emerald-600 bg-emerald-50",
   );
-
   function handleCheckboxClick(e: Event) {
     e.stopPropagation();
     onToggleSelect(file.id);
   }
-
   function handleRemoveClick(e: Event) {
     e.stopPropagation();
     onRemove(file.id);
   }
-
   function handlePreviewClick(e: Event) {
     e.stopPropagation();
     onPreview(file);
   }
-
   function handleInsertPlaceholderClick(e: Event) {
     e.stopPropagation();
     onInsertPlaceholder(file);
@@ -53,69 +48,67 @@
 
 <!-- Внешний div используется только для layout, вся интерактивность внутри на честных элементах -->
 <div
-  class="group flex items-center gap-3 p-3 rounded-xl border transition-all {isSelected
-    ? 'border-brand-400 bg-brand-50 shadow-soft-sm'
-    : 'border-slate-100 bg-surface-secondary hover:border-brand-200 hover:shadow-soft'}"
+  class="group flex items-center gap-3 rounded-lg border p-3 transition-all {isSelected
+    ? 'border-amb/50 bg-amb/10'
+    : 'border-line bg-raised hover:border-line2 hover:bg-raised2'}"
 >
   <input
     type="checkbox"
     checked={isSelected}
     onclick={handleCheckboxClick}
-    class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 focus:ring-2 cursor-pointer shrink-0 mt-1"
+    class="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded-sm accent-amb"
     aria-label="Выбрать файл {file.name}"
   />
 
   <div
-    class="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-surface-tertiary flex items-center justify-center"
+    class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-inset"
   >
     {#if file.type === "image" && file.dataUrl}
       <img
         src={file.dataUrl}
         alt={file.name}
-        class="w-full h-full object-cover"
+        class="h-full w-full object-cover"
       />
     {:else}
-      <FileText size={20} class="text-brand-600" />
+      <FileText size={20} class="text-amb2" />
     {/if}
   </div>
 
-  <div class="flex-1 min-w-0">
-    <p class="text-sm font-medium text-ink truncate">{file.name}</p>
-    <div class="flex items-center gap-2 mt-0.5">
-      <p class="text-xs text-ink-tertiary">{formatFileSize(file.size)}</p>
-      <span class="text-xs font-mono px-1.5 py-0.5 rounded {badgeColor}">
+  <div class="min-w-0 flex-1">
+    <p class="truncate text-sm font-medium text-txt">{file.name}</p>
+    <div class="mt-0.5 flex items-center gap-2">
+      <p class="text-xs text-txt3">{formatFileSize(file.size)}</p>
+      <span class="rounded px-1.5 py-0.5 font-mono text-xs {badgeColor}">
         {prefix}_{placeholderIndex}
       </span>
     </div>
   </div>
 
   <div
-    class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+    class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
   >
     <button
       type="button"
       onclick={handleInsertPlaceholderClick}
-      class="p-1.5 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
+      class="rounded-md p-1.5 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
       title="Вставить ссылку на файл"
       aria-label="Вставить ссылку на файл {file.name}"
     >
       <Link size={16} />
     </button>
-
     <button
       type="button"
       onclick={handlePreviewClick}
-      class="p-1.5 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
+      class="rounded-md p-1.5 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
       title="Просмотреть файл"
       aria-label="Просмотреть файл {file.name}"
     >
       <Eye size={16} />
     </button>
-
     <button
       type="button"
       onclick={handleRemoveClick}
-      class="p-1.5 rounded-lg hover:bg-red-50 text-ink-secondary hover:text-red-500 transition-colors"
+      class="rounded-md p-1.5 text-txt2 transition-colors hover:bg-red-50 hover:text-red-600"
       title="Удалить файл"
       aria-label="Удалить файл {file.name}"
     >

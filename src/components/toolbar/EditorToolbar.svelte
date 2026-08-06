@@ -40,13 +40,10 @@
   import { clearDraft, clearProjectSource } from "../../utils/draft";
   import FontSizePicker from "./FontSizePicker.svelte";
   import { applyTestData } from "../../utils/testData";
-
   let { editor = null }: { editor?: Editor | null } = $props();
-
   function toggleProjectTree() {
     isProjectTreeOpen.update((v) => !v);
   }
-
   let toolbarState = $state({
     canUndo: false,
     canRedo: false,
@@ -54,12 +51,10 @@
     activeBlocks: new Set<string>(),
     isInsideTable: false,
   });
-
   function updateToolbarState() {
     if (!editor) return;
     const marks = new Set<string>();
     const blocks = new Set<string>();
-
     if (editor.isActive("bold")) marks.add("bold");
     if (editor.isActive("italic")) marks.add("italic");
     if (editor.isActive("underline")) marks.add("underline");
@@ -72,7 +67,6 @@
     if (editor.isActive("orderedList")) blocks.add("orderedList");
     if (editor.isActive("blockquote")) blocks.add("blockquote");
     if (editor.isActive("table")) blocks.add("table");
-
     toolbarState = {
       canUndo: editor.can().undo(),
       canRedo: editor.can().redo(),
@@ -81,7 +75,6 @@
       isInsideTable: editor.isActive("table"),
     };
   }
-
   $effect(() => {
     if (!editor) return;
     updateToolbarState();
@@ -94,7 +87,6 @@
       editor?.off("transaction", updateToolbarState);
     };
   });
-
   function handleClearDraft() {
     if (
       !confirm("Очистить черновик? Это удалит весь текст и загруженные файлы.")
@@ -107,37 +99,30 @@
     clearDraft();
     clearProjectSource();
   }
-
   function isActive(mark: string): boolean {
     return toolbarState.activeMarks.has(mark);
   }
-
   function isBlockActive(block: string): boolean {
     return toolbarState.activeBlocks.has(block);
   }
-
   function btnClass(active: boolean): string {
     return `${TOOLBAR_BTN_BASE} ${active ? TOOLBAR_BTN_ACTIVE : ""}`;
   }
-
   function run(cmd: () => void) {
     if (!editor) return;
     editor.chain().focus();
     cmd();
   }
-
   function handleCopy() {
     if (!editor) return;
     navigator.clipboard.writeText(editor.getText());
   }
-
   function handleClear() {
     if (!editor) return;
     if (confirm("Очистить весь текст?")) {
       editor.commands.clearContent();
     }
   }
-
   function addRowBefore() {
     run(() => editor?.chain().focus().addRowBefore().run());
   }
@@ -156,14 +141,12 @@
   function deleteColumn() {
     run(() => editor?.chain().focus().deleteColumn().run());
   }
-
   function deleteTable() {
     if (!editor) return;
     if (confirm("Удалить таблицу?")) {
       editor.chain().focus().deleteTable().run();
     }
   }
-
   const TOOLBAR_BTN_BASE =
     "p-2 rounded-lg text-ink-secondary transition-all duration-200 hover:bg-surface-tertiary hover:text-ink hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none";
   const TOOLBAR_BTN_ACTIVE = "bg-brand-100 text-brand-700 shadow-inner-soft";
@@ -172,22 +155,25 @@
 </script>
 
 <div
-  class="bg-surface border-b border-slate-200 px-6 py-2 flex items-center gap-1 shadow-soft-sm shrink-0"
+  class="flex h-13 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-line bg-panel px-4"
 >
+  <!-- Панель структуры проекта -->
   <button
     type="button"
     onclick={toggleProjectTree}
-    class="p-2 rounded-lg transition-all duration-200 {$isProjectTreeOpen
-      ? 'bg-blue-100 text-blue-700 border border-blue-300'
-      : 'text-ink-secondary hover:bg-surface-tertiary hover:text-ink hover:-translate-y-0.5 hover:shadow-soft'}"
+    class="rounded-lg p-2 transition-all duration-200 {$isProjectTreeOpen
+      ? 'bg-brand-100 text-brand-700 shadow-inner-soft'
+      : 'text-txt2 hover:-translate-y-0.5 hover:bg-surface-tertiary hover:text-txt hover:shadow-soft'}"
     aria-label="Открыть панель структуры проекта"
+    title="Структура проекта"
   >
     <FolderTree size={18} />
   </button>
 
-  <div class="w-4 mr-1 border-r border-slate-200 h-6"></div>
+  <div class="mx-2 h-6 w-px shrink-0 bg-line"></div>
 
-  <div class="flex items-center gap-0.5 pr-2 mr-1 border-r border-slate-200">
+  <!-- Undo / Redo -->
+  <div class="flex items-center gap-0.5">
     <button
       type="button"
       onclick={() => run(() => editor?.chain().focus().undo().run())}
@@ -210,7 +196,10 @@
     </button>
   </div>
 
-  <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
+  <div class="mx-2 h-6 w-px shrink-0 bg-line"></div>
+
+  <!-- Заголовки -->
+  <div class="flex items-center gap-0.5">
     <button
       type="button"
       onclick={() =>
@@ -233,11 +222,17 @@
     </button>
   </div>
 
-  <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
+  <div class="mx-2 h-6 w-px shrink-0 bg-line"></div>
+
+  <!-- Размер шрифта -->
+  <div class="flex items-center">
     <FontSizePicker {editor} />
   </div>
 
-  <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
+  <div class="mx-2 h-6 w-px shrink-0 bg-line"></div>
+
+  <!-- Начертание -->
+  <div class="flex items-center gap-0.5">
     <button
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleBold().run())}
@@ -282,7 +277,10 @@
     >
   </div>
 
-  <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
+  <div class="mx-2 h-6 w-px shrink-0 bg-line"></div>
+
+  <!-- Списки, цитата, таблица -->
+  <div class="flex items-center gap-0.5">
     <button
       type="button"
       onclick={() =>
@@ -327,11 +325,12 @@
   </div>
 
   {#if toolbarState.isInsideTable}
-    <div
-      class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200 animate-fade-in"
-    >
+    <div class="mx-2 h-6 w-px shrink-0 bg-line"></div>
+
+    <!-- Операции с таблицей -->
+    <div class="flex animate-fade-in items-center gap-0.5">
       <div
-        class="text-[10px] font-semibold text-brand-600 uppercase tracking-wider px-1 select-none"
+        class="select-none px-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-amb"
       >
         Таблица
       </div>
@@ -370,8 +369,7 @@
         onclick={deleteRow}
         class={TOOLBAR_BTN_BASE}
         aria-label="Удалить строку"
-        title="Удалить строку"
-        ><Minus size={18} class="text-orange-500" /></button
+        title="Удалить строку"><Minus size={18} class="text-red-600" /></button
       >
       <button
         type="button"
@@ -379,19 +377,22 @@
         class={TOOLBAR_BTN_BASE}
         aria-label="Удалить столбец"
         title="Удалить столбец"
-        ><Minus size={18} class="text-orange-500 rotate-90" /></button
+        ><Minus size={18} class="rotate-90 text-red-600" /></button
       >
       <button
         type="button"
         onclick={deleteTable}
-        class={`${TOOLBAR_BTN_BASE} text-red-500 hover:bg-red-50 hover:text-red-600`}
+        class={`${TOOLBAR_BTN_BASE} hover:bg-red-50`}
         aria-label="Удалить таблицу"
-        title="Удалить таблицу"><Trash size={18} /></button
+        title="Удалить таблицу"><Trash size={18} class="text-red-600" /></button
       >
     </div>
   {/if}
 
-  <div class="flex items-center gap-0.5 px-2 mr-1 border-r border-slate-200">
+  <div class="mx-2 h-6 w-px shrink-0 bg-line"></div>
+
+  <!-- Буфер / очистка -->
+  <div class="flex items-center gap-0.5">
     <button
       type="button"
       onclick={handleCopy}
@@ -402,26 +403,29 @@
     <button
       type="button"
       onclick={handleClear}
-      class={`${TOOLBAR_BTN_BASE} text-red-500 hover:bg-red-50 hover:text-red-600`}
+      class={`${TOOLBAR_BTN_BASE} hover:bg-red-50`}
       aria-label="Очистить весь текст"
-      title="Очистить весь текст"><Trash2 size={18} /></button
+      title="Очистить весь текст"
+      ><Trash2 size={18} class="text-red-600" /></button
     >
     <button
       type="button"
       onclick={handleClearDraft}
-      class={`${TOOLBAR_BTN_BASE} text-amber-500 hover:bg-amber-50 hover:text-amber-600`}
+      class={`${TOOLBAR_BTN_BASE} hover:bg-brand-100`}
       aria-label="Очистить черновик"
-      title="Очистить черновик (текст + файлы)"><Eraser size={18} /></button
+      title="Очистить черновик (текст + файлы)"
+      ><Eraser size={18} class="text-amb" /></button
     >
   </div>
 
   <div class="flex-1"></div>
 
-  <div class="flex items-center gap-2">
+  <!-- Действия справа -->
+  <div class="ml-2 flex shrink-0 items-center gap-2">
     <button
       type="button"
       onclick={() => applyTestData(editor, (name) => fileName.set(name))}
-      class="flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0 bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
+      class="flex items-center gap-2 rounded-lg border border-line bg-raised px-3 py-1.5 text-sm font-medium text-txt2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-raised2 hover:text-txt hover:shadow-soft active:translate-y-0"
       aria-label="Заполнить редактор тестовыми данными"
       title="Заполнить редактор тестовыми данными"
     >
@@ -430,7 +434,7 @@
     <button
       type="button"
       onclick={() => isPreviewOpen.set(true)}
-      class={`${ACTION_BTN_BASE} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200`}
+      class={`${ACTION_BTN_BASE} border border-line2 text-txt2 hover:border-amb hover:text-amb`}
       aria-label="Открыть предпросмотр"
     >
       <Eye size={16} />
@@ -439,7 +443,7 @@
     <button
       type="button"
       onclick={() => isExtractorOpen.set(true)}
-      class={`${ACTION_BTN_BASE} bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200`}
+      class={`${ACTION_BTN_BASE} border border-line2 text-txt2 hover:border-link hover:text-link`}
       aria-label="Открыть Smart Extractor"
     >
       <Brain size={16} />

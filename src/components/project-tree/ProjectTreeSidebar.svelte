@@ -1,3 +1,4 @@
+<!-- ProjectTreeSidebar.svelte -->
 <script lang="ts">
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
@@ -39,30 +40,25 @@
   import { directoryPicker } from "$lib/actions/directoryPicker";
   import TreeNodeItem from "./TreeNodeItem.svelte";
   import FilePreviewModal from "../attachments/FilePreviewModal.svelte";
-
   let { editor = null }: { editor?: Editor | null } = $props();
-
   let isLoading = $state(false);
   let error = $state<string | null>(null);
   let copied = $state(false);
   let fileInput: HTMLInputElement;
   let supportsFileSystem = $state(false);
   let treeStateInitialized = $state(false);
-
   // Состояние для GitHub модалки
   let isGithubModalOpen = $state(false);
   let githubUrl = $state("");
   let githubBranch = $state("main");
   let githubToken = $state("");
   let hasSavedGithub = $state(false);
-
   function handleModalBackdropKeydown(e: KeyboardEvent) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       isGithubModalOpen = false;
     }
   }
-
   onMount(() => {
     if (!browser) return;
     const saved = localStorage.getItem("projectTreeOpen");
@@ -70,7 +66,6 @@
       isProjectTreeOpen.set(saved === "true");
     }
     treeStateInitialized = true;
-
     // Проверка сохраненного GitHub репо
     const savedGithub = localStorage.getItem("tomte_github_config");
     if (savedGithub) {
@@ -85,20 +80,16 @@
       }
     }
   });
-
   $effect(() => {
     if (!browser || !treeStateInitialized) return;
     localStorage.setItem("projectTreeOpen", String($isProjectTreeOpen));
   });
-
   $effect(() => {
     if (browser) supportsFileSystem = hasFileSystemAccess();
   });
-
   let stats = $derived(
     $projectTreeNodes.length === 0 ? null : calculateStats($projectTreeNodes),
   );
-
   function getAllFilePaths(nodes: typeof $projectTreeNodes): string[] {
     const paths: string[] = [];
     function traverse(items: typeof $projectTreeNodes) {
@@ -110,14 +101,12 @@
     traverse(nodes);
     return paths;
   }
-
   function selectAll() {
     selectedProjectFiles.set(getAllFilePaths($projectTreeNodes));
   }
   function deselectAll() {
     selectedProjectFiles.set([]);
   }
-
   async function handlePickDirectory() {
     error = null;
     isLoading = true;
@@ -145,7 +134,6 @@
       isLoading = false;
     }
   }
-
   async function handleConnectGithub() {
     const parsed = parseGithubUrl(githubUrl);
     if (!parsed) {
@@ -177,12 +165,10 @@
       isLoading = false;
     }
   }
-
   async function handleRestoreGithub() {
     if (!hasSavedGithub) return;
     await handleConnectGithub();
   }
-
   async function handleFileInputChange(e: Event) {
     const input = e.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
@@ -207,7 +193,6 @@
       input.value = "";
     }
   }
-
   async function handleCopy() {
     if (!$projectTreeString) return;
     try {
@@ -218,7 +203,6 @@
       error = "Не удалось скопировать";
     }
   }
-
   function handleInsertToEditor() {
     if (!editor || !$projectTreeString) return;
     editor
@@ -228,11 +212,9 @@
       .insertContent($projectTreeString)
       .run();
   }
-
   function handleClose() {
     isProjectTreeOpen.set(false);
   }
-
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       if (isGithubModalOpen) {
@@ -247,139 +229,202 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <aside
-  class="transition-all duration-300 ease-out overflow-hidden {$isProjectTreeOpen
+  class="shrink-0 overflow-hidden transition-all duration-300 ease-out {$isProjectTreeOpen
     ? 'w-100'
-    : 'w-0'} shrink-0"
+    : 'w-0'}"
 >
-  <div class="w-100 h-full flex flex-col bg-surface border-r border-slate-200">
+  <div class="flex h-full w-100 flex-col border-r border-line bg-panel">
+    <!-- Заголовок -->
     <div
-      class="flex items-center justify-between p-4 border-b border-slate-100 bg-surface-secondary shrink-0"
+      class="flex shrink-0 items-center justify-between border-b border-line bg-raised p-4"
     >
       <div class="flex items-center gap-2">
-        <FolderTree size={20} class="text-brand-500" />
-        <h2 class="font-bold text-ink">Структура проекта</h2>
+        <FolderTree size={19} class="text-amb" />
+        <h2 class="font-bold text-txt">Структура проекта</h2>
       </div>
       <button
         type="button"
         onclick={handleClose}
-        class="p-2 rounded-lg hover:bg-surface-tertiary text-ink-secondary hover:text-ink transition-colors"
+        class="rounded-lg p-2 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
         aria-label="Закрыть панель структуры проекта"
       >
         <X size={18} />
       </button>
     </div>
 
-    <div class="p-4 border-b border-slate-100 space-y-2 shrink-0">
-      <button
-        type="button"
-        onclick={handlePickDirectory}
-        disabled={isLoading}
-        class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-500 text-white rounded-lg font-medium text-sm hover:bg-brand-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {#if isLoading}<LoaderCircle size={16} class="animate-spin" /><span
-            >Чтение...</span
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      {#if $projectTreeNodes.length === 0}
+        <!-- ═══ Режим онбординга: дерево пустое ═══ -->
+        <div class="border-b border-line p-4">
+          <div
+            class="mb-3 font-mono text-[10px] font-semibold uppercase tracking-wider text-txt3"
           >
-        {:else}<FolderOpen size={16} /><span>Выбрать папку</span>{/if}
-      </button>
-
-      <button
-        type="button"
-        onclick={() => (isGithubModalOpen = true)}
-        class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 text-white rounded-lg font-medium text-sm hover:bg-slate-700 transition-all"
-      >
-        <FolderGit size={16} />
-        <span>Подключить GitHub</span>
-      </button>
-
-      {#if hasSavedGithub && $projectTreeNodes.length === 0}
-        <button
-          type="button"
-          onclick={handleRestoreGithub}
-          class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-surface-tertiary text-ink rounded-lg font-medium text-sm hover:bg-slate-200 transition-all border border-slate-200"
-        >
-          <RefreshCw size={16} />
-          <span>Восстановить GitHub репо</span>
-        </button>
-      {/if}
-
-      {#if $projectTreeString}
-        <div class="flex gap-2">
-          <button
-            type="button"
-            onclick={handleCopy}
-            class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-surface-tertiary text-ink rounded-lg text-sm hover:bg-slate-200 transition-colors"
-          >
-            {#if copied}<span class="text-emerald-600">✓ Скопировано</span>
-            {:else}<Copy size={14} /><span>Копировать</span>{/if}
-          </button>
-          <button
-            type="button"
-            onclick={handleInsertToEditor}
-            class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-sm hover:bg-emerald-100 transition-colors border border-emerald-200"
-          >
-            <FileInput size={14} /><span>В редактор</span>
-          </button>
-        </div>
-      {/if}
-    </div>
-
-    {#if stats}
-      <div
-        class="px-4 py-2 border-b border-slate-100 bg-surface-secondary shrink-0"
-      >
-        <div class="text-xs text-ink-tertiary flex items-center gap-3 mb-2">
-          <span
-            ><strong class="text-ink">{stats.totalFiles}</strong> файлов</span
-          >
-          <span class="text-slate-300">|</span>
-          <span><strong class="text-ink">{stats.totalDirs}</strong> папок</span>
-          {#if $selectedProjectFiles.length > 0}
-            <span class="text-slate-300">|</span>
-            <span class="text-brand-600 font-semibold"
-              >{$selectedProjectFiles.length} выбрано</span
+            Источник
+          </div>
+          <div class="space-y-2">
+            <button
+              type="button"
+              onclick={handlePickDirectory}
+              disabled={isLoading}
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-amb px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#16130c] shadow-[0_2px_14px_rgba(255,160,40,0.22)] transition-colors hover:brightness-105 disabled:pointer-events-none disabled:opacity-50"
             >
-          {/if}
+              {#if isLoading}
+                <LoaderCircle size={15} class="animate-spin" />
+                <span>Чтение...</span>
+              {:else}
+                <FolderOpen size={15} />
+                <span>Выбрать папку</span>
+              {/if}
+            </button>
+            <button
+              type="button"
+              onclick={() => (isGithubModalOpen = true)}
+              class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line bg-raised px-4 py-2.5 text-sm font-medium text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+            >
+              <FolderGit size={15} />
+              <span>Подключить GitHub</span>
+            </button>
+            {#if hasSavedGithub && $projectTreeNodes.length === 0}
+              <button
+                type="button"
+                onclick={handleRestoreGithub}
+                class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line bg-raised2 px-4 py-2.5 text-sm font-medium text-txt transition-colors hover:bg-[#383a41]"
+              >
+                <RefreshCw size={15} />
+                <span>Восстановить GitHub репо</span>
+              </button>
+            {/if}
+          </div>
         </div>
-        {#if $projectTreeNodes.length > 0}
-          <div class="flex gap-1.5">
+
+        <div class="px-4 pb-10 pt-12 text-center">
+          <div
+            class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-xl border border-line bg-raised"
+          >
+            <FolderTree size={26} class="text-txt3" />
+          </div>
+          <p class="text-sm font-medium text-txt2">Дерево структуры не создано</p>
+          <p class="mx-auto mt-1.5 max-w-60 text-xs text-txt3">
+            Выберите локальную папку или подключите GitHub-репозиторий
+          </p>
+        </div>
+      {:else}
+        <!-- ═══ Рабочий режим: дерево загружено ═══ -->
+        <div class="border-b border-line p-3">
+          <div
+            class="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-txt3"
+          >
+            Источник
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              onclick={handlePickDirectory}
+              disabled={isLoading}
+              class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md border border-line bg-raised px-3 text-xs font-medium text-txt2 transition-colors hover:bg-raised2 hover:text-txt disabled:pointer-events-none disabled:opacity-50"
+            >
+              {#if isLoading}
+                <LoaderCircle size={13} class="animate-spin" />
+                <span>Чтение...</span>
+              {:else}
+                <FolderOpen size={13} />
+                <span>Папка</span>
+              {/if}
+            </button>
+            <button
+              type="button"
+              onclick={() => (isGithubModalOpen = true)}
+              class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md border border-line bg-raised px-3 text-xs font-medium text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+            >
+              <FolderGit size={13} />
+              <span>GitHub</span>
+            </button>
+          </div>
+        </div>
+
+        {#if $projectTreeString}
+          <div class="border-b border-line p-3">
+            <div
+              class="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-txt3"
+            >
+              Экспорт дерева
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                onclick={handleCopy}
+                class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md border border-line bg-raised px-3 text-xs font-medium text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+              >
+                {#if copied}
+                  <span class="font-medium text-ok">✓ Скопировано</span>
+                {:else}
+                  <Copy size={13} /><span>Копировать</span>
+                {/if}
+              </button>
+              <button
+                type="button"
+                onclick={handleInsertToEditor}
+                class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md border border-ok/30 bg-ok/10 px-3 text-xs font-medium text-ok transition-colors hover:bg-ok/20"
+              >
+                <FileInput size={13} /><span>В редактор</span>
+              </button>
+            </div>
+          </div>
+        {/if}
+      {/if}
+
+      {#if error}
+        <div
+          class="mx-3 mt-3 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600"
+        >
+          <CircleAlert size={14} class="mt-0.5 shrink-0" /><span>{error}</span>
+        </div>
+      {/if}
+
+      {#if $projectTreeNodes.length > 0}
+        <!-- Статистика + выбор: одна строка -->
+        <div
+          class="flex items-center justify-between gap-2 border-b border-line bg-raised px-3 py-2"
+        >
+          <div class="flex items-center gap-2 font-mono text-xs text-txt3">
+            <span
+              ><strong class="font-semibold text-txt">{stats?.totalFiles}</strong>
+              файлов</span
+            >
+            <span class="text-line2">·</span>
+            <span
+              ><strong class="font-semibold text-txt">{stats?.totalDirs}</strong>
+              папок</span
+            >
+            {#if $selectedProjectFiles.length > 0}
+              <span class="text-line2">·</span>
+              <span class="font-semibold text-amb2"
+                >{$selectedProjectFiles.length} выбрано</span
+              >
+            {/if}
+          </div>
+          <div class="flex shrink-0 gap-1.5">
             <button
               type="button"
               onclick={selectAll}
-              class="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1 bg-surface-tertiary text-ink-secondary rounded text-xs hover:bg-slate-200 transition-colors"
+              class="inline-flex items-center gap-1 rounded border border-line bg-panel px-2 py-1 text-xs text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+              title="Выбрать все файлы"
             >
               <SquareCheck size={12} /><span>Все</span>
             </button>
             <button
               type="button"
               onclick={deselectAll}
-              class="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1 bg-surface-tertiary text-ink-secondary rounded text-xs hover:bg-slate-200 transition-colors"
+              class="inline-flex items-center gap-1 rounded border border-line bg-panel px-2 py-1 text-xs text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+              title="Снять выделение"
             >
               <Square size={12} /><span>Снять</span>
             </button>
           </div>
-        {/if}
-      </div>
-    {/if}
-
-    {#if error}
-      <div
-        class="mx-4 mt-4 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 flex items-start gap-2 shrink-0"
-      >
-        <CircleAlert size={14} class="shrink-0 mt-0.5" /><span>{error}</span>
-      </div>
-    {/if}
-
-    <div class="flex-1 overflow-auto p-2 min-h-0">
-      {#if $projectTreeNodes.length === 0}
-        <div class="text-center py-16 text-ink-tertiary px-4">
-          <FolderTree size={48} class="mx-auto mb-4 opacity-30" />
-          <p class="text-sm font-medium">Дерево структуры не создано</p>
-          <p class="text-xs mt-2">
-            Выберите локальную папку или подключите GitHub
-          </p>
         </div>
-      {:else}
-        <div class="font-sans text-sm">
+
+        <!-- Дерево -->
+        <div class="p-2">
           {#each $projectTreeNodes as node}
             <TreeNodeItem {node} depth={0} {editor} />
           {/each}
@@ -405,7 +450,7 @@
   <!-- Модальное окно подключения GitHub -->
   {#if isGithubModalOpen}
     <div
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
+      class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
       role="button"
       tabindex="0"
       onclick={() => (isGithubModalOpen = false)}
@@ -413,19 +458,19 @@
       aria-label="Закрыть окно подключения GitHub"
     >
       <div
-        class="bg-surface rounded-2xl shadow-2xl max-w-md w-full p-6"
+        class="w-full max-w-md rounded-xl border border-line2 bg-panel p-6 shadow-deep"
         role="presentation"
         onclick={(e) => e.stopPropagation()}
       >
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-ink flex items-center gap-2">
-            <FolderGit size={20} class="text-slate-800" />
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="flex items-center gap-2 text-lg font-bold text-txt">
+            <FolderGit size={20} class="text-amb" />
             Подключить GitHub
           </h3>
           <button
             type="button"
             onclick={() => (isGithubModalOpen = false)}
-            class="p-1 rounded hover:bg-surface-tertiary"
+            class="rounded p-1 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
             aria-label="Закрыть"
           >
             <X size={18} />
@@ -436,35 +481,36 @@
           <div>
             <label
               for="github-url"
-              class="block text-xs font-medium text-ink-secondary mb-1"
+              class="mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-wider text-txt3"
               >URL репозитория</label
             >
             <input
               id="github-url"
               bind:value={githubUrl}
               placeholder="https://github.com/owner/repo"
-              class="w-full px-3 py-2 bg-surface-tertiary border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              class="w-full rounded-md border border-line bg-inset px-3 py-2 text-sm text-txt transition-all placeholder:text-txt3 focus:border-amb/60 focus:outline-none focus:ring-2 focus:ring-amb/15"
             />
           </div>
           <div>
             <label
               for="github-branch"
-              class="block text-xs font-medium text-ink-secondary mb-1"
+              class="mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-wider text-txt3"
               >Ветка (branch)</label
             >
             <input
               id="github-branch"
               bind:value={githubBranch}
               placeholder="main"
-              class="w-full px-3 py-2 bg-surface-tertiary border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              class="w-full rounded-md border border-line bg-inset px-3 py-2 text-sm text-txt transition-all placeholder:text-txt3 focus:border-amb/60 focus:outline-none focus:ring-2 focus:ring-amb/15"
             />
           </div>
           <div>
             <label
               for="github-token"
-              class="block text-xs font-medium text-ink-secondary mb-1"
+              class="mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-wider text-txt3"
             >
-              Personal Access Token <span class="text-ink-tertiary"
+              Personal Access Token
+              <span class="normal-case tracking-normal text-txt3/70"
                 >(опционально, для приватных)</span
               >
             </label>
@@ -473,17 +519,17 @@
               bind:value={githubToken}
               type="password"
               placeholder="ghp_xxxxxxxxxxxx"
-              class="w-full px-3 py-2 bg-surface-tertiary border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              class="w-full rounded-md border border-line bg-inset px-3 py-2 font-mono text-sm text-txt transition-all placeholder:text-txt3 focus:border-amb/60 focus:outline-none focus:ring-2 focus:ring-amb/15"
             />
           </div>
           <button
             type="button"
             onclick={handleConnectGithub}
             disabled={isLoading || !githubUrl}
-            class="w-full py-2.5 bg-slate-800 text-white rounded-lg font-medium text-sm hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            class="flex w-full items-center justify-center gap-2 rounded-md bg-amb py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#16130c] transition-colors hover:brightness-105 disabled:opacity-50"
           >
             {#if isLoading}
-              <LoaderCircle size={16} class="animate-spin" />
+              <LoaderCircle size={15} class="animate-spin" />
               <span>Загрузка...</span>
             {:else}
               <span>Подключить</span>
