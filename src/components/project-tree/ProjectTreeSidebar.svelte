@@ -47,18 +47,19 @@
   let fileInput: HTMLInputElement;
   let supportsFileSystem = $state(false);
   let treeStateInitialized = $state(false);
-  // Состояние для GitHub модалки
   let isGithubModalOpen = $state(false);
   let githubUrl = $state("");
   let githubBranch = $state("main");
   let githubToken = $state("");
   let hasSavedGithub = $state(false);
+
   function handleModalBackdropKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
       isGithubModalOpen = false;
     }
   }
+
   onMount(() => {
     if (!browser) return;
     const saved = localStorage.getItem("projectTreeOpen");
@@ -66,7 +67,6 @@
       isProjectTreeOpen.set(saved === "true");
     }
     treeStateInitialized = true;
-    // Проверка сохраненного GitHub репо
     const savedGithub = localStorage.getItem("tomte_github_config");
     if (savedGithub) {
       try {
@@ -303,7 +303,9 @@
           >
             <FolderTree size={26} class="text-txt3" />
           </div>
-          <p class="text-sm font-medium text-txt2">Дерево структуры не создано</p>
+          <p class="text-sm font-medium text-txt2">
+            Дерево структуры не создано
+          </p>
           <p class="mx-auto mt-1.5 max-w-60 text-xs text-txt3">
             Выберите локальную папку или подключите GitHub-репозиторий
           </p>
@@ -388,12 +390,15 @@
         >
           <div class="flex items-center gap-2 font-mono text-xs text-txt3">
             <span
-              ><strong class="font-semibold text-txt">{stats?.totalFiles}</strong>
+              ><strong class="font-semibold text-txt"
+                >{stats?.totalFiles}</strong
+              >
               файлов</span
             >
             <span class="text-line2">·</span>
             <span
-              ><strong class="font-semibold text-txt">{stats?.totalDirs}</strong>
+              ><strong class="font-semibold text-txt">{stats?.totalDirs}</strong
+              >
               папок</span
             >
             {#if $selectedProjectFiles.length > 0}

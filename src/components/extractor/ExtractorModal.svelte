@@ -29,7 +29,7 @@
     if (e.target === e.currentTarget) close();
   }
   function handleBackdropKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
       close();
     }
@@ -39,13 +39,9 @@
   }
   function handleExtract() {
     if (!markdownInput.trim()) {
-      console.warn("⚠️ Поле ввода пустое или содержит только пробелы");
       return;
     }
-    console.log("🚀 Запуск распознавания...");
     const result = extractFilesFromMarkdown(markdownInput);
-    console.log("📦 Результат:", result);
-    // В Svelte 5 переназначение $state массива корректно триггерит обновление UI
     extractedFiles = result;
   }
   function handleRename(index: number) {

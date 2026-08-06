@@ -50,7 +50,7 @@
     }
   }
   function handleBackdropKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
       handleClose();
     }
