@@ -27,11 +27,7 @@
     loadProjectSource,
     clearProjectSource,
   } from "../../utils/draft";
-  import {
-    readDirectoryRecursive,
-    readDirectoryViaInput,
-    buildTreeString,
-  } from "../../utils/projectTree";
+import { buildTreeString } from "../../utils/projectTree";
   import { debounce } from "../../utils";
 
   let {
@@ -76,87 +72,19 @@
     editorHtml.set(currentHtml);
   });
 
-  onMount(() => {
-    const draft = loadDraft();
-    if (draft) {
-      currentHtml = draft.editorHtml;
-      attachedFiles.set(draft.attachedFiles);
-      fileName.set(draft.fileName);
-      exportFormat.set(draft.exportFormat);
+(async () => {
+  try {
+    const saved = await loadProjectSource();
+    if (!saved) return;
 
-      if (draft.projectTreeRootName) {
-        projectTreeRootName.set(draft.projectTreeRootName);
-      }
-      if (draft.selectedProjectFiles) {
-        selectedProjectFiles.set(draft.selectedProjectFiles);
-      }
-
-      saveStatus = "saved";
-      setTimeout(() => {
-        saveStatus = "idle";
-      }, 3000);
-    }
-
-    (async () => {
-      try {
-        const source = await loadProjectSource();
-        if (!source) return;
-
-        let nodes: any[] = [];
-        let rootName = "";
-
-        if (source.type === "handle") {
-          const handle = source.handle as FileSystemDirectoryHandle;
-
-          if ((handle as any).queryPermission) {
-            let perm = await (handle as any).queryPermission({ mode: "read" });
-            if (perm !== "granted") {
-              perm = await (handle as any).requestPermission({ mode: "read" });
-            }
-            if (perm !== "granted") {
-              await clearProjectSource();
-              return;
-            }
-          }
-
-          nodes = await readDirectoryRecursive(handle);
-          rootName = handle.name;
-        } else {
-          const result = await readDirectoryViaInput(
-            source.files as unknown as FileList,
-          );
-          nodes = result.nodes;
-          rootName = result.rootName;
-        }
-
-        projectTreeNodes.set(nodes);
-        projectTreeRootName.set(rootName);
-        projectTreeString.set(buildTreeString(rootName, nodes));
-      } catch (e) {
-        console.warn("Не удалось восстановить дерево проекта из IndexedDB:", e);
-        await clearProjectSource();
-      }
-    })();
-
-    const handleBeforeUnload = () => {
-      if (
-        currentHtml ||
-        $attachedFiles.length > 0 ||
-        $projectTreeNodes.length > 0
-      ) {
-        saveDraft({
-          editorHtml: currentHtml,
-          attachedFiles: $attachedFiles,
-          fileName: $fileName,
-          exportFormat: $exportFormat,
-          projectTreeRootName: $projectTreeRootName,
-          selectedProjectFiles: $selectedProjectFiles,
-        });
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  });
+    projectTreeNodes.set(saved.nodes);
+    projectTreeRootName.set(saved.rootName);
+    projectTreeString.set(buildTreeString(saved.rootName, saved.nodes));
+  } catch (e) {
+    console.warn("Не удалось восстановить дерево проекта из IndexedDB:", e);
+    await clearProjectSource();
+  }
+})();
 
   function handleUpdate(data: {
     html: string;

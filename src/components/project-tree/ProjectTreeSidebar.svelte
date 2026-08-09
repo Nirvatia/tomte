@@ -107,33 +107,40 @@
   function deselectAll() {
     selectedProjectFiles.set([]);
   }
-  async function handlePickDirectory() {
-    error = null;
-    isLoading = true;
-    try {
-      if (supportsFileSystem) {
-        const dirHandle = await (window as any).showDirectoryPicker({
-          mode: "read",
-        });
-        const nodes = await readDirectoryRecursive(dirHandle);
-        projectTreeNodes.set(nodes);
-        projectTreeRootName.set(dirHandle.name);
-        projectTreeString.set(buildTreeString(dirHandle.name, nodes));
-        selectedProjectFiles.set([]);
-        await saveProjectSource({ type: "handle", handle: dirHandle });
-        hasSavedGithub = false;
-      } else {
-        fileInput?.click();
-      }
-    } catch (e: any) {
-      if (e.name !== "AbortError") {
-        error = e.message || "Не удалось прочитать папку";
-        console.error(e);
-      }
-    } finally {
-      isLoading = false;
+async function handlePickDirectory() {
+  error = null;
+  isLoading = true;
+
+  try {
+    if (supportsFileSystem) {
+      const dirHandle = await (window as any).showDirectoryPicker({
+        mode: "read",
+      });
+
+      const nodes = await readDirectoryRecursive(dirHandle);
+      projectTreeNodes.set(nodes);
+      projectTreeRootName.set(dirHandle.name);
+      projectTreeString.set(buildTreeString(dirHandle.name, nodes));
+      selectedProjectFiles.set([]);
+
+      await saveProjectSource({
+        rootName: dirHandle.name,
+        nodes,
+        fileCount: calculateStats(nodes).totalFiles,
+      });
+      hasSavedGithub = false;
+    } else {
+      fileInput?.click();
     }
+  } catch (e: any) {
+    if (e.name !== "AbortError") {
+      error = e.message || "Не удалось прочитать папку";
+      console.error(e);
+    }
+  } finally {
+    isLoading = false;
   }
+}
   async function handleConnectGithub() {
     const parsed = parseGithubUrl(githubUrl);
     if (!parsed) {
@@ -169,30 +176,35 @@
     if (!hasSavedGithub) return;
     await handleConnectGithub();
   }
-  async function handleFileInputChange(e: Event) {
-    const input = e.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-    isLoading = true;
-    error = null;
-    try {
-      const { nodes, rootName } = await readDirectoryViaInput(input.files);
-      projectTreeNodes.set(nodes);
-      projectTreeRootName.set(rootName);
-      projectTreeString.set(buildTreeString(rootName, nodes));
-      selectedProjectFiles.set([]);
-      await saveProjectSource({
-        type: "files",
-        files: Array.from(input.files),
-        rootName,
-      });
-      hasSavedGithub = false;
-    } catch (e: any) {
-      error = e.message || "Не удалось прочитать папку";
-    } finally {
-      isLoading = false;
-      input.value = "";
-    }
+async function handleFileInputChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+
+  isLoading = true;
+  error = null;
+
+  try {
+    const files = Array.from(input.files);
+    const { nodes, rootName } = await readDirectoryViaInput(input.files);
+
+    projectTreeNodes.set(nodes);
+    projectTreeRootName.set(rootName);
+    projectTreeString.set(buildTreeString(rootName, nodes));
+    selectedProjectFiles.set([]);
+
+    await saveProjectSource({
+      rootName,
+      nodes,
+      fileCount: files.length,
+    });
+    hasSavedGithub = false;
+  } catch (e: any) {
+    error = e.message || "Не удалось прочитать папку";
+  } finally {
+    isLoading = false;
+    input.value = "";
   }
+}
   async function handleCopy() {
     if (!$projectTreeString) return;
     try {
