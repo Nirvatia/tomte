@@ -16,7 +16,8 @@
     }
   }
 
-  function handleBackdropKeydown(event: KeyboardEvent) {
+function handleBackdropKeydown(event: KeyboardEvent) {
+    if (!file) return;   
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
     }
