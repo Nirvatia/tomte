@@ -1,8 +1,11 @@
 import jsPDF from "jspdf";
 import { domToPng } from "modern-screenshot";
+
 import type { AttachedFile } from "../../types";
-import { buildPreviewHtml } from "../preview";
+
 import { sanitizeFileName } from "../index";
+import { buildPreviewHtml } from "../preview";
+
 import {
   createExportContainer,
   removeContainer,
@@ -10,9 +13,6 @@ import {
 } from "./common";
 import type { ExportOptions } from "./index";
 
-/**
- * Экспортирует содержимое в многостраничный PDF документ
- */
 export async function exportToPDF(
   editorHtml: string,
   files: AttachedFile[],
@@ -24,12 +24,12 @@ export async function exportToPDF(
 
   try {
     await waitForImages(container);
-    await new Promise((resolve) => setTimeout(resolve, 200)); // Небольшая задержка для стабильности рендеринга
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     const fullDataUrl = await domToPng(container, {
       scale: 2,
       backgroundColor: "#ffffff",
-      width: 794, // A4 width at 96 DPI
+      width: 794,
     });
 
     const fullImage = new Image();
@@ -43,7 +43,6 @@ export async function exportToPDF(
     const pageHeightMM = 297;
     const marginMM = 15;
     const contentWidthMM = pageWidthMM - marginMM * 2;
-
     const pxPerMM = fullImage.width / contentWidthMM;
     const pageContentHeightPX = (pageHeightMM - marginMM * 2) * pxPerMM;
     const totalPages = Math.ceil(fullImage.height / pageContentHeightPX);
@@ -91,7 +90,7 @@ export async function exportToPDF(
       const pdfBlob = pdf.output("blob");
       const blobUrl = URL.createObjectURL(pdfBlob);
       const newTab = window.open(blobUrl, "_blank");
-      if (!newTab) window.location.href = blobUrl; // Fallback
+      if (!newTab) window.location.href = blobUrl;
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
     } else {
       const rawBlob = pdf.output("blob");
@@ -99,14 +98,12 @@ export async function exportToPDF(
         type: "application/octet-stream",
       });
       const blobUrl = URL.createObjectURL(forceDownloadBlob);
-
       const link = document.createElement("a");
       link.href = blobUrl;
       link.download = safeName;
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
-
       setTimeout(() => {
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);

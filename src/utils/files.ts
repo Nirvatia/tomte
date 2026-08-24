@@ -1,10 +1,33 @@
 import type { AttachedFile } from "../types";
+
 import { generateId } from "./index";
 
 export const TEXT_EXTENSIONS = [
-  "txt", "md", "py", "js", "html", "css", "json", "xml", "csv", "sql",
-  "java", "cpp", "c", "h", "php", "rb", "go", "rs", "ts", "jsx", "tsx",
-  "yaml", "yml", "svelte", "gd"
+  "txt",
+  "md",
+  "py",
+  "js",
+  "html",
+  "css",
+  "json",
+  "xml",
+  "csv",
+  "sql",
+  "java",
+  "cpp",
+  "c",
+  "h",
+  "php",
+  "rb",
+  "go",
+  "rs",
+  "ts",
+  "jsx",
+  "tsx",
+  "yaml",
+  "yml",
+  "svelte",
+  "gd",
 ];
 
 export function isTextFile(filename: string): boolean {
@@ -41,7 +64,7 @@ export async function processFile(file: File): Promise<AttachedFile> {
   const id = generateId();
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   const isText = isTextFile(file.name);
-  
+
   if (isText) {
     const content = await file.text();
     return {
@@ -55,8 +78,8 @@ export async function processFile(file: File): Promise<AttachedFile> {
   } else {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
         const img = new Image();
         img.onload = () => {
           resolve({

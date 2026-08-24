@@ -1,9 +1,23 @@
-<!-- FileItem.svelte -->
 <script lang="ts">
-  import { FileText, Eye, Trash2, Link } from "@lucide/svelte";
+  import { CircleAlert, Eye, FileText, Link, Trash2 } from "@lucide/svelte";
+
+  import Checkbox from "../ui/Checkbox.svelte";
+
   import type { AttachedFile } from "../../types";
+
   import { formatFileSize } from "../../utils";
-  import { getPlaceholderPrefix, getPlaceholderIndex } from "../../utils/files";
+  import { getPlaceholderIndex, getPlaceholderPrefix } from "../../utils/files";
+
+  interface Props {
+    file: AttachedFile;
+    allFiles?: AttachedFile[];
+    isSelected?: boolean;
+    onToggleSelect?: (id: string) => void;
+    onRemove?: (id: string) => void;
+    onPreview?: (file: AttachedFile) => void;
+    onInsertPlaceholder?: (file: AttachedFile) => void;
+  }
+
   let {
     file,
     allFiles = [],
@@ -12,56 +26,59 @@
     onRemove = () => {},
     onPreview = () => {},
     onInsertPlaceholder = () => {},
-  }: {
-    file: AttachedFile;
-    allFiles?: AttachedFile[];
-    isSelected?: boolean;
-    onToggleSelect?: (id: string) => void;
-    onRemove?: (id: string) => void;
-    onPreview?: (file: AttachedFile) => void;
-    onInsertPlaceholder?: (file: AttachedFile) => void;
-  } = $props();
+  }: Props = $props();
+
   const prefix = $derived(getPlaceholderPrefix(file));
   const placeholderIndex = $derived(getPlaceholderIndex(file, allFiles));
+
   const badgeColor = $derived(
     file.type === "image"
-      ? "text-brand-600 bg-brand-50"
-      : "text-emerald-600 bg-emerald-50",
+      ? "text-[var(--accent-hover)] bg-[var(--accent-dim)]"
+      : "text-[var(--success)] bg-[var(--success)]/10",
   );
-  function handleCheckboxClick(e: Event) {
-    e.stopPropagation();
+
+  const hasContent = $derived(
+    file.type === "image"
+      ? Boolean(file.dataUrl)
+      : typeof file.content === "string",
+  );
+
+  function handleCheckboxClick(event: Event) {
+    event.stopPropagation();
     onToggleSelect(file.id);
   }
-  function handleRemoveClick(e: Event) {
-    e.stopPropagation();
+
+  function handleRemoveClick(event: Event) {
+    event.stopPropagation();
     onRemove(file.id);
   }
-  function handlePreviewClick(e: Event) {
-    e.stopPropagation();
+
+  function handlePreviewClick(event: Event) {
+    event.stopPropagation();
     onPreview(file);
   }
-  function handleInsertPlaceholderClick(e: Event) {
-    e.stopPropagation();
+
+  function handleInsertPlaceholderClick(event: Event) {
+    event.stopPropagation();
     onInsertPlaceholder(file);
   }
 </script>
 
-<!-- Внешний div используется только для layout, вся интерактивность внутри на честных элементах -->
 <div
-  class="group flex items-center gap-3 rounded-lg border p-3 transition-all {isSelected
-    ? 'border-amb/50 bg-amb/10'
-    : 'border-line bg-raised hover:border-line2 hover:bg-raised2'}"
+  class="group flex items-center gap-3 rounded-[6px] border p-3 transition-all duration-150 {isSelected
+    ? 'border-[var(--accent)]/50 bg-[var(--accent-dim)]'
+    : 'border-transparent bg-[var(--bg-light)] hover:border-[var(--border)] hover:bg-[var(--bg-lighter)] hover:shadow-[var(--shadow-sm)]'}"
 >
-  <input
-    type="checkbox"
-    checked={isSelected}
-    onclick={handleCheckboxClick}
-    class="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded-sm accent-amb"
-    aria-label="Выбрать файл {file.name}"
-  />
+  <div class="shrink-0">
+    <Checkbox
+      checked={isSelected}
+      onToggle={handleCheckboxClick}
+      ariaLabel="Выбрать файл {file.name}"
+    />
+  </div>
 
   <div
-    class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-inset"
+    class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[6px] border border-[var(--border)] bg-[var(--bg-darkest)]"
   >
     {#if file.type === "image" && file.dataUrl}
       <img
@@ -70,45 +87,63 @@
         class="h-full w-full object-cover"
       />
     {:else}
-      <FileText size={20} class="text-amb2" />
+      <FileText size={20} class="text-[var(--accent-hover)]" />
     {/if}
   </div>
 
   <div class="min-w-0 flex-1">
-    <p class="truncate text-sm font-medium text-txt">{file.name}</p>
-    <div class="mt-0.5 flex items-center gap-2">
-      <p class="text-xs text-txt3">{formatFileSize(file.size)}</p>
-      <span class="rounded px-1.5 py-0.5 font-mono text-xs {badgeColor}">
+    <p class="truncate text-[13px] font-medium text-[var(--text-primary)]">
+      {file.name}
+    </p>
+
+    <div class="mt-[3px] flex items-center gap-2">
+      <p class="text-[11px] text-[var(--text-tertiary)]">
+        {formatFileSize(file.size)}
+      </p>
+
+      <span class="rounded px-1.5 py-0.5 font-mono text-[11px] {badgeColor}">
         {prefix}_{placeholderIndex}
       </span>
+
+      {#if !hasContent}
+        <span
+          class="inline-flex items-center text-[var(--warning)]"
+          title="Содержимое не сохранено (только метаданные)"
+          aria-label="Содержимое не сохранено"
+        >
+          <CircleAlert size={12} />
+        </span>
+      {/if}
     </div>
   </div>
 
   <div
-    class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+    class="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
   >
     <button
       type="button"
       onclick={handleInsertPlaceholderClick}
-      class="rounded-md p-1.5 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+      class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
       title="Вставить ссылку на файл"
       aria-label="Вставить ссылку на файл {file.name}"
     >
       <Link size={16} />
     </button>
+
     <button
       type="button"
       onclick={handlePreviewClick}
-      class="rounded-md p-1.5 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+      class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
       title="Просмотреть файл"
       aria-label="Просмотреть файл {file.name}"
     >
       <Eye size={16} />
     </button>
+
     <button
       type="button"
       onclick={handleRemoveClick}
-      class="rounded-md p-1.5 text-txt2 transition-colors hover:bg-red-50 hover:text-red-600"
+      class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
       title="Удалить файл"
       aria-label="Удалить файл {file.name}"
     >

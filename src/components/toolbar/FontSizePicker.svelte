@@ -1,9 +1,16 @@
 <script lang="ts">
   import { Type } from "@lucide/svelte";
   import type { Editor } from "@tiptap/core";
-  let { editor = null }: { editor?: Editor | null } = $props();
+
+  interface Props {
+    editor?: Editor | null;
+  }
+
+  let { editor = null }: Props = $props();
+
   let isOpen = $state(false);
-  let container: HTMLDivElement;
+  let container = $state<HTMLDivElement | null>(null);
+
   const FONT_SIZES = [
     { label: "XS", value: "0.75rem" },
     { label: "SM", value: "0.875rem" },
@@ -14,31 +21,37 @@
     { label: "3XL", value: "1.875rem" },
     { label: "4XL", value: "2.25rem" },
   ];
-  let currentSize = $derived(() => {
+
+  const currentSize = $derived.by(() => {
     if (!editor) return null;
     const mark = editor.getAttributes("textStyle");
     return mark?.fontSize || null;
   });
+
   function toggle() {
     isOpen = !isOpen;
   }
+
   function setSize(size: string) {
     if (!editor) return;
     editor.chain().focus().setFontSize(size).run();
     isOpen = false;
   }
+
   function resetSize() {
     if (!editor) return;
     editor.chain().focus().unsetFontSize().run();
     isOpen = false;
   }
-  function handleClickOutside(e: MouseEvent) {
-    if (isOpen && container && !container.contains(e.target as Node)) {
+
+  function handleClickOutside(event: MouseEvent) {
+    if (isOpen && container && !container.contains(event.target as Node)) {
       isOpen = false;
     }
   }
+
   const BTN_BASE =
-    "p-2 rounded-lg text-ink-secondary transition-all duration-200 hover:bg-surface-tertiary hover:text-ink hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0";
+    "w-8 h-8 flex items-center justify-center rounded-[5px] text-[var(--text-secondary)] transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]";
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -53,39 +66,41 @@
   >
     <Type size={18} />
   </button>
-
   {#if isOpen}
     <div
       role="dialog"
       aria-label="Выбор размера шрифта"
-      class="absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in rounded-lg border border-line2 bg-raised p-1.5 shadow-drop"
+      class="absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
     >
       <button
         type="button"
         onclick={resetSize}
-        class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-raised2"
+        class="flex w-full items-center gap-3 rounded-[5px] px-3 py-2 text-left transition-colors hover:bg-[var(--bg-lighter)]"
       >
-        <Type size={16} class="shrink-0 text-txt3" />
-        <span class="text-[13px] text-txt2">По умолчанию</span>
+        <Type size={16} class="shrink-0 text-[var(--text-tertiary)]" />
+        <span class="text-[13px] text-[var(--text-secondary)]"
+          >По умолчанию</span
+        >
       </button>
-
-      <div class="mx-1 my-1 h-px bg-line"></div>
-
+      <div class="mx-1 my-1 h-px bg-[var(--border)]"></div>
       {#each FONT_SIZES as size}
         <button
           type="button"
           onclick={() => setSize(size.value)}
-          class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-raised2 {currentSize() ===
+          class="flex w-full items-center gap-3 rounded-[5px] px-3 py-2 text-left transition-colors hover:bg-[var(--bg-lighter)] {currentSize ===
           size.value
-            ? 'bg-brand-50'
+            ? 'bg-[var(--accent-dim)]'
             : ''}"
         >
           <span
-            class="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-line bg-inset font-mono text-[10px] text-txt3"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-[var(--border)] bg-[var(--bg-darkest)] font-mono text-[10px] text-[var(--text-tertiary)]"
           >
             {size.label}
           </span>
-          <span style="font-size: {size.value}" class="truncate text-txt">
+          <span
+            style="font-size: {size.value}"
+            class="truncate text-[var(--text-primary)]"
+          >
             Пример текста
           </span>
         </button>

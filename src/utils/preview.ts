@@ -1,4 +1,4 @@
-import type { AttachedFile } from '../types';
+import type { AttachedFile } from "../types";
 
 export interface PreviewResult {
   html: string;
@@ -14,14 +14,17 @@ export interface PreviewResult {
 
 function escapeHtml(text: string): string {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): PreviewResult {
+export function buildPreviewHtml(
+  editorHtml: string,
+  files: AttachedFile[],
+): PreviewResult {
   let result = editorHtml;
   const stats = {
     totalFiles: files.length,
@@ -32,13 +35,11 @@ export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): Pre
     attachedTexts: 0,
   };
 
-  // 1. Заменяем плейсхолдеры изображений на реальные <img>
   let imgIndex = 1;
   files.forEach((f) => {
-    if (f.type === 'image' && f.dataUrl) {
-      const regex = new RegExp(`\\[IMAGE_${imgIndex}(:[^\\]]+)?\\]`, 'g');
+    if (f.type === "image" && f.dataUrl) {
+      const regex = new RegExp(`\\[IMAGE_${imgIndex}(:[^\\]]+)?\\]`, "g");
       const matches = result.match(regex);
-      
       if (matches && matches.length > 0) {
         stats.usedImages++;
         const imageHtml = `
@@ -55,18 +56,16 @@ export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): Pre
     }
   });
 
-  // 2. Подсвечиваем плейсхолдеры файлов
   let fileIndex = 1;
   files.forEach((f) => {
-    if (f.type === 'text') {
-      const regex = new RegExp(`\\[FILE_${fileIndex}(:[^\\]]+)?\\]`, 'g');
+    if (f.type === "text") {
+      const regex = new RegExp(`\\[FILE_${fileIndex}(:[^\\]]+)?\\]`, "g");
       const matches = result.match(regex);
-      
       if (matches && matches.length > 0) {
         stats.usedFiles++;
         result = result.replace(
           regex,
-          `<span class="preview-file-placeholder">[FILE_${fileIndex}: ${escapeHtml(f.name)}]</span>`
+          `<span class="preview-file-placeholder">[FILE_${fileIndex}: ${escapeHtml(f.name)}]</span>`,
         );
       } else {
         stats.unusedFiles++;
@@ -75,19 +74,14 @@ export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): Pre
     }
   });
 
-  // 3. ВАРИАНТ B: Добавляем в конец ТОЛЬКО если плейсхолдера НЕТ в тексте
-  let appendixHtml = '';
-  
-  // Текстовые файлы с includeInExport=true, но без плейсхолдера в тексте
+  let appendixHtml = "";
   let textFileIndex = 1;
   files.forEach((f) => {
-    if (f.type === 'text' && f.content) {
+    if (f.type === "text" && f.content) {
       const placeholderPattern = `[FILE_${textFileIndex}`;
       const hasPlaceholder = editorHtml.includes(placeholderPattern);
-      
-      // Добавляем в конец, если включён экспорт И нет плейсхолдера в тексте
+
       if (!hasPlaceholder) {
-        const separator = '═'.repeat(40);
         appendixHtml += `
           <div class="preview-attached-file">
             <div class="preview-attached-label">FILE_${textFileIndex}: ${escapeHtml(f.name)}</div>
@@ -100,10 +94,9 @@ export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): Pre
     }
   });
 
-  // Неиспользованные изображения (без плейсхолдера в тексте)
   let checkImgIndex = 1;
   files.forEach((f) => {
-    if (f.type === 'image' && f.dataUrl) {
+    if (f.type === "image" && f.dataUrl) {
       const placeholderPattern = `[IMAGE_${checkImgIndex}`;
       if (!editorHtml.includes(placeholderPattern)) {
         appendixHtml += `
@@ -118,7 +111,11 @@ export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): Pre
   });
 
   return {
-    html: result + (appendixHtml ? `<div class="preview-appendix">${appendixHtml}</div>` : ''),
+    html:
+      result +
+      (appendixHtml
+        ? `<div class="preview-appendix">${appendixHtml}</div>`
+        : ""),
     stats,
   };
 }

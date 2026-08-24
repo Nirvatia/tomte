@@ -1,4 +1,5 @@
 import type { AttachedFile } from "../types";
+
 import { fetchGithubFileContent } from "./github";
 
 export interface TreeNode {
@@ -9,6 +10,7 @@ export interface TreeNode {
   fileRef?: File | FileSystemFileHandle;
   githubRef?: { owner: string; repo: string; branch: string; token?: string };
 }
+
 export interface TreeStats {
   totalFiles: number;
   totalDirs: number;
@@ -102,6 +104,7 @@ export function buildTreeString(rootName: string, nodes: TreeNode[]): string {
 export function calculateStats(nodes: TreeNode[]): TreeStats {
   let totalFiles = 0;
   let totalDirs = 0;
+
   function traverse(items: TreeNode[]) {
     for (const item of items) {
       if (item.type === "file") totalFiles++;
@@ -111,6 +114,7 @@ export function calculateStats(nodes: TreeNode[]): TreeStats {
       }
     }
   }
+
   traverse(nodes);
   return { totalFiles, totalDirs, rootName: "" };
 }
@@ -125,6 +129,7 @@ export async function readDirectoryViaInput(
     type: "directory",
     children: [],
   };
+
   const fileArray = Array.from(files);
   if (fileArray.length === 0) return { nodes: [], rootName: "root" };
 
@@ -136,12 +141,12 @@ export async function readDirectoryViaInput(
   for (const file of fileArray) {
     const relativePath = (file as any).webkitRelativePath || file.name;
     const parts = relativePath.split("/").slice(1);
-
     const shouldIgnore = parts.some((part: string) => {
       if (ignore.includes(part)) return true;
       if (part.startsWith(".") && part !== ".") return true;
       return false;
     });
+
     if (shouldIgnore) continue;
 
     let current = root;
@@ -169,6 +174,7 @@ export async function readDirectoryViaInput(
       if (a.type !== b.type) return a.type === "directory" ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
+
     const filtered: TreeNode[] = [];
     for (const item of items) {
       if (item.type === "directory") {
@@ -206,8 +212,8 @@ export async function getSelectedTreeFilesAsAttachments(
       }
     }
   }
-  collect(nodes);
 
+  collect(nodes);
   if (fileNodes.length === 0) return [];
 
   const promises = fileNodes.map(async (node): Promise<AttachedFile | null> => {
@@ -239,8 +245,8 @@ export async function getSelectedTreeFilesAsAttachments(
         type: "text" as const,
         content,
       } as AttachedFile;
-    } catch (e) {
-      console.warn(`Не удалось прочитать ${node.path}:`, e);
+    } catch (error) {
+      console.warn(`Не удалось прочитать ${node.path}:`, error);
       return null;
     }
   });

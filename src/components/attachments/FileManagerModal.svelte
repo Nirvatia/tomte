@@ -1,182 +1,330 @@
-<!-- FileManagerModal.svelte -->
 <script lang="ts">
   import {
-    X,
+    CircleAlert,
     FolderOpen,
-    Trash2,
     SquareCheck,
     SquareX,
+    Trash2,
     Upload,
+    X,
   } from "@lucide/svelte";
-  import { dropzone } from "$lib/actions/dropzone";
+
   import FileItem from "./FileItem.svelte";
   import FilePreviewModal from "./FilePreviewModal.svelte";
+
   import type { AttachedFile } from "../../types";
-  import { processFile } from "../../utils/files";
-  import { get } from "svelte/store";
+
+  import { dropzone } from "$lib/actions/dropzone";
+
   import {
     attachedFiles,
-    selectedFileIds,
     isFileManagerOpen,
+    selectedFileIds,
+    selectedFilesCount,
   } from "../../stores";
-  let previewFile: AttachedFile | null = $state(null);
-  let fileInput: HTMLInputElement;
+  import { requestConfirm } from "../../stores/confirm";
+
+  import { getErrorMessage, pluralize } from "../../utils";
+  import { processFile } from "../../utils/files";
+  import {
+    addAttachmentsToProject,
+    pruneSelectedFileIds,
+    removeAttachmentFromProject,
+    removeSelectedAttachmentsFromProject,
+  } from "../../utils/projectActions";
+
+  let previewFile = $state<AttachedFile | null>(null);
+  let fileInput = $state<HTMLInputElement | null>(null);
+  let actionInProgress = $state(false);
+  let errorMessage = $state<string | null>(null);
+
+  $effect(() => {
+    if (!$isFileManagerOpen) {
+      previewFile = null;
+      errorMessage = null;
+      actionInProgress = false;
+    }
+  });
+
+  $effect(() => {
+    if ($isFileManagerOpen) {
+      pruneSelectedFileIds();
+      errorMessage = null;
+    }
+  });
+
   async function handleFilesSelected(files: File[]) {
-    for (const file of files) {
-      try {
-        const attachedFile = await processFile(file);
-        attachedFiles.update(($files) => [...$files, attachedFile]);
-      } catch (error) {
-        console.error("Error processing file:", error);
+    if (actionInProgress || files.length === 0) return;
+
+    actionInProgress = true;
+    errorMessage = null;
+
+    try {
+      const processedFiles: AttachedFile[] = [];
+      for (const file of files) {
+        processedFiles.push(await processFile(file));
       }
+
+      if (processedFiles.length > 0) {
+        await addAttachmentsToProject(processedFiles);
+      }
+    } catch (error) {
+      console.error("Failed to add attachments:", error);
+      errorMessage = getErrorMessage(error, "Не удалось добавить файлы.");
+    } finally {
+      actionInProgress = false;
     }
   }
-  function handleFileInputChange(e: Event) {
-    const input = e.target as HTMLInputElement;
+
+  function handleFileInputChange(event: Event) {
+    const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      handleFilesSelected(Array.from(input.files));
+      void handleFilesSelected(Array.from(input.files));
       input.value = "";
     }
   }
+
   function close() {
+    if (actionInProgress) return;
+    previewFile = null;
+    errorMessage = null;
     isFileManagerOpen.set(false);
   }
+
   function toggleSelect(id: string) {
     selectedFileIds.update(($selected) => {
       const newSet = new Set($selected);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
       return newSet;
     });
   }
-  function removeFile(id: string) {
-    attachedFiles.update(($files) => $files.filter((f) => f.id !== id));
-    selectedFileIds.update(($selected) => {
-      const newSet = new Set($selected);
-      newSet.delete(id);
-      return newSet;
-    });
+
+  async function removeFile(id: string) {
+    if (actionInProgress) return;
+
+    actionInProgress = true;
+    errorMessage = null;
+
+    try {
+      await removeAttachmentFromProject(id);
+      if (previewFile?.id === id) {
+        previewFile = null;
+      }
+    } catch (error) {
+      console.error("Failed to remove file:", error);
+      errorMessage = getErrorMessage(error, "Не удалось удалить файл.");
+    } finally {
+      actionInProgress = false;
+    }
   }
+
   function openPreview(file: AttachedFile) {
     previewFile = file;
   }
+
   function closePreview() {
     previewFile = null;
   }
+
   function selectAll() {
-    selectedFileIds.set(new Set(get(attachedFiles).map((f) => f.id)));
+    selectedFileIds.set(new Set($attachedFiles.map((file) => file.id)));
   }
+
   function deselectAll() {
     selectedFileIds.set(new Set());
   }
-  function deleteSelected() {
-    const selectedIds = get(selectedFileIds);
-    if (selectedIds.size === 0) return;
-    if (!confirm(`Удалить ${selectedIds.size} файл(ов)?`)) return;
-    attachedFiles.update(($files) =>
-      $files.filter((f) => !selectedIds.has(f.id)),
-    );
-    selectedFileIds.set(new Set());
+
+  async function deleteSelected() {
+    if (actionInProgress) return;
+    if ($selectedFilesCount === 0) return;
+
+    const count = $selectedFilesCount;
+    const confirmed = await requestConfirm({
+      title: "Удалить выбранные файлы?",
+      message: `Будет удалено ${count} ${pluralize(count, "файл", "файла", "файлов")}.\nЭто действие нельзя отменить.`,
+      confirmText: "Удалить",
+      cancelText: "Отмена",
+      danger: true,
+    });
+
+    if (!confirmed) return;
+
+    actionInProgress = true;
+    errorMessage = null;
+
+    try {
+      const deletedCount = await removeSelectedAttachmentsFromProject();
+      if (previewFile && deletedCount > 0) {
+        const stillExists = $attachedFiles.some(
+          (file) => file.id === previewFile?.id,
+        );
+        if (!stillExists) {
+          previewFile = null;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete selected files:", error);
+      errorMessage = getErrorMessage(
+        error,
+        "Не удалось удалить выбранные файлы.",
+      );
+    } finally {
+      actionInProgress = false;
+    }
   }
-  function handleBackdropClick(e: MouseEvent) {
-    if (e.target === e.currentTarget) close();
+
+  function handleBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      close();
+    }
   }
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") close();
+
+  function handleWindowKeydown(event: KeyboardEvent) {
+    if (!$isFileManagerOpen) return;
+    if (event.key === "Escape" && !previewFile) {
+      close();
+    }
+  }
+
+  function preventEnterSpace(event: KeyboardEvent) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+    }
+  }
+
+  function stopEventPropagation(event: Event) {
+    event.stopPropagation();
   }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 {#if $isFileManagerOpen}
   <div
     class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
-    onkeydown={handleKeydown}
+    onkeydown={preventEnterSpace}
     role="dialog"
     aria-modal="true"
     aria-label="Менеджер файлов"
     tabindex="-1"
   >
     <div
-      class="flex max-h-[90vh] w-full max-w-6xl flex-col rounded-xl border border-line2 bg-panel shadow-deep"
+      class="flex max-h-[90vh] w-full max-w-6xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      role="presentation"
+      onclick={stopEventPropagation}
+      onkeydown={preventEnterSpace}
     >
-      <!-- Заголовок -->
-      <div class="flex items-center justify-between border-b border-line p-6">
+      <div
+        class="flex items-center justify-between border-b border-[var(--border)] p-6"
+      >
         <div>
-          <h2 class="flex items-center gap-2 text-xl font-bold text-txt">
-            <FolderOpen size={24} class="text-amb" />
+          <h2
+            class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
+          >
+            <FolderOpen size={24} class="text-[var(--accent)]" />
             Менеджер файлов
           </h2>
-          <p class="mt-1 text-sm text-txt3">
-            Всего: <strong class="font-semibold text-txt"
-              >{$attachedFiles.length}</strong
-            >
-            {#if $selectedFileIds.size > 0}
-              <span class="ml-3 text-line2">|</span>
-              <span class="ml-3 font-medium text-amb2"
-                >Выбрано: {$selectedFileIds.size}</span
-              >
+
+          <p class="mt-1 text-sm text-[var(--text-tertiary)]">
+            Всего:
+            <strong class="font-semibold text-[var(--text-primary)]">
+              {$attachedFiles.length}
+            </strong>
+
+            {#if $selectedFilesCount > 0}
+              <span class="ml-3 text-[var(--border-light)]">|</span>
+              <span class="ml-3 font-medium text-[var(--accent-hover)]">
+                Выбрано: {$selectedFilesCount}
+              </span>
             {/if}
           </p>
         </div>
+
         <button
           type="button"
           onclick={close}
-          class="rounded-lg p-2 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+          disabled={actionInProgress}
+          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           aria-label="Закрыть менеджер файлов"
         >
           <X size={20} />
         </button>
       </div>
 
-      <!-- Панель инструментов -->
-      <div class="border-b border-line bg-raised px-6 py-4">
+      <div
+        class="border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
+      >
         <div class="flex gap-2">
           <button
             type="button"
             onclick={selectAll}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-line bg-panel px-4 py-2.5 text-sm font-medium text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+            disabled={actionInProgress}
+            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           >
             <SquareCheck size={16} />
             Выбрать всё
           </button>
+
           <button
             type="button"
             onclick={deselectAll}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-line bg-panel px-4 py-2.5 text-sm font-medium text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+            disabled={actionInProgress}
+            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           >
             <SquareX size={16} />
             Снять выделение
           </button>
+
           <button
             type="button"
             onclick={deleteSelected}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-red-200/60 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50/70 disabled:pointer-events-none disabled:opacity-40"
-            disabled={$selectedFileIds.size === 0}
+            disabled={$selectedFilesCount === 0 || actionInProgress}
+            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-4 py-2.5 text-sm font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/20 disabled:pointer-events-none disabled:opacity-40"
           >
             <Trash2 size={16} />
             Удалить выбранные
           </button>
+
           <button
             type="button"
-            onclick={() => fileInput.click()}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-ok/30 bg-ok/10 px-4 py-2.5 text-sm font-medium text-ok transition-colors hover:bg-ok/20"
+            onclick={() => fileInput?.click()}
+            disabled={actionInProgress}
+            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--success)]/30 bg-[var(--success)]/10 px-4 py-2.5 text-sm font-medium text-[var(--success)] transition-colors hover:bg-[var(--success)]/20 disabled:pointer-events-none disabled:opacity-40"
           >
             <Upload size={16} />
             Загрузить
           </button>
         </div>
+
+        {#if errorMessage}
+          <div
+            class="mt-3 flex items-start gap-2 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-3 py-2 text-xs text-[var(--error)]"
+          >
+            <CircleAlert size={14} class="mt-0.5 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        {/if}
       </div>
 
-      <!-- Список файлов -->
       <div
         use:dropzone={handleFilesSelected}
         class="relative min-h-0 flex-1 overflow-y-auto p-6 transition-colors"
       >
         {#if $attachedFiles.length === 0}
           <div class="py-20 text-center">
-            <FolderOpen size={48} class="mx-auto mb-4 text-txt3 opacity-40" />
-            <p class="text-lg font-medium text-txt2">Нет загруженных файлов</p>
-            <p class="mt-2 text-sm text-txt3">
+            <FolderOpen
+              size={48}
+              class="mx-auto mb-4 text-[var(--text-tertiary)] opacity-40"
+            />
+            <p class="text-lg font-medium text-[var(--text-secondary)]">
+              Нет загруженных файлов
+            </p>
+            <p class="mt-2 text-sm text-[var(--text-tertiary)]">
               Закройте это окно и загрузите файлы в правом сайдбаре
             </p>
           </div>

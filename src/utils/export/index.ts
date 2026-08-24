@@ -1,17 +1,15 @@
-import type { ExportFormat, AttachedFile } from "../../types";
-import { exportToPDF } from "./pdf";
-import { exportToPNG } from "./png";
+import type { AttachedFile, ExportFormat } from "../../types";
+
 import { exportToDOCX } from "./docx";
 import { exportToMD } from "./md";
+import { exportToPDF } from "./pdf";
+import { exportToPNG } from "./png";
 import { validateExportLimits } from "./limits";
 
 export interface ExportOptions {
   openInNewTab?: boolean;
 }
 
-/**
- * Главная функция экспорта. Проверяет лимиты и делегирует работу нужному модулю.
- */
 export async function exportFile(
   format: ExportFormat,
   editorHtml: string,
@@ -20,10 +18,8 @@ export async function exportFile(
   options: ExportOptions = {},
 ): Promise<void> {
   try {
-    // 1. Мгновенная проверка лимитов (занимает < 1 мс)
     validateExportLimits(format, files);
 
-    // 2. Выполнение экспорта в зависимости от формата
     switch (format) {
       case "md":
         await exportToMD(editorHtml, files, fileName);
@@ -42,12 +38,11 @@ export async function exportFile(
     }
   } catch (error) {
     console.error("Global Export Error:", error);
-    // Пробрасываем ошибку дальше, чтобы UI (AppHeader) мог её перехватить и показать
     throw error;
   }
 }
 
+export { exportToDOCX } from "./docx";
 export { exportToMD } from "./md";
 export { exportToPDF } from "./pdf";
 export { exportToPNG } from "./png";
-export { exportToDOCX } from "./docx";

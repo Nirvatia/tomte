@@ -1,16 +1,16 @@
 import { domToPng } from "modern-screenshot";
+
 import type { AttachedFile } from "../../types";
-import { buildPreviewHtml } from "../preview";
+
 import { sanitizeFileName } from "../index";
+import { buildPreviewHtml } from "../preview";
+
 import {
   createExportContainer,
   removeContainer,
   waitForImages,
 } from "./common";
 
-/**
- * Экспортирует содержимое в единое PNG изображение
- */
 export async function exportToPNG(
   editorHtml: string,
   files: AttachedFile[],
@@ -31,7 +31,6 @@ export async function exportToPNG(
 
     const response = await fetch(dataUrl);
     const blob = await response.blob();
-
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

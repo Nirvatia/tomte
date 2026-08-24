@@ -1,23 +1,22 @@
 import {
+  BorderStyle,
   Document,
+  HeadingLevel,
+  ImageRun,
   Packer,
   Paragraph,
-  TextRun,
-  ImageRun,
-  HeadingLevel,
   Table,
-  TableRow,
   TableCell,
+  TableRow,
+  TextRun,
   WidthType,
-  BorderStyle,
 } from "docx";
-import type { AttachedFile } from "../../types";
-import { buildPreviewHtml } from "../preview";
-import { sanitizeFileName } from "../index";
 
-/**
- * Простой HTML-парсер для преобразования DOM-узлов в элементы DOCX
- */
+import type { AttachedFile } from "../../types";
+
+import { sanitizeFileName } from "../index";
+import { buildPreviewHtml } from "../preview";
+
 function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
@@ -38,6 +37,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
     }
 
     if (node.nodeType !== Node.ELEMENT_NODE) return;
+
     const el = node as HTMLElement;
     const tag = el.tagName.toLowerCase();
 
@@ -139,6 +139,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
       }
 
       if (node.nodeType !== Node.ELEMENT_NODE) return;
+
       const child = node as HTMLElement;
       const tag = child.tagName.toLowerCase();
       const baseProps: any = { text: child.textContent || "", size: 24 };
@@ -167,7 +168,6 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
     Array.from(el.childNodes).forEach(extractRuns);
     if (runs.length === 0)
       runs.push(new TextRun({ text: el.textContent || "", size: 24 }));
-
     return new Paragraph({ children: runs, spacing: { after: 100 } });
   }
 
@@ -214,6 +214,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
         (c) =>
           c.tagName.toLowerCase() === "ul" || c.tagName.toLowerCase() === "ol",
       );
+
       nestedLists.forEach((nestedList) => {
         processList(
           nestedList as HTMLElement,
@@ -268,9 +269,6 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
   return elements;
 }
 
-/**
- * Создает ImageRun для DOCX из base64 data URL
- */
 function createDocxImage(
   dataUrl: string,
   width: number,
@@ -278,7 +276,6 @@ function createDocxImage(
 ): ImageRun {
   const [header, base64] = dataUrl.split(",");
   const buffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-
   const maxWidth = 500;
   const scale = Math.min(1, maxWidth / width);
   const finalWidth = Math.round(width * scale);
@@ -295,9 +292,6 @@ function createDocxImage(
   });
 }
 
-/**
- * Экспортирует содержимое в формат DOCX
- */
 export async function exportToDOCX(
   editorHtml: string,
   files: AttachedFile[],
@@ -344,6 +338,7 @@ export async function exportToDOCX(
             spacing: { before: 200, after: 200 },
           }),
         );
+
         images.forEach((img, i) => {
           content.push(
             new Paragraph({
@@ -358,6 +353,7 @@ export async function exportToDOCX(
               spacing: { after: 100 },
             }),
           );
+
           if (img.dataUrl && img.width && img.height) {
             content.push(
               new Paragraph({
@@ -384,6 +380,7 @@ export async function exportToDOCX(
             spacing: { before: 200, after: 200 },
           }),
         );
+
         textFiles.forEach((file, i) => {
           content.push(
             new Paragraph({
@@ -398,7 +395,8 @@ export async function exportToDOCX(
               spacing: { after: 100 },
             }),
           );
-          file.content.split("\n").forEach((line) => {
+
+          file.content?.split("\n").forEach((line) => {
             content.push(
               new Paragraph({
                 children: [

@@ -1,0 +1,2 @@
+export const SECTION_TOOL_BTN =
+  "flex h-7 w-7 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40";

@@ -1,11 +1,7 @@
 import type { AttachedFile } from "../../types";
 
-/**
- * Создает скрытый контейнер для рендеринга HTML перед экспортом (PDF/PNG)
- */
 export function createExportContainer(html: string): HTMLDivElement {
   const container = document.createElement("div");
-  // 794px = ровно 210mm (ширина A4) при 96 DPI
   container.style.cssText = `
     position: absolute;
     left: -10000px;
@@ -14,8 +10,6 @@ export function createExportContainer(html: string): HTMLDivElement {
     background: #ffffff;
     z-index: -9999;
   `;
-
-  // 40px padding ≈ 15mm (стандартные поля документа)
   container.innerHTML = `
     <div style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a; line-height: 1.6; font-size: 14px;">
       <div class="preview-content prose max-w-none">${html}</div>
@@ -25,33 +19,24 @@ export function createExportContainer(html: string): HTMLDivElement {
   return container;
 }
 
-/**
- * Безопасно удаляет контейнер из DOM
- */
 export function removeContainer(container: HTMLDivElement): void {
   if (document.body.contains(container)) {
     document.body.removeChild(container);
   }
 }
 
-/**
- * Ожидает загрузки всех изображений в контейнере перед созданием скриншота
- */
 export async function waitForImages(container: HTMLElement): Promise<void> {
   const images = Array.from(container.querySelectorAll("img"));
   const promises = images.map((img) => {
     if (img.complete) return Promise.resolve();
     return new Promise<void>((resolve) => {
       img.onload = () => resolve();
-      img.onerror = () => resolve(); // Разрешаем промис даже при ошибке, чтобы не блокировать экспорт
+      img.onerror = () => resolve();
     });
   });
   await Promise.all(promises);
 }
 
-/**
- * Экранирует специальные символы HTML для безопасной вставки в текст
- */
 export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -61,9 +46,6 @@ export function escapeHtml(text: string): string {
     .replace(/'/g, "&#39;");
 }
 
-/**
- * Генерирует HTML-разметку для списка вложений в конце документа
- */
 export function buildAttachmentsHtml(files: AttachedFile[]): string {
   if (files.length === 0) return "";
 

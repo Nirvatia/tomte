@@ -1,76 +1,44 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════
+   THEME & CSS VARIABLES
+   ═══════════════════════════════════════════ */
 @theme {
-  /* ════ GRAPHITE ════ */
-  --color-bgapp: #151619;
-  --color-panel: #1d1e22;
-  --color-raised: #25262b;
-  --color-raised2: #2e3036;
-  --color-inset: #0f1013;
+  /* Backgrounds & Borders */
+  --bg-darkest: #141819;
+  --bg-dark: #1a1e20;
+  --bg-medium: #1f2426;
+  --bg-light: #262c2e;
+  --bg-lighter: #2e3538;
+  --border: #363e41;
+  --border-light: #454e52;
 
-  --color-line: #3a3c44;
-  --color-line2: #50535d;
+  /* Text Colors */
+  --text-primary: #e0f2f1;
+  --text-secondary: #a7c4c2;
+  --text-tertiary: #729996;
+  --text-dim: #4d6b69;
 
-  --color-txt: #f2f3f5;
-  --color-txt2: #b6b8c0;
-  --color-txt3: #8a8d96;
-  --color-amb: #ffa028;
-  --color-amb2: #ffb54d;
-  --color-ok: #43d17c;
-  --color-mark: #ffd84d;
-  --color-code-key: #ffc46b;
-  --color-code-str: #7fd99a;
-  --color-link: #6b9bff;
+  /* Accent & Status Colors */
+  --accent: #14b8a6;
+  --accent-hover: #2dd4bf;
+  --accent-dim: rgba(20, 184, 166, 0.15);
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #fb7185;
+  --info: #38bdf8;
 
-  --color-brand-50: #2f2a22;
-  --color-brand-100: #3a3021;
-  --color-brand-200: #4a3d26;
-  --color-brand-300: #8a6a33;
-  --color-brand-400: #e8891a;
-  --color-brand-600: #ffb54d;
-  --color-brand-700: #ffc46b;
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 
-  --shadow-inner-soft: inset 0 2px 4px 0 rgba(0, 0, 0, 0.35);
-
-    /* Emerald → тёмный зелёный (используется badgeColor в скрипте FileItem) */
-  --color-emerald-50: rgba(67, 209, 124, 0.12);
-  --color-emerald-100: rgba(67, 209, 124, 0.2);
-  --color-emerald-200: rgba(67, 209, 124, 0.3);
-  --color-emerald-600: #43d17c;
-  --color-emerald-700: #5adf8f;
-
-  /* Совместимость со старыми семантическими токенами
-     (переиспользуются в редакторе/предпросмотре ниже) */
-  --color-surface: #1d1e21;
-  --color-surface-secondary: #242529;
-  --color-surface-tertiary: #2b2c31;
-  --color-ink: #e8e9ec;
-  --color-ink-secondary: #a6a8af;
-  --color-ink-tertiary: #6e7076;
-
-  /* Логотип: янтарный градиент */
-  --color-brand-500: #ffa028;
-  --color-purple-600: #e8891a;
-
-  /* Ошибки на тёмном */
-  --color-red-50: #33181a;
-  --color-red-200: #5f2d29;
-  --color-red-600: #ff6b5e;
-
-  /* Шрифты */
+  /* Typography */
   --font-ui: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
-  /* Тени */
-  --shadow-drop: 0 4px 12px rgba(0, 0, 0, 0.35), 0 24px 56px rgba(0, 0, 0, 0.5);
-  --shadow-deep: 0 8px 24px rgba(0, 0, 0, 0.45), 0 28px 64px rgba(0, 0, 0, 0.5);
-  --shadow-soft:
-    0 4px 10px -2px rgba(0, 0, 0, 0.45), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-soft-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --shadow-glow: 0 2px 12px rgba(255, 160, 40, 0.35);
-
-  /* Анимации */
+  /* Animations */
   --animate-fade-in: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-scale-in: scaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -82,6 +50,7 @@
       opacity: 1;
     }
   }
+
   @keyframes scaleIn {
     from {
       opacity: 0;
@@ -94,80 +63,191 @@
   }
 }
 
-/* ════════ БАЗА ════════
-   Внутри @layer base — иначе эти правила перебивают
-   утилиты Tailwind (focus:outline-none и т.п.), т.к.
-   CSS вне слоёв всегда приоритетнее слоистого. */
+/* ═══════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════ */
 @layer base {
   body {
-    background-color: var(--color-bgapp);
-    color: var(--color-txt);
+    background-color: var(--bg-darkest);
+    color: var(--text-primary);
     font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
-    background: rgba(255, 160, 40, 0.35);
-    color: var(--color-txt);
+    background: rgba(20, 184, 166, 0.35);
+    color: var(--text-primary);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-amb);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
-  }
-
-  input[type="checkbox"],
-  input[type="radio"] {
-    accent-color: var(--color-amb);
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-line2) transparent;
+    scrollbar-color: var(--bg-lighter) transparent;
   }
+
   *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
+
   *::-webkit-scrollbar-track {
     background: transparent;
   }
+
   *::-webkit-scrollbar-thumb {
-    background: var(--color-line2);
-    border-radius: 8px;
+    background: var(--bg-lighter);
+    border-radius: 5px;
   }
+
   *::-webkit-scrollbar-thumb:hover {
-    background: #4a4c52;
+    background: var(--text-dim);
   }
 }
 
-/* ════════ РЕДАКТОР TIPTAP ════════ */
+/* ═══════════════════════════════════════════
+   CUSTOM CHECKBOX
+   ═══════════════════════════════════════════ */
+.checkbox-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+}
 
+.checkbox-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.checkbox-visual {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  border: 1px solid var(--text-tertiary);
+  border-radius: 0;
+  background: var(--bg-darkest);
+  color: var(--bg-darkest);
+  transition: all 0.15s ease;
+}
+
+.checkbox-icon {
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.15s ease;
+}
+
+.checkbox-input:checked + .checkbox-visual {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkbox-input:checked + .checkbox-visual .checkbox-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkbox-input:indeterminate + .checkbox-visual {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.checkbox-input:indeterminate + .checkbox-visual .checkbox-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkbox-wrapper:hover .checkbox-visual {
+  border-color: var(--accent-hover);
+}
+
+.checkbox-wrapper:hover .checkbox-input:checked + .checkbox-visual {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.checkbox-input:focus-visible + .checkbox-visual {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.checkbox-disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.checkbox-disabled .checkbox-visual {
+  background: var(--bg-medium);
+  border-color: var(--border);
+}
+
+.checkbox-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.checkbox-wrapper:hover .checkbox-label {
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════
+   TIPTAP EDITOR
+   ═══════════════════════════════════════════ */
 .tiptap-wrapper {
   cursor: text;
-
 }
 
 .tiptap-prose {
   cursor: text;
   min-height: 100%;
   font-family: var(--font-ui);
-  color: var(--color-ink);
+  color: var(--text-primary);
   line-height: 1.75;
   font-size: 15px;
 }
+
 .tiptap-prose:empty {
   cursor: text;
 }
+
 .tiptap-prose:empty::before {
   cursor: text;
 }
+
 .tiptap-prose:focus-visible {
   outline: none;
 }
 
 .tiptap-prose p.is-editor-empty:first-child::before {
-  color: var(--color-ink-tertiary);
+  color: var(--text-tertiary);
   float: left;
   height: 0;
   pointer-events: none;
@@ -182,51 +262,58 @@
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
 }
+
 .tiptap-prose h2 {
   font-size: 1.5rem;
   font-weight: 800;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
 }
+
 .tiptap-prose h3 {
   font-size: 1.25rem;
   font-weight: 700;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
+
 .tiptap-prose p {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
+
 .tiptap-prose strong {
   font-weight: 700;
 }
+
 .tiptap-prose em {
   font-style: italic;
 }
+
 .tiptap-prose u {
   text-decoration: underline;
 }
+
 .tiptap-prose a {
-  color: var(--color-link);
+  color: var(--info);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .tiptap-prose blockquote {
-  border-left: 3px solid var(--color-amb);
+  border-left: 3px solid var(--accent);
   padding: 0.5rem 1rem;
   margin: 1rem 0;
   font-style: italic;
-  color: var(--color-ink-secondary);
-  background-color: rgba(255, 160, 40, 0.06);
+  color: var(--text-secondary);
+  background-color: var(--accent-dim);
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
 .tiptap-prose code {
-  background-color: #121316;
-  color: var(--color-code-key);
-  border: 1px solid var(--color-line);
+  background-color: var(--bg-light);
+  color: var(--warning);
+  border: 1px solid var(--border);
   border-radius: 0.3rem;
   padding: 0.125rem 0.4rem;
   font-size: 0.875rem;
@@ -234,14 +321,16 @@
 }
 
 .tiptap-prose pre {
-  background-color: #121316;
-  color: #d7d9de;
-  border: 1px solid var(--color-line);
+  background-color: var(--bg-medium);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   border-radius: 0.6rem;
   padding: 1rem 1.25rem;
   margin: 1rem 0;
   overflow-x: auto;
+  box-shadow: var(--shadow-sm);
 }
+
 .tiptap-prose pre code {
   background: transparent;
   border: none;
@@ -253,47 +342,54 @@
   border-collapse: collapse;
   width: 100%;
   margin: 1rem 0;
-  border: 1px solid var(--color-line2);
+  border: 1px solid var(--border-light);
 }
+
 .tiptap-prose th,
 .tiptap-prose td {
-  border: 1px solid var(--color-line2);
+  border: 1px solid var(--border-light);
   padding: 0.5rem 0.75rem;
   text-align: left;
   min-width: 50px;
 }
+
 .tiptap-prose th {
-  background-color: var(--color-surface-secondary);
+  background-color: var(--bg-medium);
   font-weight: 700;
   font-family: var(--font-mono);
   font-size: 0.8em;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-ink-secondary);
+  color: var(--text-secondary);
 }
+
 .tiptap-prose td {
-  background-color: var(--color-surface);
+  background-color: var(--bg-dark);
 }
+
 .tiptap-prose tr:hover td {
-  background-color: var(--color-surface-secondary);
+  background-color: var(--bg-medium);
 }
 
 .tiptap-prose .selectedCell {
-  background-color: rgba(255, 160, 40, 0.15) !important;
+  background-color: var(--accent-dim) !important;
 }
+
 .tiptap-prose .column-resize-handle {
   position: absolute;
   right: -2px;
   top: 0;
   bottom: -2px;
   width: 4px;
-  background-color: var(--color-amb);
+  background-color: var(--accent);
   pointer-events: none;
 }
+
 .tiptap-prose .tableWrapper {
   overflow-x: auto;
   margin: 1rem 0;
 }
+
 .tiptap-prose table .tableWrapper {
   margin: 0;
 }
@@ -303,31 +399,37 @@
   padding-left: 1.5rem;
   margin: 0.5rem 0;
 }
+
 .tiptap-prose ol {
   list-style-type: decimal;
   padding-left: 1.5rem;
   margin: 0.5rem 0;
 }
+
 .tiptap-prose ul ul,
 .tiptap-prose ol ol,
 .tiptap-prose ul ol,
 .tiptap-prose ol ul {
   margin: 0.25rem 0;
 }
+
 .tiptap-prose li {
   margin: 0.25rem 0;
 }
+
 .tiptap-prose li > p {
   margin: 0;
 }
+
 .tiptap-prose li::marker {
-  color: var(--color-amb);
+  color: var(--accent);
 }
 
-/* ════════ ПРЕДПРОСМОТР И ЭКСПОРТ ════════ */
-
+/* ═══════════════════════════════════════════
+   PREVIEW & EXPORT
+   ═══════════════════════════════════════════ */
 .preview-content {
-  color: var(--color-ink);
+  color: var(--text-primary);
   line-height: 1.75;
 }
 
@@ -336,11 +438,13 @@
   font-weight: 800;
   margin: 1.5rem 0 0.75rem;
 }
+
 .preview-content h2 {
   font-size: 1.5rem;
   font-weight: 800;
   margin: 1.25rem 0 0.5rem;
 }
+
 .preview-content p {
   margin: 0.5rem 0;
 }
@@ -350,24 +454,27 @@
   padding-left: 2rem;
   margin: 0.5rem 0;
 }
+
 .preview-content ul {
   list-style-type: disc;
 }
+
 .preview-content ol {
   list-style-type: decimal;
 }
+
 .preview-content li {
   margin: 0.25rem 0;
   line-height: 1.75;
 }
 
 .preview-content blockquote {
-  border-left: 3px solid var(--color-amb);
+  border-left: 3px solid var(--accent);
   padding: 0.5rem 1rem;
   margin: 1rem 0;
   font-style: italic;
-  color: var(--color-ink-secondary);
-  background-color: rgba(255, 160, 40, 0.06);
+  color: var(--text-secondary);
+  background-color: var(--accent-dim);
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
@@ -376,14 +483,16 @@
   border-collapse: collapse;
   margin: 1rem 0;
 }
+
 .preview-content th,
 .preview-content td {
-  border: 1px solid var(--color-line2);
+  border: 1px solid var(--border-light);
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
+
 .preview-content th {
-  background-color: var(--color-surface-secondary);
+  background-color: var(--bg-medium);
   font-weight: 700;
   font-family: var(--font-mono);
   font-size: 0.8em;
@@ -392,30 +501,33 @@
 }
 
 .preview-content mark {
-  background-color: var(--color-mark);
-  color: #17140a;
+  background-color: var(--warning);
+  color: var(--bg-darkest);
   padding: 0.1rem 0.3rem;
   border-radius: 0.2rem;
   font-weight: 600;
 }
+
 .preview-content code {
-  background-color: #121316;
-  color: var(--color-code-key);
-  border: 1px solid var(--color-line);
+  background-color: var(--bg-light);
+  color: var(--warning);
+  border: 1px solid var(--border);
   padding: 0.125rem 0.4rem;
   border-radius: 0.3rem;
   font-family: var(--font-mono);
   font-size: 0.875em;
 }
+
 .preview-content u {
   text-decoration: underline;
 }
+
 .preview-content s,
 .preview-content strike {
   text-decoration: line-through;
 }
 
-/* Жёсткая фиксация блоков кода и дерева (анти-каша) */
+/* Shared Code Block Styles */
 .preview-content pre,
 .tiptap-prose pre,
 .tree-output {
@@ -426,15 +538,17 @@
   word-break: normal !important;
   word-wrap: normal !important;
   tab-size: 4 !important;
-  background-color: #121316 !important;
-  color: #d7d9de !important;
+  background-color: var(--bg-medium) !important;
+  color: var(--text-primary) !important;
   padding: 16px !important;
   border-radius: 10px !important;
-  border: 1px solid var(--color-line) !important;
+  border: 1px solid var(--border) !important;
   width: 100% !important;
   box-sizing: border-box !important;
   overflow-x: auto !important;
+  box-shadow: var(--shadow-sm) !important;
 }
+
 .preview-content pre code,
 .tiptap-prose pre code,
 .tree-output code {
@@ -447,105 +561,13 @@
   border: none !important;
 }
 
-.preview-content .preview-image-block {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  border: 1.5px dashed var(--color-line2);
-  border-radius: 0.75rem;
-  background-color: var(--color-surface-secondary);
-}
-.preview-content .preview-image-label {
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  color: var(--color-amb);
-  margin-bottom: 0.75rem;
-  letter-spacing: 0.04em;
-}
-.preview-content .preview-image-block img {
-  max-width: 100%;
-  max-height: 24rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-line2);
-  box-shadow: var(--shadow-soft);
-  display: block;
-}
-
-.preview-content .preview-file-placeholder {
-  font-family: var(--font-mono);
-  font-size: 0.875rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.3rem;
-  background-color: rgba(67, 209, 124, 0.1);
-  color: var(--color-ok);
-  border: 1px solid rgba(67, 209, 124, 0.3);
-}
-
-.preview-content .preview-appendix {
-  margin-top: 2.5rem;
-  padding-top: 2rem;
-  border-top: 2px dashed var(--color-line2);
-}
-
-.preview-content .preview-attached-file {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border-left: 3px solid var(--color-ok);
-  background-color: rgba(67, 209, 124, 0.06);
-  border-radius: 0 0.5rem 0.5rem 0;
-}
-.preview-content .preview-attached-label {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-ok);
-  margin-bottom: 0.5rem;
-  font-family: var(--font-mono);
-}
-.preview-content .preview-attached-content {
-  background-color: var(--color-surface-tertiary);
-  border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  overflow-x: auto;
-  white-space: pre-wrap;
-  color: var(--color-ink);
-}
-
-.preview-content .preview-unused-image {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border-left: 3px solid var(--color-amb);
-  background-color: rgba(255, 160, 40, 0.06);
-  border-radius: 0 0.5rem 0.5rem 0;
-}
-.preview-content .preview-unused-label {
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  color: var(--color-amb2);
-  margin-bottom: 0.75rem;
-}
-.preview-content .preview-unused-image img {
-  max-width: 100%;
-  max-height: 16rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-line2);
-  box-shadow: var(--shadow-soft-sm);
-  opacity: 0.75;
-  display: block;
-}
-/* Активная кнопка вставки таблицы (class:tb-active в TablePicker) */
+/* Active Table Insert Button */
 .tb-active {
-  background-color: var(--color-brand-100);
-  color: var(--color-brand-700);
-  box-shadow: var(--shadow-inner-soft);
+  background-color: var(--accent);
+  color: var(--bg-darkest);
 }
 
-/* Фон рабочей области редактора (Graphite, чертёжная сетка 24px) */
+/* Editor Canvas Background */
 .editor-canvas {
-  background-color: #131416;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-color: var(--bg-darkest);
 }

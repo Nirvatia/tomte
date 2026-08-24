@@ -1,23 +1,28 @@
-<!-- TagCreateModal.svelte -->
 <script lang="ts">
-  import type { Tag } from "../../types";
   import { X } from "@lucide/svelte";
-  let {
-    isOpen = false,
-    onClose = () => {},
-    onCreate = (name: string, value: string) => {},
-    onUpdate = (id: string, name: string, value: string) => {},
-    editingTag = null as Tag | null,
-  }: {
+
+  import type { Tag } from "../../types";
+
+  interface Props {
     isOpen?: boolean;
     onClose?: () => void;
     onCreate?: (name: string, value: string) => void;
     onUpdate?: (id: string, name: string, value: string) => void;
     editingTag?: Tag | null;
-  } = $props();
+  }
+
+  let {
+    isOpen = false,
+    onClose = () => {},
+    onCreate = () => {},
+    onUpdate = () => {},
+    editingTag = null,
+  }: Props = $props();
+
   let tagName = $state("");
   let tagValue = $state("");
-  let nameInput: HTMLInputElement | null = $state(null);
+  let nameInput = $state<HTMLInputElement | null>(null);
+
   $effect(() => {
     if (isOpen) {
       if (editingTag) {
@@ -30,6 +35,7 @@
       setTimeout(() => nameInput?.focus(), 50);
     }
   });
+
   function handleSubmit() {
     if (!tagName.trim() || !tagValue.trim()) return;
     if (editingTag) {
@@ -39,30 +45,37 @@
     }
     handleClose();
   }
+
   function handleClose() {
     tagName = "";
     tagValue = "";
     onClose();
   }
-  function handleBackdropClick(e: MouseEvent) {
-    if (e.target === e.currentTarget) {
+
+  function handleBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
       handleClose();
     }
   }
-  function handleBackdropKeydown(e: KeyboardEvent) {
-    if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
-      e.preventDefault();
+
+  function handleBackdropKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+    }
+    if (event.key === "Escape") {
       handleClose();
     }
   }
-  function handleWindowKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape" && isOpen) {
+
+  function handleWindowKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape" && isOpen) {
       handleClose();
     }
   }
-  function handleNameKeydown(e: KeyboardEvent) {
-    if (e.key === "Enter") {
-      e.preventDefault();
+
+  function handleNameKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter") {
+      event.preventDefault();
       handleSubmit();
     }
   }
@@ -73,38 +86,43 @@
 {#if isOpen}
   <div
     class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
-    role="button"
-    tabindex="0"
     onclick={handleBackdropClick}
     onkeydown={handleBackdropKeydown}
+    role="button"
+    tabindex="0"
     aria-label="Закрыть окно тега"
   >
     <div
-      class="flex w-full max-w-lg flex-col rounded-xl border border-line2 bg-panel shadow-deep"
+      class="flex w-full max-w-lg flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
       role="presentation"
-      onclick={(e) => e.stopPropagation()}
+      onclick={(event) => event.stopPropagation()}
+      onkeydown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+        }
+      }}
     >
-      <!-- Заголовок -->
-      <div class="flex items-center justify-between border-b border-line p-5">
-        <h2 class="text-lg font-bold text-txt">
+      <div
+        class="flex items-center justify-between border-b border-[var(--border)] p-5"
+      >
+        <h2 class="text-lg font-bold text-[var(--text-primary)]">
           {editingTag ? "Редактировать тег" : "Новый тег"}
         </h2>
         <button
           type="button"
           onclick={handleClose}
-          class="rounded-lg p-2 text-txt2 transition-colors hover:bg-raised2 hover:text-txt"
+          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
           aria-label="Закрыть"
         >
           <X size={20} />
         </button>
       </div>
 
-      <!-- Форма -->
       <div class="space-y-4 p-6">
         <div>
           <label
             for="tag-name"
-            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-txt3"
+            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
             Название
           </label>
@@ -115,18 +133,17 @@
             id="tag-name"
             type="text"
             placeholder="Например: + Без тестов"
-            class="w-full rounded-md border border-line bg-inset px-3.5 py-2.5 text-sm text-txt transition-all placeholder:text-txt3 focus:border-amb/60 focus:outline-none focus:ring-2 focus:ring-amb/15"
+            class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
             maxlength="50"
           />
-          <p class="mt-1.5 text-xs text-txt3">
+          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
             Короткое название для кнопки (макс. 50 символов)
           </p>
         </div>
-
         <div>
           <label
             for="tag-value"
-            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-txt3"
+            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
             Текст инструкции
           </label>
@@ -135,24 +152,23 @@
             id="tag-value"
             placeholder="Введите полный текст инструкции, который будет вставляться в промпт..."
             rows="6"
-            class="w-full resize-none rounded-md border border-line bg-inset px-3.5 py-2.5 font-mono text-sm text-txt transition-all placeholder:text-txt3 focus:border-amb/60 focus:outline-none focus:ring-2 focus:ring-amb/15"
+            class="w-full resize-none rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
             maxlength="5000"
           ></textarea>
-          <p class="mt-1.5 text-xs text-txt3">
+          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
             Этот текст будет вставлен в редактор при клике на тег (макс. 5000
             символов)
           </p>
         </div>
       </div>
 
-      <!-- Кнопки -->
       <div
-        class="flex justify-end gap-3 rounded-b-xl border-t border-line bg-raised p-5"
+        class="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--bg-medium)] p-5"
       >
         <button
           type="button"
           onclick={handleClose}
-          class="rounded-md bg-raised2 px-4 py-2 text-sm font-medium text-txt2 transition-colors hover:bg-[#383a41] hover:text-txt"
+          class="rounded-md bg-[var(--bg-lighter)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]"
         >
           Отмена
         </button>
@@ -160,7 +176,7 @@
           type="button"
           onclick={handleSubmit}
           disabled={!tagName.trim() || !tagValue.trim()}
-          class="rounded-md bg-amb px-4 py-2 text-sm font-semibold text-[#16130c] transition-colors hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+          class="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {editingTag ? "Сохранить" : "Создать"}
         </button>

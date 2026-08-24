@@ -1,6 +1,8 @@
-import type { AttachedFile } from "../types";
-import { generateId } from "./index";
 import { zipSync, strToU8 } from "fflate";
+
+import type { AttachedFile } from "../types";
+
+import { generateId } from "./index";
 
 export interface ExtractedFile {
   id: string;
@@ -65,39 +67,24 @@ function normalizeMarkdown(text: string): string {
 }
 
 export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
-  console.log("Начинаем поиск блоков кода в тексте длиной:", markdown.length);
-
   const normalizedMarkdown = normalizeMarkdown(markdown);
   const extracted: ExtractedFile[] = [];
   const usedNames = new Set<string>();
-
   const blockRegex =
     /(?:^|\n)\s*```([a-zA-Z0-9_+\-#]+)\s*\r?\n([\s\S]*?)\r?\n\s*```/g;
 
   let match;
   let fileCounter = 1;
-  let matchCount = 0;
 
   while ((match = blockRegex.exec(normalizedMarkdown)) !== null) {
-    matchCount++;
     const lang = match[1].trim().toLowerCase();
     let code = match[2].trim();
 
     if (code.length < 15 && !code.includes("\n") && !lang) {
-      console.log(
-        `Пропускаем блок #${matchCount}: слишком короткий, похож на текст`,
-      );
       continue;
     }
 
-    console.log(`Найден блок #${matchCount}:`);
-    console.log(`   - Язык: "${lang}"`);
-    console.log(
-      `   - Начало кода: "${code.substring(0, 50).replace(/\n/g, "\\n")}"`,
-    );
-
     let fileName: string | null = null;
-
     fileName = findFileName(
       normalizedMarkdown.substring(Math.max(0, match.index - 500), match.index),
     );
@@ -122,6 +109,7 @@ export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
 
     let uniqueName = fileName;
     let counter = 1;
+
     while (usedNames.has(uniqueName)) {
       const lastDot = fileName.lastIndexOf(".");
       if (lastDot > 0) {
@@ -133,10 +121,8 @@ export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
       }
       counter++;
     }
+
     usedNames.add(uniqueName);
-
-    console.log(`Итоговое имя файла: ${uniqueName} (lang: ${lang})`);
-
     extracted.push({
       id: generateId(),
       name: uniqueName,
@@ -146,7 +132,6 @@ export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
     fileCounter++;
   }
 
-  console.log(`🎯 Всего распознано файлов: ${extracted.length}`);
   return extracted;
 }
 
