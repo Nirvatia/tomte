@@ -14,44 +14,45 @@
       lastProjectId = null;
       return;
     }
-
     const isNewProject = project.id !== lastProjectId;
     lastProjectId = project.id;
-
     if (isNewProject) {
       projectSize = calculateProjectSize(project);
       return;
     }
-
     const timer = setTimeout(() => {
       const currentProject = get(activeProject);
       if (currentProject) {
         projectSize = calculateProjectSize(currentProject);
       }
     }, 500);
-
     return () => clearTimeout(timer);
   });
 </script>
 
 <div
-  class="flex h-[26px] shrink-0 items-center bg-[var(--accent)] px-4 text-[12px] font-medium text-[var(--bg-darkest)]"
+  class="flex h-[28px] shrink-0 items-center border-t border-[var(--border)] bg-[var(--bg-dark)] px-4 text-[12px] text-[var(--text-secondary)]"
 >
-  <span class="max-w-[300px] truncate font-semibold">
+  <span
+    class="flex max-w-[300px] items-center gap-1.5 truncate font-medium text-[13px] text-[var(--text-secondary)]"
+  >
+    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]"></span>
     {$activeProject?.name ?? "—"}
   </span>
 
-  <div class="ml-auto flex items-center gap-2">
+  <div class="ml-auto flex items-center gap-3">
     <span>
       {$promptFiles.length}
       {pluralize($promptFiles.length, "промпт", "промпта", "промптов")}
     </span>
-    <span class="opacity-50">·</span>
+    <span>·</span>
     <span>
       {$attachedFiles.length}
       {pluralize($attachedFiles.length, "вложение", "вложения", "вложений")}
     </span>
-    <span class="opacity-50">·</span>
-    <span class="font-mono">{formatFileSize(projectSize)}</span>
+    <span>·</span>
+    <span class="font-mono"
+      >{formatFileSize(projectSize)}</span
+    >
   </div>
 </div>
