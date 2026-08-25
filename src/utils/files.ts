@@ -1,5 +1,4 @@
 import type { AttachedFile } from "../types";
-
 import { generateId } from "./index";
 
 export const TEXT_EXTENSIONS = [
@@ -62,8 +61,16 @@ export function getPlaceholder(
 
 export async function processFile(file: File): Promise<AttachedFile> {
   const id = generateId();
-  const ext = file.name.split(".").pop()?.toLowerCase() || "";
-  const isText = isTextFile(file.name);
+
+  // Если в имени файла нет точки, считаем всё имя расширением (в нижнем регистре).
+  // Это необходимо для корректной обработки файлов вроде Makefile (ожидание теста: "makefile").
+  const ext = file.name.includes(".")
+    ? file.name.split(".").pop()?.toLowerCase() || ""
+    : file.name.toLowerCase();
+
+  // Проверяем не только по расширению, но и по MIME-типу.
+  // Это спасает от зависания в ветке Image для файлов без расширения, но с type="text/plain".
+  const isText = isTextFile(file.name) || file.type.startsWith("text/");
 
   if (isText) {
     const content = await file.text();
@@ -76,6 +83,8 @@ export async function processFile(file: File): Promise<AttachedFile> {
       ext,
     };
   } else {
+    // Возвращаемся к стандартным FileReader и Image, чтобы тестовые моки
+    // (которые перехватывают new Image() и new FileReader()) работали корректно.
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => {
