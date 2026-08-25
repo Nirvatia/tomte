@@ -19,7 +19,7 @@
   import { activeProject, isProjectManagerOpen } from "../../stores";
   import { requestAlert, requestConfirm } from "../../stores/confirm";
 
-  import { getErrorMessage, pluralize, formatFileSize } from "../../utils";
+  import { formatFileSize, getErrorMessage, pluralize } from "../../utils";
   import { calculateProjectSize, loadAllProjects } from "../../utils/projectDb";
   import {
     createNewProject,
@@ -38,6 +38,10 @@
   let actionInProgress = $state(false);
   let errorMessage = $state<string | null>(null);
 
+  let isCreating = $state(false);
+  let newProjectName = $state("");
+  let createInput = $state<HTMLInputElement | null>(null);
+
   $effect(() => {
     if ($isProjectManagerOpen) {
       void loadProjects();
@@ -45,6 +49,8 @@
       renamingProjectId = null;
       renameValue = "";
       errorMessage = null;
+      isCreating = false;
+      newProjectName = "";
     }
   });
 
@@ -73,6 +79,8 @@
       : projects,
   );
 
+  const suggestedName = $derived(`Проект ${projects.length + 1}`);
+
   function close() {
     if (actionInProgress) return;
     isProjectManagerOpen.set(false);
@@ -85,6 +93,10 @@
   }
 
   function handleKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape" && isCreating) {
+      cancelCreate();
+      return;
+    }
     if (event.key === "Escape" && !actionInProgress && !renamingProjectId) {
       close();
     }
@@ -95,12 +107,54 @@
       event.preventDefault();
     }
     if (event.key === "Escape") {
+      if (isCreating) {
+        cancelCreate();
+        return;
+      }
       close();
     }
   }
 
+  function startCreate() {
+    if (actionInProgress || isCreating) return;
+    errorMessage = null;
+    renamingProjectId = null;
+    newProjectName = suggestedName;
+    isCreating = true;
+    setTimeout(() => {
+      createInput?.focus();
+      createInput?.select();
+    }, 50);
+  }
+
+  function cancelCreate() {
+    isCreating = false;
+    newProjectName = "";
+  }
+
+  async function submitCreate() {
+    if (actionInProgress || !isCreating) return;
+    if (!newProjectName.trim()) {
+      cancelCreate();
+      return;
+    }
+    actionInProgress = true;
+    errorMessage = null;
+    const name = newProjectName;
+    try {
+      await createNewProject(name);
+      await loadProjects();
+      cancelCreate();
+    } catch (error) {
+      console.error("Failed to create project:", error);
+      errorMessage = getErrorMessage(error, "Не удалось создать новый проект.");
+    } finally {
+      actionInProgress = false;
+    }
+  }
+
   async function handleSwitch(projectId: string) {
-    if (actionInProgress || renamingProjectId) return;
+    if (actionInProgress || renamingProjectId || isCreating) return;
     if (projectId === $activeProject?.id) {
       close();
       return;
@@ -118,25 +172,11 @@
     }
   }
 
-  async function handleCreateNew() {
-    if (actionInProgress) return;
-    actionInProgress = true;
-    errorMessage = null;
-    try {
-      await createNewProject();
-      close();
-    } catch (error) {
-      console.error("Failed to create project:", error);
-      errorMessage = getErrorMessage(error, "Не удалось создать новый проект.");
-    } finally {
-      actionInProgress = false;
-    }
-  }
-
   function startRename(project: Project, event: MouseEvent) {
     event.stopPropagation();
     if (actionInProgress) return;
     errorMessage = null;
+    isCreating = false;
     renamingProjectId = project.id;
     renameValue = project.name;
     setTimeout(() => renameInput?.focus(), 50);
@@ -245,9 +285,10 @@
     class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
     onkeydown={handleBackdropKeydown}
-    role="button"
-    tabindex="0"
-    aria-label="Закрыть менеджер проектов"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Менеджер проектов"
+    tabindex="-1"
   >
     <div
       class="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
@@ -287,34 +328,76 @@
       </div>
 
       <div
-        class="flex items-center gap-2 border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
+        class="border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
       >
-        <div class="relative flex-1">
-          <Search
-            size={15}
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
-          />
-          <input
-            type="text"
-            bind:value={searchQuery}
-            placeholder="Поиск по имени проекта..."
-            class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
-            aria-label="Поиск по проектам"
-          />
-        </div>
-        <button
-          type="button"
-          onclick={handleCreateNew}
-          disabled={actionInProgress}
-          class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
-        >
-          {#if actionInProgress}
-            <LoaderCircle size={14} class="animate-spin" />
-          {:else}
-            <Plus size={14} />
-          {/if}
-          Новый проект
-        </button>
+        {#if isCreating}
+          <div class="flex items-center gap-2">
+            <input
+              bind:this={createInput}
+              bind:value={newProjectName}
+              onkeydown={(event) => {
+                event.stopPropagation();
+                if (event.key === "Enter") {
+                  void submitCreate();
+                }
+                if (event.key === "Escape") {
+                  cancelCreate();
+                }
+              }}
+              type="text"
+              placeholder="Имя нового проекта..."
+              class="w-full rounded-md border border-[var(--accent)] bg-[var(--bg-darkest)] px-3.5 py-2 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+              maxlength="100"
+              aria-label="Имя нового проекта"
+            />
+            <button
+              type="button"
+              onclick={() => void submitCreate()}
+              disabled={actionInProgress || !newProjectName.trim()}
+              class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+            >
+              {#if actionInProgress}
+                <LoaderCircle size={14} class="animate-spin" />
+              {:else}
+                <Plus size={14} />
+              {/if}
+              Создать
+            </button>
+            <button
+              type="button"
+              onclick={cancelCreate}
+              disabled={actionInProgress}
+              class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+            >
+              Отмена
+            </button>
+          </div>
+        {:else}
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <Search
+                size={15}
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
+              />
+              <input
+                type="text"
+                bind:value={searchQuery}
+                placeholder="Поиск по имени проекта..."
+                class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+                aria-label="Поиск по проектам"
+              />
+            </div>
+            <button
+              type="button"
+              onclick={startCreate}
+              disabled={actionInProgress}
+              class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+            >
+              <Plus size={14} />
+              Новый проект
+            </button>
+          </div>
+        {/if}
       </div>
 
       {#if errorMessage}
@@ -443,6 +526,7 @@
                   <span>{formatRelativeTime(project.updatedAt)}</span>
                 </div>
 
+                {#if renamingProjectId !== project.id}
                 <div
                   class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                 >
@@ -479,6 +563,7 @@
                     <Trash2 size={13} />
                   </button>
                 </div>
+                {/if}
               </div>
             {/each}
           </div>

@@ -746,9 +746,11 @@ export async function switchProject(projectId: string): Promise<void> {
   applyProjectToStores(project);
 }
 
-export async function createNewProject(): Promise<void> {
+export async function createNewProject(name?: string): Promise<void> {
   await flushPendingEditorSave();
-  const newProject = createEmptyProject();
+  const newProject = createEmptyProject(
+    name?.trim() || "Untitled Project",
+  );
   await saveProject(newProject);
   applyProjectToStores(newProject);
 }
