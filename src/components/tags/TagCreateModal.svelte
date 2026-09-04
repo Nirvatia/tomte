@@ -58,15 +58,6 @@
     }
   }
 
-  function handleBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-    }
-    if (event.key === "Escape") {
-      handleClose();
-    }
-  }
-
   function handleWindowKeydown(event: KeyboardEvent) {
     if (event.key === "Escape" && isOpen) {
       handleClose();
@@ -84,28 +75,26 @@
 <svelte:window onkeydown={handleWindowKeydown} />
 
 {#if isOpen}
+  <!-- Оверлей / Бэкдроп -->
   <div
     class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
-    onkeydown={handleBackdropKeydown}
-    role="button"
-    tabindex="0"
-    aria-label="Закрыть окно тега"
+    role="presentation"
   >
+    <!-- Диалоговое окно -->
     <div
       class="flex w-full max-w-lg flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
-      role="presentation"
-      onclick={(event) => event.stopPropagation()}
-      onkeydown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-        }
-      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
       <div
         class="flex items-center justify-between border-b border-[var(--border)] p-5"
       >
-        <h2 class="text-lg font-bold text-[var(--text-primary)]">
+        <h2
+          id="modal-title"
+          class="text-lg font-bold text-[var(--text-primary)]"
+        >
           {editingTag ? "Редактировать тег" : "Новый тег"}
         </h2>
         <button

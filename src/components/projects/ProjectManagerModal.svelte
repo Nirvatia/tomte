@@ -103,9 +103,12 @@
   }
 
   function handleBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
+    // Не перехватываем клавиши, если событие произошло внутри полей ввода (input)
+    const target = event.target as HTMLElement | null;
+    if (target && target.tagName === "INPUT") {
+      return;
     }
+
     if (event.key === "Escape") {
       if (isCreating) {
         cancelCreate();
@@ -294,11 +297,6 @@
       class="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
       role="presentation"
       onclick={(event) => event.stopPropagation()}
-      onkeydown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-        }
-      }}
     >
       <div
         class="flex items-center justify-between border-b border-[var(--border)] p-6"

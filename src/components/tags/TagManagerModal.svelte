@@ -102,15 +102,6 @@
     }
   }
 
-  function handleBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-    }
-    if (event.key === "Escape") {
-      close();
-    }
-  }
-
   function openCreateForm() {
     formEditingId = null;
     formTagName = "";
@@ -230,29 +221,25 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if $isTagManagerOpen}
+  <!-- Оверлей / Бэкдроп -->
   <div
     class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
-    onkeydown={handleBackdropKeydown}
-    role="button"
-    tabindex="0"
-    aria-label="Закрыть менеджер тегов"
+    role="presentation"
   >
+    <!-- Диалоговое окно -->
     <div
       class="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
-      role="presentation"
-      onclick={(event) => event.stopPropagation()}
-      onkeydown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-        }
-      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="manager-modal-title"
     >
       <div
         class="flex items-center justify-between border-b border-[var(--border)] p-6"
       >
         <div>
           <h2
+            id="manager-modal-title"
             class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
           >
             <TagIcon size={22} class="text-[var(--accent)]" />

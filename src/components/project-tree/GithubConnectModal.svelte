@@ -48,8 +48,13 @@
   }
 
   function handleBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
+    const target = event.target as HTMLElement | null;
+    if (target && target.tagName === "INPUT") {
+      return;
+    }
+
+    if (event.key === "Escape") {
+      onClose();
     }
   }
 
@@ -61,12 +66,6 @@
 
   function stopEventPropagation(event: Event) {
     event.stopPropagation();
-  }
-
-  function preventEnterSpace(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-    }
   }
 
   async function handleConnect() {
@@ -130,7 +129,6 @@
       class="w-full max-w-md rounded-xl border border-[var(--border-light)] bg-[var(--bg-medium)] p-6 shadow-[var(--shadow-lg)]"
       role="presentation"
       onclick={stopEventPropagation}
-      onkeydown={preventEnterSpace}
     >
       <div class="mb-4 flex items-center justify-between">
         <h3
