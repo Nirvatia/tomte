@@ -9,7 +9,10 @@ export default defineConfig({
     environment: "happy-dom",
     globals: true,
     setupFiles: ["./tests/setup.ts"],
-    include: ["tests/**/*.{test,spec}.{ts,svelte}"],
+    include: ["tests/**/*.{test,spec}.{ts,svelte}"], 
     exclude: ["node_modules", "tests/e2e/**"],
   },
+   resolve: {
+      conditions: ["browser"],
+    },
 });

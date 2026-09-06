@@ -12,5 +12,12 @@
     "strict": true,
     "moduleResolution": "bundler",
     "types": ["vitest/globals"]
-  }
+  },
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    ".svelte-kit/ambient.d.ts",
+    ".svelte-kit/non-ambient.d.ts",
+    ".svelte-kit/types/**/$types.d.ts"
+  ]
 }
