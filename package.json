@@ -14,7 +14,11 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:log": "vitest run --reporter=verbose > test-results.log 2>&1",
+    "test:json": "vitest run --reporter=json --outputFile=reports/vitest-report.json",
+    "test:junit": "vitest run --reporter=junit --outputFile=reports/junit.xml",
+    "test:html": "vitest run --reporter=html --outputFile=reports/vitest.html"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
