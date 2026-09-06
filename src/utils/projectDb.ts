@@ -131,7 +131,7 @@ export function createEmptyProject(name: string = "Untitled Project"): Project {
   const now = new Date().toISOString();
   const mainFile = {
     id: crypto.randomUUID(),
-    name: "main.md",
+    name: "main",
     content: "",
     createdAt: now,
     updatedAt: now,

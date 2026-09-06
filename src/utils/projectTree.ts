@@ -1,6 +1,6 @@
 import type { AttachedFile } from "../types";
 
-import { fetchGithubFileContent } from "./github";
+import { fetchGithubFileContent, type GithubRepoConfig } from "./github";
 
 export interface TreeNode {
   name: string;
@@ -253,4 +253,22 @@ export async function getSelectedTreeFilesAsAttachments(
 
   const results = await Promise.all(promises);
   return results.filter((f): f is AttachedFile => f !== null);
+}
+
+/**
+ * Возвращает GitHub-конфиг, с которым было построено дерево,
+ * если дерево действительно из GitHub (у узлов есть githubRef).
+ * Для локального или пустого дерева вернёт undefined.
+ */
+export function getTreeGithubConfig(
+  nodes: TreeNode[],
+): GithubRepoConfig | undefined {
+  for (const node of nodes) {
+    if (node.githubRef) return node.githubRef;
+    if (node.children.length > 0) {
+      const found = getTreeGithubConfig(node.children);
+      if (found) return found;
+    }
+  }
+  return undefined;
 }

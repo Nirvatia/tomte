@@ -1,15 +1,12 @@
 <script lang="ts">
   import { FileText, Plus, X } from "@lucide/svelte";
-
   import type { PromptFile } from "../../types";
-
   import {
     activeFileId,
     openFileIds,
     previewFileId,
     promptFiles,
   } from "../../stores";
-
   import {
     activatePromptFile,
     closePromptFileTab,
@@ -22,15 +19,14 @@
   let newFileName = $state("");
   let isCreatingFile = $state(false);
   let actionInProgress = $state(false);
-
   let editingInput = $state<HTMLInputElement | null>(null);
   let newFileInput = $state<HTMLInputElement | null>(null);
+  let tabsContainer = $state<HTMLDivElement | null>(null);
 
   const displayFiles = $derived.by(() => {
     const pinned = $openFileIds
       .map((id) => $promptFiles.find((f) => f.id === id))
       .filter((f): f is PromptFile => f !== undefined);
-
     if ($previewFileId && !$openFileIds.includes($previewFileId)) {
       const previewFile = $promptFiles.find((f) => f.id === $previewFileId);
       if (previewFile) {
@@ -47,13 +43,30 @@
   function suggestNewFileName(): string {
     const names = new Set($promptFiles.map((f) => f.name.toLowerCase()));
     let counter = 1;
-    let candidate = `prompt-${counter}.md`;
-
+    let candidate = `prompt-${counter}`;
     while (names.has(candidate.toLowerCase())) {
       counter += 1;
-      candidate = `prompt-${counter}.md`;
+      candidate = `prompt-${counter}`;
     }
     return candidate;
+  }
+
+  // Вертикальное колёсико мыши прокручивает табы по горизонтали.
+  // preventDefault не вызываем намеренно: все предки контейнера
+  // имеют overflow-hidden, поэтому вертикальная прокрутка страницы
+  // не пострадает, а обработчик работает и с passive-слушателем.
+  function handleWheel(event: WheelEvent) {
+    const el = tabsContainer;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    // Горизонтальный свайп тачпада отдаём нативной прокрутке
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    let delta = event.deltaY;
+    if (event.deltaMode === 1) {
+      delta *= 16; // строки -> пиксели (Firefox)
+    } else if (event.deltaMode === 2) {
+      delta *= el.clientWidth; // страницы -> пиксели
+    }
+    el.scrollLeft += delta;
   }
 
   function handleSelectFile(fileId: string) {
@@ -73,11 +86,9 @@
       cancelRename();
       return;
     }
-
     const fileId = editingFileId;
     const name = editingFileName;
     actionInProgress = true;
-
     try {
       await renamePromptFile(fileId, name);
       cancelRename();
@@ -109,7 +120,6 @@
       cancelNewFile();
       return;
     }
-
     actionInProgress = true;
     try {
       await createPromptFile(newFileName.trim());
@@ -132,7 +142,9 @@
 </script>
 
 <div
-  class="flex h-[40px] shrink-0 items-end overflow-x-auto border-b border-[var(--border)] bg-[var(--bg-dark)]"
+  bind:this={tabsContainer}
+  onwheel={handleWheel}
+  class="tabsbar-scroll flex h-[40px] shrink-0 items-end overflow-x-auto border-b border-[var(--border)] bg-[var(--bg-dark)]"
   role="tablist"
   aria-label="Файлы промптов"
 >
@@ -151,7 +163,6 @@
         onkeydown={handleTabKeydown}
       >
         <FileText size={15} class="shrink-0 text-[var(--accent)]" />
-
         {#if editingFileId === file.id}
           <input
             bind:this={editingInput}
@@ -181,7 +192,6 @@
             {file.name}
           </span>
         {/if}
-
         <button
           type="button"
           onclick={(event) => handleCloseFile(event, file.id)}
@@ -205,7 +215,6 @@
         onkeydown={handleTabKeydown}
       >
         <FileText size={15} class="shrink-0 text-[var(--text-tertiary)]" />
-
         {#if editingFileId === file.id}
           <input
             bind:this={editingInput}
@@ -235,7 +244,6 @@
             {file.name}
           </span>
         {/if}
-
         <button
           type="button"
           onclick={(event) => handleCloseFile(event, file.id)}
@@ -286,3 +294,13 @@
     <Plus size={16} />
   </button>
 </div>
+
+<style>
+  /* Скрываем нативный скроллбар, но оставляем возможность прокрутки */
+  .tabsbar-scroll {
+    scrollbar-width: none; /* Firefox */
+  }
+  .tabsbar-scroll::-webkit-scrollbar {
+    display: none; /* Chrome, Edge, Safari */
+  }
+</style>

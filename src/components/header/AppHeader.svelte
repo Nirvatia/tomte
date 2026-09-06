@@ -17,7 +17,6 @@
   import type { ExportFormat } from "../../types";
   import {
     activeFile,
-    activeProject,
     attachedFiles,
     editorHtml,
     exportFormat,
@@ -122,7 +121,7 @@
 <svelte:window onclick={handleClickOutside} />
 
 <header
-  class="flex h-[38px] shrink-0 items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--bg-dark)] px-4 text-[13px] text-[var(--text-secondary)]"
+  class="flex h-[48px] shrink-0 items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--bg-dark)] px-4 text-[13px] text-[var(--text-secondary)]"
 >
   <AppLogo size="compact" />
 

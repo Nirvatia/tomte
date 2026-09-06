@@ -35,11 +35,11 @@
   function suggestNewFileName(): string {
     const names = new Set($promptFiles.map((f) => f.name.toLowerCase()));
     let counter = 1;
-    let candidate = `prompt-${counter}.md`;
+    let candidate = `prompt-${counter}`;
 
     while (names.has(candidate.toLowerCase())) {
       counter += 1;
-      candidate = `prompt-${counter}.md`;
+      candidate = `prompt-${counter}`;
     }
     return candidate;
   }
@@ -206,7 +206,7 @@
             </button>
 
             <div
-              class="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+              class="flex items-center gap-2.5 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <button
                 type="button"
@@ -216,7 +216,7 @@
                 title="Переименовать"
                 aria-label="Переименовать файл {file.name}"
               >
-                <Pencil size={12} />
+                <Pencil size={14} />
               </button>
               <button
                 type="button"
@@ -226,7 +226,7 @@
                 title="Удалить"
                 aria-label="Удалить файл {file.name}"
               >
-                <Trash2 size={12} />
+                <Trash2 size={14} />
               </button>
             </div>
           {/if}

@@ -21,8 +21,14 @@
 
   let input = $state<HTMLInputElement | null>(null);
 
+  // Принудительно синхронизируем состояние реального input с пропами.
+  // Визуал чекбокса (галочка, фон, чёрточка) построен на CSS-селекторах
+  // :checked и :indeterminate от input, поэтому DOM всегда должен
+  // совпадать с пропами — в т.ч. когда проп не изменился после клика
+  // (например, снятие всего выделения из частичного состояния).
   $effect(() => {
     if (input) {
+      input.checked = checked;
       input.indeterminate = indeterminate;
     }
   });

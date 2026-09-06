@@ -35,7 +35,7 @@ import {
   createEmptyProject,
   calculateProjectSize,
 } from "./projectDb";
-import { buildTreeString, calculateStats } from "./projectTree";
+import { buildTreeString, calculateStats, getTreeGithubConfig } from "./projectTree";
 import { fetchGithubTree } from "./github";
 
 const IDB_MAX_BYTES = 25 * 1024 * 1024;
@@ -116,10 +116,10 @@ function getUniquePromptFileName(project: Project, desired?: string): string {
     return candidate;
   }
   let counter = 1;
-  let candidate = `prompt-${counter}.md`;
+  let candidate = `prompt-${counter}`;
   while (names.has(candidate.toLowerCase())) {
     counter += 1;
-    candidate = `prompt-${counter}.md`;
+    candidate = `prompt-${counter}`;
   }
   return candidate;
 }
@@ -203,7 +203,7 @@ export async function deletePromptFile(fileId: string): Promise<boolean> {
   let createdFile: PromptFile | null = null;
 
   if (updatedFiles.length === 0) {
-    createdFile = createPromptFileObject("main.md", "");
+    createdFile = createPromptFileObject("main", "");
     updatedFiles = [createdFile];
   }
 
@@ -850,4 +850,28 @@ export async function duplicateProjectById(projectId: string): Promise<void> {
 
   newProject.totalSize = sizeCheck.size;
   await saveProject(newProject);
+}
+
+/**
+ * Обновляет дерево проекта, перечитывая его из GitHub.
+ * Работает только если текущее дерево построено из GitHub
+ * (определяется по githubRef в узлах, а не по проекту в целом) —
+ * локальное дерево никогда не будет перезаписано.
+ * Возвращает false, если обновлять нечего.
+ */
+export async function refreshProjectTree(): Promise<boolean> {
+  await flushPendingEditorSave();
+  const project = get(activeProject);
+  if (!project) return false;
+
+  const config = getTreeGithubConfig(get(projectTreeNodes));
+  if (!config) return false; // дерево не из GitHub — обновлять нечего
+
+  const freshNodes = await fetchGithubTree(config);
+  await setProjectTreeSource({
+    rootName: config.repo,
+    nodes: freshNodes,
+    fileCount: calculateStats(freshNodes).totalFiles,
+  });
+  return true;
 }

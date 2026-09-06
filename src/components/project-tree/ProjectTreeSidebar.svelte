@@ -1,19 +1,25 @@
 <script lang="ts">
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-
   import { Plus, RefreshCw as RefreshIcon } from "@lucide/svelte";
-
   import type { Editor } from "@tiptap/core";
   import type { AttachedFile } from "../../types";
-
   import FilePreviewModal from "../attachments/FilePreviewModal.svelte";
   import AttachmentsSection from "./AttachmentsSection.svelte";
   import GithubConnectModal from "./GithubConnectModal.svelte";
   import ProjectTreeSection from "./ProjectTreeSection.svelte";
   import PromptsSection from "./PromptsSection.svelte";
-
-  import { isProjectTreeOpen, previewFileFromTree } from "../../stores";
+  import {
+    isProjectTreeOpen,
+    previewFileFromTree,
+    projectTreeNodes,
+  } from "../../stores";
+  import {
+    createPromptFile,
+    refreshProjectTree,
+  } from "../../utils/projectActions";
+  import { getTreeGithubConfig } from "../../utils/projectTree";
+  import { requestAlert } from "../../stores/confirm";
 
   interface Props {
     editor?: Editor | null;
@@ -24,6 +30,13 @@
 
   let isGithubModalOpen = $state(false);
   let treeStateInitialized = $state(false);
+  let isCreatingPrompt = $state(false);
+  let isRefreshing = $state(false);
+
+  // Дерево из GitHub? Определяем по узлам, а не по конфигу проекта.
+  const hasGithubTree = $derived(
+    getTreeGithubConfig($projectTreeNodes) !== undefined,
+  );
 
   const SIDEBAR_MIN = 200;
   const SIDEBAR_MAX = 600;
@@ -56,24 +69,39 @@
     document.removeEventListener("mouseup", handleResizeEnd);
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
-
     if (browser) {
       localStorage.setItem("projectTreeWidth", String(sidebarWidth));
     }
   }
 
-  function handleClose() {
-    isProjectTreeOpen.set(false);
+  async function handleCreatePromptFile() {
+    if (isCreatingPrompt) return;
+    isCreatingPrompt = true;
+    try {
+      await createPromptFile();
+    } catch (error) {
+      console.error("Failed to create prompt file:", error);
+    } finally {
+      isCreatingPrompt = false;
+    }
   }
 
-  function handleKeydown(event: KeyboardEvent) {
-    if (
-      event.key === "Escape" &&
-      !isGithubModalOpen &&
-      !$previewFileFromTree &&
-      $isProjectTreeOpen
-    ) {
-      handleClose();
+  async function handleRefreshTree() {
+    if (isRefreshing || !hasGithubTree) return;
+    isRefreshing = true;
+    try {
+      await refreshProjectTree();
+    } catch (error) {
+      console.error("Failed to refresh project tree:", error);
+      await requestAlert({
+        title: "Не удалось обновить дерево",
+        message:
+          error instanceof Error ? error.message : "Неизвестная ошибка",
+        confirmText: "Понятно",
+        danger: true,
+      });
+    } finally {
+      isRefreshing = false;
     }
   }
 
@@ -83,8 +111,8 @@
     if (saved !== null) {
       isProjectTreeOpen.set(saved === "true");
     }
-
     treeStateInitialized = true;
+
     const savedWidth = localStorage.getItem("projectTreeWidth");
     if (savedWidth) {
       const w = parseInt(savedWidth, 10);
@@ -99,8 +127,6 @@
     localStorage.setItem("projectTreeOpen", String($isProjectTreeOpen));
   });
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
 
 <aside
   class="relative shrink-0 overflow-hidden transition-[width] duration-200 ease-out {$isProjectTreeOpen
@@ -123,8 +149,9 @@
       <div class="flex gap-1">
         <button
           type="button"
-          onclick={() => {}}
-          class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]"
+          onclick={() => void handleCreatePromptFile()}
+          disabled={isCreatingPrompt}
+          class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           title="New Prompt File"
           aria-label="Создать новый файл промпта"
         >
@@ -132,12 +159,15 @@
         </button>
         <button
           type="button"
-          onclick={() => {}}
-          class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]"
-          title="Refresh"
-          aria-label="Обновить"
+          onclick={() => void handleRefreshTree()}
+          disabled={isRefreshing || !hasGithubTree}
+          class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+          title={hasGithubTree
+            ? "Обновить дерево из GitHub"
+            : "Дерево не подключено через GitHub"}
+          aria-label="Обновить дерево проекта"
         >
-          <RefreshIcon size={15} />
+          <RefreshIcon size={15} class={isRefreshing ? "animate-spin" : ""} />
         </button>
       </div>
     </div>
