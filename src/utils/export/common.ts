@@ -10,9 +10,11 @@ export function createExportContainer(html: string): HTMLDivElement {
     background: #ffffff;
     z-index: -9999;
   `;
+  // export-preview переопределяет CSS-переменные темы на светлую палитру:
+  // тёмный текст на белом фоне, читаемые таблицы и блоки кода.
   container.innerHTML = `
-    <div style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a; line-height: 1.6; font-size: 14px;">
-      <div class="preview-content prose max-w-none">${html}</div>
+    <div class="export-preview" style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; line-height: 1.6; font-size: 14px;">
+      <div class="preview-content max-w-none">${html}</div>
     </div>
   `;
   document.body.appendChild(container);
@@ -48,12 +50,10 @@ export function escapeHtml(text: string): string {
 
 export function buildAttachmentsHtml(files: AttachedFile[]): string {
   if (files.length === 0) return "";
-
   let html = `
     <hr style="border: 2px solid #2563EB; margin: 2rem 0;" />
     <h2 style="color: #2563EB; font-size: 1.5rem; font-weight: bold;">Вложения (${files.length})</h2>
   `;
-
   const images = files.filter((f) => f.type === "image" && f.dataUrl);
   if (images.length > 0) {
     html += `<h3 style="color: #2563EB; font-size: 1.25rem; font-weight: bold; margin-top: 1.5rem;">Изображения</h3>`;
@@ -66,7 +66,6 @@ export function buildAttachmentsHtml(files: AttachedFile[]): string {
       `;
     });
   }
-
   const textFiles = files.filter((f) => f.type === "text" && f.content);
   if (textFiles.length > 0) {
     html += `<h3 style="color: #059669; font-size: 1.25rem; font-weight: bold; margin-top: 1.5rem;">Текстовые файлы</h3>`;
@@ -74,11 +73,10 @@ export function buildAttachmentsHtml(files: AttachedFile[]): string {
       html += `
       <div style="margin: 1rem 0;">
         <p style="font-weight: bold; color: #059669;">FILE_${i + 1}: ${escapeHtml(file.name)}</p>
-        <pre style="background: #f1f5f9; padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; white-space: pre-wrap; overflow-x: auto;">${file.content ? escapeHtml(file.content) : ""}</pre>
+        <pre style="background: #f1f5f9; color: #0f172a; padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; white-space: pre-wrap; overflow-x: auto;">${file.content ? escapeHtml(file.content) : ""}</pre>
       </div>
     `;
     });
   }
-
   return html;
 }
