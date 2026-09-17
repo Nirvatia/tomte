@@ -4,7 +4,7 @@
 </script>
 
 <div
-  class="flex w-[52px] shrink-0 flex-col items-center gap-1 border-r border-[var(--border)] bg-[var(--bg-dark)] py-3"
+  class="flex w-[52px] shrink-0 flex-col items-center gap-2 border-r border-[var(--border)] bg-[var(--bg-dark)] py-3"
 >
   <button
     type="button"
@@ -20,7 +20,7 @@
         class="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r bg-[var(--accent)]"
       ></div>
     {/if}
-    <FolderKanban size={22} />
+    <FolderKanban size={25} />
   </button>
 
   <button
@@ -37,6 +37,6 @@
         class="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r bg-[var(--accent)]"
       ></div>
     {/if}
-    <Tag size={22} />
+    <Tag size={25} />
   </button>
 </div>

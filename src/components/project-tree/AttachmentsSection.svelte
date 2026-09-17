@@ -197,7 +197,7 @@
 
   {#if isAttachmentsSectionOpen}
     <div
-      class="flex items-center gap-0.5 border-b border-[var(--border)] px-3 py-1.5"
+      class="flex items-center gap-2.5 border-b border-[var(--border)] px-3 py-1.5"
     >
       <button
         type="button"
@@ -207,7 +207,7 @@
         title="Загрузить файлы"
         aria-label="Загрузить файлы"
       >
-        <Upload size={16} />
+        <Upload size={18} />
       </button>
       <button
         type="button"
@@ -217,7 +217,7 @@
         title="Открыть менеджер файлов"
         aria-label="Открыть менеджер файлов"
       >
-        <FolderOpen size={16} />
+        <FolderOpen size={18} />
       </button>
       <div class="flex-1"></div>
 

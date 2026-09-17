@@ -114,10 +114,10 @@
       <button
         type="button"
         onclick={(event) => handleEdit(event, tag)}
-        class="rounded p-0.5 leading-none text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:text-[var(--text-secondary)]"
+        class="rounded p-0.5 ml-3 leading-none text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:text-[var(--text-secondary)]"
         aria-label="Редактировать тег {tag.name}"
       >
-        <Pencil size={12} />
+        <Pencil size={14} />
       </button>
     </div>
   {/each}

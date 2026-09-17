@@ -206,7 +206,7 @@
             </button>
 
             <div
-              class="flex items-center gap-2.5 opacity-0 transition-opacity group-hover:opacity-100"
+              class="flex items-center gap-3 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <button
                 type="button"

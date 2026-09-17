@@ -195,7 +195,7 @@
         <button
           type="button"
           onclick={(event) => handleCloseFile(event, file.id)}
-          class="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[3px] transition-all opacity-0 hover:bg-[var(--bg-lighter)] group-hover:opacity-100"
+          class="flex h-[18px] w-[18px] ml-1 shrink-0 items-center justify-center rounded-[3px] transition-all opacity-0 hover:bg-[var(--bg-lighter)] group-hover:opacity-100"
           aria-label="Закрыть вкладку {file.name}"
           title="Закрыть"
         >
@@ -247,7 +247,7 @@
         <button
           type="button"
           onclick={(event) => handleCloseFile(event, file.id)}
-          class="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[3px] transition-all opacity-0 hover:bg-[var(--bg-lighter)] group-hover:opacity-100"
+          class="flex h-[18px] w-[18px] ml-1 shrink-0 items-center justify-center rounded-[3px] transition-all opacity-0 hover:bg-[var(--bg-lighter)] group-hover:opacity-100"
           aria-label="Закрыть вкладку {file.name}"
           title="Закрыть"
         >

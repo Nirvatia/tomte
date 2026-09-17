@@ -38,9 +38,9 @@
     getTreeGithubConfig($projectTreeNodes) !== undefined,
   );
 
-  const SIDEBAR_MIN = 200;
+  const SIDEBAR_MIN = 320;
   const SIDEBAR_MAX = 600;
-  const SIDEBAR_DEFAULT = 280;
+  const SIDEBAR_DEFAULT = 320;
 
   let sidebarWidth = $state(SIDEBAR_DEFAULT);
   let isResizing = $state(false);
@@ -146,7 +146,7 @@
       >
         Explorer
       </span>
-      <div class="flex gap-1">
+      <div class="flex gap-3">
         <button
           type="button"
           onclick={() => void handleCreatePromptFile()}
@@ -155,7 +155,7 @@
           title="New Prompt File"
           aria-label="Создать новый файл промпта"
         >
-          <Plus size={15} />
+          <Plus size={18} />
         </button>
         <button
           type="button"
@@ -167,7 +167,7 @@
             : "Дерево не подключено через GitHub"}
           aria-label="Обновить дерево проекта"
         >
-          <RefreshIcon size={15} class={isRefreshing ? "animate-spin" : ""} />
+          <RefreshIcon size={18} class={isRefreshing ? "animate-spin" : ""} />
         </button>
       </div>
     </div>

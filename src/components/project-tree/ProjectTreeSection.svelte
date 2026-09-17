@@ -236,7 +236,7 @@ function toggleSelectAll() {
 
   {#if isTreeSectionOpen}
     <div
-      class="flex items-center gap-0.5 border-b border-[var(--border)] px-3 py-1.5"
+      class="flex items-center gap-2.5 border-b border-[var(--border)] px-3 py-1.5"
     >
       <button
         type="button"
@@ -247,9 +247,9 @@ function toggleSelectAll() {
         aria-label="Открыть папку"
       >
         {#if isLoading}
-          <LoaderCircle size={16} class="animate-spin" />
+          <LoaderCircle size={18} class="animate-spin" />
         {:else}
-          <FolderOpen size={16} />
+          <FolderOpen size={18} />
         {/if}
       </button>
 
@@ -260,7 +260,7 @@ function toggleSelectAll() {
         title="Подключить GitHub"
         aria-label="Подключить GitHub"
       >
-        <FolderGit size={16} />
+        <FolderGit size={18} />
       </button>
 
       {#if hasSavedGithub && $projectTreeNodes.length === 0}
@@ -272,7 +272,7 @@ function toggleSelectAll() {
           title="Восстановить GitHub репо"
           aria-label="Восстановить GitHub репо"
         >
-          <RefreshCw size={16} />
+          <RefreshCw size={18} />
         </button>
       {/if}
 
