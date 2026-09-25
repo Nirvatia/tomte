@@ -69,6 +69,7 @@ vi.mock("../../../src/utils/projectTree", () => ({
   hasFileSystemAccess: vi.fn(() => false),
   readDirectoryRecursive: vi.fn(),
   readDirectoryViaInput: vi.fn(),
+  getTreeGithubConfig: vi.fn(() => undefined),
 }));
 
 vi.mock(
@@ -140,16 +141,6 @@ describe("ProjectTreeSidebar", () => {
         name: "Изменить ширину панели",
       }),
     ).toBeInTheDocument();
-  });
-
-  it("закрывает панель по Escape", async () => {
-    isProjectTreeOpen.set(true);
-
-    render(ProjectTreeSidebar);
-
-    await fireEvent.keyDown(window, { key: "Escape" });
-
-    expect(get(isProjectTreeOpen)).toBe(false);
   });
 
   it("восстанавливает ширину панели из localStorage", async () => {

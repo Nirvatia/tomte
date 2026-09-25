@@ -249,16 +249,16 @@ describe("PromptsSection", () => {
 
       const input = await screen.findByPlaceholderText("Имя файла...");
 
-      expect(input).toHaveValue("prompt-1.md");
+      expect(input).toHaveValue("prompt-1");
 
       await fireEvent.input(input, {
-        target: { value: "new-prompt.md" },
+        target: { value: "new-prompt" },
       });
 
       await fireEvent.keyDown(input, { key: "Enter" });
 
       await waitFor(() => {
-        expect(createPromptFile).toHaveBeenCalledWith("new-prompt.md");
+        expect(createPromptFile).toHaveBeenCalledWith("new-prompt");
       });
     });
   });

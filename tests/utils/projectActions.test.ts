@@ -240,7 +240,7 @@ describe("projectActions", () => {
 
       const newFile = project!.files[0];
       expect(newFile.id).not.toBe("file-1");
-      expect(newFile.name).toBe("main.md");
+      expect(newFile.name).toBe("main");
 
       expect(get(openFileIds)).toEqual([newFile.id]);
       expect(get(activeFileId)).toBe(newFile.id);

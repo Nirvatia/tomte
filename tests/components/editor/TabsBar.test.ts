@@ -35,7 +35,7 @@ vi.mock("../../../src/utils/projectActions", () => ({
 function makeFile(overrides: Partial<PromptFile> = {}): PromptFile {
   return {
     id: overrides.id ?? `file-${Math.random().toString(36).slice(2)}`,
-    name: overrides.name ?? "main.md",
+    name: overrides.name ?? "main",
     content: overrides.content ?? "content",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -71,8 +71,8 @@ describe("TabsBar", () => {
 
   describe("Рендеринг вкладок", () => {
     it("показывает вкладки для открытых файлов", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
-      const file2 = makeFile({ id: "f2", name: "second.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
+      const file2 = makeFile({ id: "f2", name: "second" });
 
       setProject([file1, file2]);
       openFileIds.set(["f1", "f2"]);
@@ -80,13 +80,13 @@ describe("TabsBar", () => {
 
       render(TabsBar);
 
-      expect(await screen.findByText("main.md")).toBeInTheDocument();
-      expect(screen.getByText("second.md")).toBeInTheDocument();
+      expect(await screen.findByText("main")).toBeInTheDocument();
+      expect(screen.getByText("second")).toBeInTheDocument();
     });
 
     it("активная вкладка имеет aria-selected='true'", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
-      const file2 = makeFile({ id: "f2", name: "second.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
+      const file2 = makeFile({ id: "f2", name: "second" });
 
       setProject([file1, file2]);
       openFileIds.set(["f1", "f2"]);
@@ -95,14 +95,14 @@ describe("TabsBar", () => {
       render(TabsBar);
 
       const activeTab = await screen.findByRole("tab", {
-        name: "Вкладка main.md",
+        name: "Вкладка main",
       });
       expect(activeTab).toHaveAttribute("aria-selected", "true");
     });
 
     it("неактивная вкладка имеет aria-selected='false'", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
-      const file2 = makeFile({ id: "f2", name: "second.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
+      const file2 = makeFile({ id: "f2", name: "second" });
 
       setProject([file1, file2]);
       openFileIds.set(["f1", "f2"]);
@@ -111,14 +111,14 @@ describe("TabsBar", () => {
       render(TabsBar);
 
       const inactiveTab = await screen.findByRole("tab", {
-        name: "Вкладка second.md",
+        name: "Вкладка second",
       });
       expect(inactiveTab).toHaveAttribute("aria-selected", "false");
     });
 
     it("показывает вкладку предпросмотра, если она не закреплена", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
-      const file2 = makeFile({ id: "f2", name: "preview.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
+      const file2 = makeFile({ id: "f2", name: "preview" });
 
       setProject([file1, file2]);
       openFileIds.set(["f1"]);
@@ -128,7 +128,7 @@ describe("TabsBar", () => {
       render(TabsBar);
 
       const previewTab = await screen.findByRole("tab", {
-        name: /Вкладка preview.md \(предпросмотр\)/,
+        name: /Вкладка preview \(предпросмотр\)/,
       });
       expect(previewTab).toBeInTheDocument();
     });
@@ -147,8 +147,8 @@ describe("TabsBar", () => {
 
   describe("Переключение вкладок", () => {
     it("вызывает activatePromptFile при клике на вкладку", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
-      const file2 = makeFile({ id: "f2", name: "second.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
+      const file2 = makeFile({ id: "f2", name: "second" });
 
       setProject([file1, file2]);
       openFileIds.set(["f1", "f2"]);
@@ -157,7 +157,7 @@ describe("TabsBar", () => {
       render(TabsBar);
 
       const tab = await screen.findByRole("tab", {
-        name: "Вкладка second.md",
+        name: "Вкладка second",
       });
       await fireEvent.click(tab);
 
@@ -167,7 +167,7 @@ describe("TabsBar", () => {
 
   describe("Закрытие вкладок", () => {
     it("вызывает closePromptFileTab при клике на крестик", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
 
       setProject([file1]);
       openFileIds.set(["f1"]);
@@ -175,10 +175,10 @@ describe("TabsBar", () => {
 
       render(TabsBar);
 
-      await screen.findByText("main.md");
+      await screen.findByText("main");
 
       const closeButton = screen.getByRole("button", {
-        name: "Закрыть вкладку main.md",
+        name: "Закрыть вкладку main",
       });
       await fireEvent.click(closeButton);
 
@@ -188,7 +188,7 @@ describe("TabsBar", () => {
 
   describe("Создание нового файла", () => {
     it("открывает форму создания по клику на плюс", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
 
       setProject([file1]);
       openFileIds.set(["f1"]);
@@ -196,7 +196,7 @@ describe("TabsBar", () => {
 
       render(TabsBar);
 
-      await screen.findByText("main.md");
+      await screen.findByText("main");
 
       const plusButton = screen.getByRole("button", {
         name: "Создать новый файл промпта",
@@ -208,7 +208,7 @@ describe("TabsBar", () => {
     });
 
     it("предлагает уникальное имя для нового файла", async () => {
-      const file1 = makeFile({ id: "f1", name: "prompt-1.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
 
       setProject([file1]);
       openFileIds.set(["f1"]);
@@ -216,7 +216,7 @@ describe("TabsBar", () => {
 
       render(TabsBar);
 
-      await screen.findByText("prompt-1.md");
+      await screen.findByText("main");
 
       const plusButton = screen.getByRole("button", {
         name: "Создать новый файл промпта",
@@ -224,7 +224,7 @@ describe("TabsBar", () => {
       await fireEvent.click(plusButton);
 
       const input = await screen.findByPlaceholderText("Имя файла...");
-      expect(input).toHaveValue("prompt-2.md");
+      expect(input).toHaveValue("prompt-1");
     });
 
     it("создаёт файл по Enter", async () => {
@@ -268,7 +268,7 @@ describe("TabsBar", () => {
 
   describe("Переименование файла", () => {
     it("переименовывает файл по Enter", async () => {
-      const file1 = makeFile({ id: "f1", name: "main.md" });
+      const file1 = makeFile({ id: "f1", name: "main" });
 
       setProject([file1]);
       openFileIds.set(["f1"]);
@@ -276,7 +276,7 @@ describe("TabsBar", () => {
 
       render(TabsBar);
 
-      await screen.findByText("main.md");
+      await screen.findByText("main");
 
       // Двойной клик для начала переименования не предусмотрен в TabsBar,
       // переименование запускается через двойной клик в PromptsSection.

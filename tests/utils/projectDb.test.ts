@@ -9,7 +9,7 @@ describe('projectDb utils', () => {
       
       expect(project.name).toBe('Untitled Project');
       expect(project.files).toHaveLength(1);
-      expect(project.files[0].name).toBe('main.md');
+      expect(project.files[0].name).toBe('main');
       expect(project.files[0].content).toBe('');
       expect(project.attachments).toHaveLength(0);
       expect(project.totalSize).toBeGreaterThan(0);
