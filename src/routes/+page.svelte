@@ -1,8 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-
   import type { Editor } from "@tiptap/core";
-
   import AppHeader from "../components/header/AppHeader.svelte";
   import ActivityBar from "../components/layout/ActivityBar.svelte";
   import StatusBar from "../components/layout/StatusBar.svelte";
@@ -14,9 +12,9 @@
   import ExtractorModal from "../components/extractor/ExtractorModal.svelte";
   import ProjectManagerModal from "../components/projects/ProjectManagerModal.svelte";
   import TagManagerModal from "../components/tags/TagManagerModal.svelte";
-
+  import CodeMapModal from "../components/project-tree/CodeMapModal.svelte";
   import type { AttachedFile } from "../types";
-  import { attachedFiles } from "../stores";
+  import { attachedFiles, isCodeMapOpen } from "../stores";
   import { getPlaceholder } from "../utils/files";
   import { initializeActiveProject } from "../utils/projectDb";
   import { applyProjectToStores } from "../utils/projectActions";
@@ -44,11 +42,9 @@
 </script>
 
 <AppHeader />
-
 <div class="flex flex-1 overflow-hidden">
   <ActivityBar />
   <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
-
   <div class="flex flex-1 flex-col overflow-hidden bg-[var(--bg-darkest)]">
     <TabsBar />
     <EditorToolbar {editor} />
@@ -57,10 +53,9 @@
     </main>
   </div>
 </div>
-
 <StatusBar />
-
 <FileManagerModal />
 <ExtractorModal />
 <ProjectManagerModal />
 <TagManagerModal {editor} />
+<CodeMapModal isOpen={$isCodeMapOpen} onClose={() => isCodeMapOpen.set(false)} />

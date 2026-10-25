@@ -21,7 +21,7 @@ export const previewFileFromTree = writable<AttachedFile | null>(null);
 export const activeProject = writable<Project | null>(null);
 export const promptFiles = derived(
   activeProject,
-  ($project) => $project?.files ?? []
+  ($project) => $project?.files ?? [],
 );
 export const activeFileId = writable<string | null>(null);
 export const activeFile = derived(
@@ -29,31 +29,29 @@ export const activeFile = derived(
   ([$project, $fileId]) => {
     if (!$project || !$fileId) return null;
     return $project.files.find((f) => f.id === $fileId) ?? null;
-  }
+  },
 );
 export const openFileIds = writable<string[]>([]);
 export const previewFileId = writable<string | null>(null);
 
-// ═══ НОВОЕ: Менеджер проектов ═══
+// ═══ Менеджер проектов ═══
 export const isProjectManagerOpen = writable<boolean>(false);
 
-// ═══ НОВОЕ: Менеджер тегов ═══
+// ═══ Менеджер тегов ═══
 export const isTagManagerOpen = writable<boolean>(false);
 
-// ═══ НОВОЕ: Триггер синхронизации тегов ═══
-// Инкрементируется при каждом изменении тегов (добавление, удаление,
-// редактирование, переключение избранного). Компоненты, подписанные
-// на этот стор, автоматически перезагружают теги из localStorage.
+// ═══ Генератор карты кода ═══
+export const isCodeMapOpen = writable<boolean>(false);
+
+// ═══ Триггер синхронизации тегов ═══
 export const tagsVersion = writable<number>(0);
 
-// ═══ Вложения теперь в проекте ═══
-// Запись только через хелперы из projectActions.ts
+// ═══ Вложения ═══
 export const attachedFiles = derived(
   activeProject,
-  ($project) => $project?.attachments ?? []
+  ($project) => $project?.attachments ?? [],
 );
 
-// Derived-счётчики работают автоматически, так как зависят от attachedFiles
 export const totalFilesCount = derived(attachedFiles, ($files) => $files.length);
 export const selectedFilesCount = derived(
   [attachedFiles, selectedFileIds],
@@ -61,11 +59,8 @@ export const selectedFilesCount = derived(
 );
 
 // ═══ Спринт 1: управление отложенным сохранением редактора ═══
-// PromptEditor регистрирует здесь функцию, которая принудительно
-// сохраняет несохранённый контент перед переключением проекта.
 export const pendingSaveController = writable<{
   flush: () => Promise<void>;
 } | null>(null);
 
-// Ошибка сохранения проекта (пока можно использовать для статуса/логов)
 export const projectSaveError = writable<string | null>(null);

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { FolderKanban, Tag } from "@lucide/svelte";
-  import { isProjectManagerOpen, isTagManagerOpen } from "../../stores";
+  import { FolderKanban, Tag, Map } from "@lucide/svelte";
+  import { isProjectManagerOpen, isTagManagerOpen, isCodeMapOpen } from "../../stores";
 </script>
 
 <div
@@ -38,5 +38,22 @@
       ></div>
     {/if}
     <Tag size={25} />
+  </button>
+
+  <button
+    type="button"
+    onclick={() => isCodeMapOpen.set(true)}
+    class="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded transition-colors {$isCodeMapOpen
+      ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
+      : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
+    aria-label="Открыть генератор карты кода"
+    title="Карта кода"
+  >
+    {#if $isCodeMapOpen}
+      <div
+        class="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r bg-[var(--accent)]"
+      ></div>
+    {/if}
+    <Map size={25} />
   </button>
 </div>
