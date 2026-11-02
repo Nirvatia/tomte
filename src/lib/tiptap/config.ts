@@ -18,7 +18,11 @@ export function buildExtensions(): Extensions {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
-      // History включён по умолчанию — даёт Undo/Redo
+      // History включён по умолчанию — даёт Undo/Redo.
+      // StarterKit 3 сам включает link и underline; отключаем их,
+      // потому что ниже они подключены со своими настройками.
+      link: false,
+      underline: false,
     }),
     Underline,
     TextStyle,
