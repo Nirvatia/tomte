@@ -73,7 +73,7 @@
   async function handleConnect() {
     const parsed = parseGithubUrl(githubUrl);
     if (!parsed) {
-      error = "Неверный URL репозитория. Пример: https://github.com/owner/repo";
+      error = $t("github.badUrl");
       return;
     }
 

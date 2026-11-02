@@ -332,7 +332,9 @@
           >
             {#each MODEL_PRESETS as model (model.id)}
               <option value={model.id}>
-                {model.label} — {formatTokensShort(model.contextTokens)}
+                {model.labelKey ? $t(model.labelKey) : model.label} — {formatTokensShort(
+                  model.contextTokens,
+                )}
               </option>
             {/each}
             <option value={CUSTOM_MODEL_ID}>{$t("tokens.customLimit")}</option>

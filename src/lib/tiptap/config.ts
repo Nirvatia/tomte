@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
@@ -34,8 +35,8 @@ export function buildExtensions(): Extensions {
       alignments: ["left", "center", "right"],
     }),
     Placeholder.configure({
-      placeholder:
-        "Введи свой промпт здесь...\n\nКликай по файлам справа, чтобы вставить плейсхолдер [IMAGE_1: ...] или [FILE_1: ...]",
+      // Функция, а не строка: подпись берётся на текущем языке при отрисовке.
+      placeholder: () => translate("editor.placeholder"),
       emptyEditorClass: "is-editor-empty",
     }),
     Image.configure({ inline: false, allowBase64: true }),

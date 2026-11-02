@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import { domToPng } from "modern-screenshot";
 
 import type { ExportFile } from "../../types";
@@ -36,7 +37,13 @@ export async function exportToPNG(
   } catch (error) {
     console.error("PNG Export Error:", error);
     throw new Error(
-      `Ошибка экспорта PNG: ${error instanceof Error ? error.message : "Неизвестная ошибка"}`,
+      translate("export.failed", {
+        format: "PNG",
+        reason:
+          error instanceof Error
+            ? error.message
+            : translate("common.unknownError"),
+      }),
     );
   } finally {
     removeContainer(container);

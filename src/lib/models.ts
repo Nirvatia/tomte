@@ -1,3 +1,5 @@
+import type { MessageKey } from "./i18n/types";
+
 /**
  * Размеры контекстного окна для индикатора в строке состояния.
  *
@@ -9,7 +11,10 @@ export const MODELS_CHECKED_AT = "2026-11";
 
 export interface ModelPreset {
   id: string;
+  /** Название модели (не переводится). */
   label: string;
+  /** Если подпись описательная, а не название модели, — ключ словаря. */
+  labelKey?: MessageKey;
   contextTokens: number;
 }
 
@@ -19,7 +24,12 @@ export const MODEL_PRESETS: ModelPreset[] = [
   { id: "gpt-5-5", label: "GPT-5.5", contextTokens: 1_050_000 },
   { id: "gpt-5", label: "GPT-5", contextTokens: 400_000 },
   { id: "gemini-pro", label: "Gemini 3 Pro", contextTokens: 1_000_000 },
-  { id: "small-32k", label: "Небольшая модель (32K)", contextTokens: 32_000 },
+  {
+    id: "small-32k",
+    label: "Small model (32K)",
+    labelKey: "tokens.smallModel",
+    contextTokens: 32_000,
+  },
 ];
 
 export const CUSTOM_MODEL_ID = "custom";

@@ -18,7 +18,11 @@ import {
   type ParagraphChild,
 } from "docx";
 
+import { get } from "svelte/store";
+
 import type { ExportFile } from "../../types";
+import { locale, translate, translateIn, type Locale } from "$lib/i18n";
+import type { MessageKey } from "$lib/i18n/types";
 import { sanitizeFileName } from "../index";
 import { downloadBlob, exportTitle } from "./common";
 
@@ -59,7 +63,10 @@ export interface DocxStyle {
   bullet: string;
   orderedSuffix: string;
   accent: string;
-  attachmentsTitle: string;
+  /** Ключ заголовка раздела вложений. */
+  attachmentsTitle: MessageKey;
+  /** Язык подписей документа. Не задан — язык интерфейса. ГОСТ — всегда русский. */
+  lang?: Locale;
   attachmentsOnNewPage: boolean;
   page?: { top: number; right: number; bottom: number; left: number };
   pageNumbers: boolean;
@@ -86,7 +93,7 @@ const DEFAULT_STYLE: DocxStyle = {
   bullet: "•",
   orderedSuffix: ".",
   accent: "2563EB",
-  attachmentsTitle: "Вложения",
+  attachmentsTitle: "export.docx.attachments",
   attachmentsOnNewPage: false,
   pageNumbers: false,
   figureCaptions: false,
@@ -124,7 +131,8 @@ const GOST_STYLE: DocxStyle = {
   bullet: "–",
   orderedSuffix: ")",
   accent: "000000",
-  attachmentsTitle: "Приложение. Вложения",
+  attachmentsTitle: "export.docx.gostAttachments",
+  lang: "ru",
   attachmentsOnNewPage: true,
   page: {
     top: mm(20),
@@ -285,7 +293,16 @@ class DocxBuilder {
   readonly blocks: Block[] = [];
   private figureCounter = 0;
 
-  constructor(private readonly style: DocxStyle) {}
+  private readonly lang: Locale;
+
+  constructor(private readonly style: DocxStyle) {
+    this.lang = style.lang ?? get(locale);
+  }
+
+  /** Подпись на языке документа. */
+  private t(key: MessageKey, params?: Record<string, string | number>): string {
+    return translateIn(this.lang, key, params);
+  }
 
   private paragraph(
     children: ParagraphChild[],
@@ -362,7 +379,11 @@ class DocxBuilder {
         alignment: AlignmentType.CENTER,
         spacing: { after: 240, line: this.style.paragraph.line },
         children: [
-          textRun(`Рисунок ${this.figureCounter} — ${caption}`, {}, this.style),
+          textRun(
+            this.t("export.docx.figure", { n: this.figureCounter, caption }),
+            {},
+            this.style,
+          ),
         ],
       }),
     );
@@ -424,7 +445,12 @@ class DocxBuilder {
         return;
       case "img": {
         const image = imageFromElement(el as HTMLImageElement);
-        if (image) this.figure(image, el.getAttribute("alt") || "Изображение");
+        if (image) {
+          this.figure(
+            image,
+            el.getAttribute("alt") || this.t("export.docx.image"),
+          );
+        }
         return;
       }
       case "hr":
@@ -534,7 +560,7 @@ class DocxBuilder {
         keepNext: true,
         ...style.heading,
         children: [
-          textRun(style.attachmentsTitle, { bold: true }, style, {
+          textRun(this.t(style.attachmentsTitle), { bold: true }, style, {
             size: style.headingSizes[0],
             color: style.accent,
           }),
@@ -550,7 +576,7 @@ class DocxBuilder {
           : null;
       if (!image) {
         this.paragraph([
-          textRun(`${title} (формат не поддерживается в DOCX)`, {}, style),
+          textRun(this.t("export.docx.unsupportedImage", { title }), {}, style),
         ]);
         continue;
       }
@@ -649,7 +675,13 @@ export async function exportToDOCX(
   } catch (error) {
     console.error("DOCX Export Error:", error);
     throw new Error(
-      `Ошибка экспорта DOCX: ${error instanceof Error ? error.message : "Неизвестная ошибка"}`,
+      translate("export.failed", {
+        format: "DOCX",
+        reason:
+          error instanceof Error
+            ? error.message
+            : translate("common.unknownError"),
+      }),
     );
   }
 }

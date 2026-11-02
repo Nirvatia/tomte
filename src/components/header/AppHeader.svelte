@@ -201,7 +201,7 @@
           class={EXPORT_ITEM_BASE}
         >
           <FileText size={14} class="shrink-0" />
-          <span class="flex-1">{$t("export.docx")}</span>
+          <span class="flex-1">{$t("export.docxFormat")}</span>
           {#if $exportFormat === "docx"}
             <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
           {/if}

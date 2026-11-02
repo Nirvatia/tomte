@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
   import { Plus, RefreshCw as RefreshIcon } from "@lucide/svelte";
@@ -94,9 +95,10 @@
     } catch (error) {
       console.error("Failed to refresh project tree:", error);
       await requestAlert({
-        title: "Не удалось обновить дерево",
-        message: error instanceof Error ? error.message : "Неизвестная ошибка",
-        confirmText: "Понятно",
+        title: $t("tree.refreshError"),
+        message:
+          error instanceof Error ? error.message : $t("common.unknownError"),
+        confirmText: $t("common.ok"),
         danger: true,
       });
     } finally {
@@ -152,7 +154,7 @@
           disabled={isCreatingPrompt}
           class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           title="New Prompt File"
-          aria-label="Создать новый файл промпта"
+          aria-label={$t("tabs.newFile")}
         >
           <Plus size={18} />
         </button>
@@ -162,9 +164,9 @@
           disabled={isRefreshing || !hasGithubTree}
           class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           title={hasGithubTree
-            ? "Обновить дерево из GitHub"
-            : "Дерево не подключено через GitHub"}
-          aria-label="Обновить дерево проекта"
+            ? $t("tree.refresh")
+            : $t("tree.refreshUnavailable")}
+          aria-label={$t("tree.refreshLabel")}
         >
           <RefreshIcon size={18} class={isRefreshing ? "animate-spin" : ""} />
         </button>
@@ -186,7 +188,7 @@
       type="button"
       class="absolute right-0 top-0 bottom-0 z-10 w-[4px] cursor-col-resize bg-transparent transition-colors hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 focus:outline-none"
       onmousedown={handleResizeStart}
-      aria-label="Изменить ширину панели"
+      aria-label={$t("sidebar.resize")}
     ></button>
   {/if}
 </aside>

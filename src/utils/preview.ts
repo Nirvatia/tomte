@@ -1,5 +1,6 @@
 import type { ExportFile } from "../types";
 import { resolveExportLabel } from "./files";
+import { translate } from "$lib/i18n";
 
 export interface PreviewResult {
   html: string;
@@ -83,7 +84,7 @@ export function buildPreviewHtml(
       } else {
         stats.unusedImages++;
         appendixHtml += imageBlock(
-          `Вложение ${title} (без плейсхолдера)`,
+          translate("preview.unusedImage", { title }),
           file,
           "preview-unused-image",
         );

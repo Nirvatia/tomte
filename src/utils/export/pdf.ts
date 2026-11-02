@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import jsPDF from "jspdf";
 import { domToPng } from "modern-screenshot";
 
@@ -112,7 +113,13 @@ export async function exportToPDF(
   } catch (error) {
     console.error("PDF Export Error:", error);
     throw new Error(
-      `Ошибка экспорта PDF: ${error instanceof Error ? error.message : "Неизвестная ошибка"}`,
+      translate("export.failed", {
+        format: "PDF",
+        reason:
+          error instanceof Error
+            ? error.message
+            : translate("common.unknownError"),
+      }),
     );
   } finally {
     removeContainer(container);

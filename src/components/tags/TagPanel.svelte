@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { Pencil, Plus, Star } from "@lucide/svelte";
 
   import type { Editor } from "@tiptap/core";
@@ -83,8 +84,8 @@
         type="button"
         onclick={() => applyTag(tag)}
         class="max-w-44 flex-1 truncate text-left"
-        title="Клик — добавить инструкцию в промпт"
-        aria-label="Добавить тег {tag.name} в промпт"
+        title={$t("tags.panelHint")}
+        aria-label={$t("tags.addToPrompt", { name: tag.name })}
       >
         {tag.name}
       </button>
@@ -92,7 +93,7 @@
         type="button"
         onclick={(event) => handleEdit(event, tag)}
         class="rounded p-0.5 ml-3 leading-none text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:text-[var(--text-secondary)]"
-        aria-label="Редактировать тег {tag.name}"
+        aria-label={$t("tags.editTag", { name: tag.name })}
       >
         <Pencil size={14} />
       </button>
@@ -105,7 +106,7 @@
     class="inline-flex items-center gap-1.5 rounded-[5px] border border-dashed border-[var(--border-light)] px-3 py-1.5 text-xs font-medium text-[var(--text-tertiary)] transition-all hover:border-[var(--accent)]/60 hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
   >
     <Plus size={14} />
-    Новый тег
+    {$t("tags.new")}
   </button>
 </div>
 

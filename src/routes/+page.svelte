@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { onMount } from "svelte";
   import type { Editor } from "@tiptap/core";
   import AppHeader from "../components/header/AppHeader.svelte";
@@ -79,6 +80,6 @@
     class="flex flex-1 items-center justify-center text-sm text-[var(--text-tertiary)]"
     role="status"
   >
-    Загрузка проекта…
+    {$t("app.loading")}
   </div>
 {/if}

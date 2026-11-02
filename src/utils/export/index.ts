@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import type { ExportFile, ExportFormat } from "../../types";
 
 import { exportToDOCX } from "./docx";
@@ -37,7 +38,7 @@ export async function exportFile(
         await exportToPNG(editorHtml, files, fileName);
         break;
       default:
-        throw new Error(`Неподдерживаемый формат экспорта: ${format}`);
+        throw new Error(translate("export.unsupported", { format }));
     }
   } catch (error) {
     console.error("Global Export Error:", error);

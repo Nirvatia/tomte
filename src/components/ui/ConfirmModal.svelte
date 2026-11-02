@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { CircleAlert, HelpCircle } from "@lucide/svelte";
   import { confirmState, closeConfirm } from "../../stores/confirm";
 
@@ -38,7 +39,7 @@
     onkeydown={handleBackdropKeydown}
     role="alertdialog"
     aria-modal="true"
-    aria-label={$confirmState.title || "Подтверждение действия"}
+    aria-label={$confirmState.title || $t("confirm.dialog")}
     tabindex="-1"
   >
     <div
@@ -76,7 +77,7 @@
         </div>
         <div class="min-w-0 flex-1">
           <h3 class="mb-1 text-[15px] font-bold text-[var(--text-primary)]">
-            {$confirmState.title || "Подтверждение"}
+            {$confirmState.title || $t("confirm.title")}
           </h3>
           <p
             class="whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-secondary)]"
@@ -92,7 +93,7 @@
             onclick={() => closeConfirm(false)}
             class="h-9 rounded-md border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
           >
-            {$confirmState.cancelText || "Отмена"}
+            {$confirmState.cancelText || $t("common.cancel")}
           </button>
         {/if}
         <button
@@ -102,7 +103,7 @@
             ? 'bg-[var(--error)] text-[var(--bg-darkest)] hover:bg-[var(--error)]/80 focus:ring-[var(--error)]/30'
             : 'bg-[var(--accent)] text-[var(--bg-darkest)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)]/30'}"
         >
-          {$confirmState.confirmText || "Подтвердить"}
+          {$confirmState.confirmText || $t("confirm.ok")}
         </button>
       </div>
     </div>

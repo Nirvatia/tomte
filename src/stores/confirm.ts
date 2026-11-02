@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import { writable, get } from "svelte/store";
 
 export interface ConfirmOptions {
@@ -43,10 +44,10 @@ export function requestConfirm(options: ConfirmOptions): Promise<boolean> {
     }
 
     confirmState.set({
-      title: options.title ?? "Подтверждение",
+      title: options.title ?? translate("confirm.title"),
       message: options.message,
-      confirmText: options.confirmText ?? "Подтвердить",
-      cancelText: options.cancelText ?? "Отмена",
+      confirmText: options.confirmText ?? translate("confirm.ok"),
+      cancelText: options.cancelText ?? translate("common.cancel"),
       danger: options.danger ?? false,
       hideCancel: options.hideCancel ?? false,
       open: true,

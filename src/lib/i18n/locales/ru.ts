@@ -1,5 +1,15 @@
 // Эталонный словарь: форма en и es выводится из него (см. types.ts).
 export const ru = {
+  activity: {
+    codeMap: "Открыть генератор карты кода",
+    codeMapTitle: "Карта кода",
+    projects: "Открыть менеджер проектов",
+    tags: "Открыть менеджер тегов",
+    tagsTitle: "Теги",
+  },
+  app: {
+    loading: "Загрузка проекта…",
+  },
   attachments: {
     deleteMany: {
       message: {
@@ -97,6 +107,11 @@ export const ru = {
     unknownError: "Неизвестная ошибка",
     view: "Просмотр",
   },
+  confirm: {
+    dialog: "Подтверждение действия",
+    ok: "Подтвердить",
+    title: "Подтверждение",
+  },
   editor: {
     addFailed: "не удалось добавить",
     dirty: "Не сохранено",
@@ -109,6 +124,8 @@ export const ru = {
     notSaved: "Не сохранено: {reason}",
     notSavedToast: "Текст не сохранён: {reason}",
     pasteFailed: "Не удалось вставить картинку",
+    placeholder:
+      "Введи свой промпт здесь...\n\nКликай по файлам справа, чтобы вставить плейсхолдер [IMAGE_1: ...] или [FILE_1: ...]",
     region: "Область редактора",
     saveFailed: "Не удалось сохранить проект",
     saveStatus: "Статус сохранения",
@@ -121,10 +138,18 @@ export const ru = {
   },
   export: {
     button: "Экспорт",
-    docx: "DOCX Документ",
+    docx: {
+      attachments: "Вложения",
+      figure: "Рисунок {n} — {caption}",
+      gostAttachments: "Приложение. Вложения",
+      image: "Изображение",
+      unsupportedImage: "{title} (формат не поддерживается в DOCX)",
+    },
+    docxFormat: "DOCX Документ",
     errorDialog: "Окно ошибки экспорта",
     errorTitle: "Ошибка экспорта",
     exportHint: "Экспорт ({keys})",
+    failed: "Ошибка экспорта {format}: {reason}",
     gost: "DOCX по ГОСТ 7.32",
     gostHint:
       "Times New Roman 14, интервал 1,5, отступ 1,25 см, поля 30/15/20/20 мм, нумерация страниц",
@@ -134,11 +159,15 @@ export const ru = {
       tooMuchText:
         "Слишком большой объём текста для {format} ({size} КБ). Максимум: ~{max} КБ. Совет: Снимите выделение с крупных файлов или используйте экспорт в Markdown (.md).",
     },
+    md: {
+      attachments: "Прикреплённые файлы",
+    },
     menu: "Формат экспорта",
     nothing: "Нечего экспортировать. Добавьте текст или выберите файлы.",
     openInNewTab: "Открывать в новой вкладке",
     pdf: "PDF Документ",
     png: "PNG Изображение",
+    unsupported: "Неподдерживаемый формат экспорта: {format}",
   },
   extractor: {
     addToAttachments: "Добавить в вложения",
@@ -174,12 +203,20 @@ export const ru = {
     metadataOnlyHint: "Содержимое не сохранено (только метаданные)",
     noContent: "Содержимое недоступно",
     previewOf: "Просмотр файла {name}",
+    readFailed: "Не удалось прочитать файл",
     typeImage: "Изображение",
     typeText: "Текстовый файл",
     view: "Просмотреть файл",
     viewNamed: "Просмотреть файл {name}",
   },
+  fontSize: {
+    default: "По умолчанию",
+    label: "Размер шрифта",
+    pick: "Выбор размера шрифта",
+    sample: "Пример текста",
+  },
   github: {
+    badUrl: "Неверный URL репозитория. Пример: https://github.com/owner/repo",
     branch: "Ветка (branch)",
     connect: "Подключить",
     notSaved:
@@ -219,6 +256,9 @@ export const ru = {
     open: "Открыть",
     pin: "Закрепить во вкладках",
   },
+  notify: {
+    undoFailed: "Не удалось отменить удаление",
+  },
   preview: {
     appended: "Прикреплено в конец:",
     dialog: "Предпросмотр промпта",
@@ -227,6 +267,7 @@ export const ru = {
     files: "Файлов:",
     noPlaceholder: "Без плейсхолдера:",
     title: "Предпросмотр финального промпта",
+    unusedImage: "Вложение {title} (без плейсхолдера)",
     usedFiles: "Файлов использовано:",
     usedImages: "Изображений использовано:",
   },
@@ -322,6 +363,11 @@ export const ru = {
     selectFile: "Выбрать файл {name}",
     selectedCount: "Выбрано {count}",
   },
+  quickOpen: {
+    input: "Имя файла промпта",
+    open: "открыт",
+    placeholder: "Имя файла промпта…",
+  },
   shortcuts: {
     alignCenter: "Выровнять по центру",
     alignLeft: "Выровнять влево",
@@ -333,6 +379,15 @@ export const ru = {
     moveFile: "Переставить файл в панели",
     moveTab: "Переставить вкладку",
     title: "Горячие клавиши",
+  },
+  sidebar: {
+    resize: "Изменить ширину панели",
+  },
+  table: {
+    cell: "Таблица {rows}×{cols}",
+    chooseSize: "Выберите размер",
+    insert: "Вставить таблицу",
+    pickSize: "Выбор размера таблицы",
   },
   tabs: {
     closeTab: "Закрыть вкладку {name}",
@@ -346,9 +401,22 @@ export const ru = {
   },
   tags: {
     addFavorite: "Добавить в избранные",
+    addToPrompt: "Добавить тег {name} в промпт",
     apply: "Применить к редактору",
     applyTag: "Применить тег {name}",
     closeManager: "Закрыть менеджер тегов",
+    defaults: {
+      codeOnly: {
+        name: "Только код",
+        value:
+          "Пиши код без лишних комментариев и объяснений, только рабочий синтаксис.",
+      },
+      ide: {
+        name: "Инструкции для IDE",
+        value:
+          "Реализуй, только не отправляй измененную программу целиком, а дай четкие и понятные инструкции как мне изменить код в IDE (вставить сгенерированный код туда-то, вырезать что-то и т.д.).",
+      },
+    },
     deleteMany: {
       message: {
         few: "Будет удалено {count} тега.\nЭто действие нельзя отменить.",
@@ -379,6 +447,7 @@ export const ru = {
     namePlaceholder: "Например: + Без тестов",
     new: "Новый тег",
     onlyFavorites: "Только избранные",
+    panelHint: "Клик — добавить инструкцию в промпт",
     search: "Поиск тегов",
     searchPlaceholder: "Поиск по имени тега...",
     tryFilter: "Попробуйте изменить фильтр",
@@ -401,6 +470,7 @@ export const ru = {
     over: "Промпт больше контекста модели на {count}.",
     panel: "Токены и лимит модели",
     prompt: "Промпт",
+    smallModel: "Небольшая модель (32K)",
     total: "Всего",
     tree: "Дерево проекта",
     unit: {
@@ -490,6 +560,10 @@ export const ru = {
       message: "Не удалось прочитать файл «{name}».\n\n{reason}",
       title: "Ошибка чтения файла",
     },
+    refresh: "Обновить дерево из GitHub",
+    refreshError: "Не удалось обновить дерево",
+    refreshLabel: "Обновить дерево проекта",
+    refreshUnavailable: "Дерево не подключено через GitHub",
     restoreGithub: "Восстановить GitHub репо",
     search: "Найти в дереве проекта",
     searchPlaceholder: "Найти в дереве…",
@@ -498,5 +572,9 @@ export const ru = {
     selectNode: "Выбрать {name}",
     viewContent: "Просмотреть содержимое",
     viewContentOf: "Просмотреть содержимое {name}",
+  },
+  treeBlock: {
+    remove: "Убрать дерево из промпта",
+    title: "Дерево проекта",
   },
 } as const;
