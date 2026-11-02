@@ -1,5 +1,7 @@
 import { get } from "svelte/store";
 
+import { translate } from "./i18n";
+
 import type { PromptFile } from "../types";
 import type { ContextMenuItem } from "../stores/contextMenu";
 import { openFileIds } from "../stores";
@@ -29,43 +31,47 @@ export function promptFileMenu(
 
   if (place === "sidebar") {
     items.push({
-      label: "Открыть",
+      label: translate("menu.open"),
       onSelect: () => void previewPromptFile(file.id),
     });
   }
   if (!isPinned) {
     items.push({
-      label: "Закрепить во вкладках",
+      label: translate("menu.pin"),
       onSelect: () => void pinPromptFile(file.id),
     });
   }
   items.push(
-    { label: "Переименовать", onSelect: onRename },
-    { label: "Дублировать", onSelect: () => void duplicatePromptFile(file.id) },
+    { label: translate("common.rename"), onSelect: onRename },
+    {
+      label: translate("common.duplicate"),
+      onSelect: () => void duplicatePromptFile(file.id),
+    },
   );
   if (place === "tab") {
     items.push({
-      label: "Закрыть",
+      label: translate("common.close"),
       hint: formatHotkey(hotkeyFor("closeTab").keys),
       separatorBefore: true,
       onSelect: () => void closePromptFileTab(file.id),
     });
   }
   items.push({
-    label: "Закрыть остальные вкладки",
+    label: translate("menu.closeOthers"),
     separatorBefore: place === "sidebar",
     onSelect: () => void closeOtherTabs(file.id),
   });
   items.push({
-    label: "Удалить",
+    label: translate("common.delete"),
     danger: true,
     separatorBefore: true,
     onSelect: async () => {
       try {
         const undo = await deletePromptFileWithUndo(file.id);
-        if (undo) notifyUndo(`Файл «${file.name}» удалён`, undo);
+        if (undo)
+          notifyUndo(translate("prompts.deleted", { name: file.name }), undo);
       } catch (error) {
-        notifyError(getErrorMessage(error, "Не удалось удалить файл"));
+        notifyError(getErrorMessage(error, translate("prompts.errors.delete")));
       }
     },
   });

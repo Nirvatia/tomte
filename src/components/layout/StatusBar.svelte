@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { locale, t } from "$lib/i18n";
   import { LoaderCircle } from "@lucide/svelte";
   import type { AttachedFile } from "../../types";
   import type { TreeNode } from "../../utils/projectTree";
@@ -11,7 +12,6 @@
     selectedFileIds,
     selectedProjectFiles,
   } from "../../stores";
-  import { pluralize } from "../../utils";
   import { menu } from "$lib/actions/menu";
   import {
     CUSTOM_MODEL_ID,
@@ -237,13 +237,11 @@
   </span>
   <div class="ml-auto flex items-center gap-3">
     <span>
-      {$promptFiles.length}
-      {pluralize($promptFiles.length, "промпт", "промпта", "промптов")}
+      {$t("projects.prompts", { count: $promptFiles.length })}
     </span>
     <span>·</span>
     <span>
-      {$attachedFiles.length}
-      {pluralize($attachedFiles.length, "вложение", "вложения", "вложений")}
+      {$t("projects.attachments", { count: $attachedFiles.length })}
     </span>
     <span>·</span>
     <div class="relative" bind:this={panelContainer}>
@@ -256,7 +254,7 @@
         class="flex items-center gap-1.5 rounded px-1.5 font-mono tabular-nums hover:bg-[var(--bg-light)] {LEVEL_COLOR[
           level
         ]}"
-        title="Оценка токенов: текст активного промпта + выделенные вложения и файлы дерева. Нажмите, чтобы увидеть разбивку и выбрать модель."
+        title={$t("tokens.buttonHint")}
       >
         {#if isTreeLoading}
           <LoaderCircle
@@ -264,10 +262,10 @@
             class="animate-spin text-[var(--text-tertiary)]"
           />
         {/if}
-        ≈ {tokenEstimate.toLocaleString("ru-RU")} / {formatTokensShort(
+        ≈ {tokenEstimate.toLocaleString($locale)} / {formatTokensShort(
           $tokenLimit.tokens,
         )}
-        {pluralize(tokenEstimate, "токен", "токена", "токенов")}
+        {$t("tokens.unit", { count: tokenEstimate })}
         <span class="text-[var(--text-tertiary)]">· {percent}%</span>
       </button>
 
@@ -278,25 +276,25 @@
             returnFocus: panelButton,
           }}
           role="dialog"
-          aria-label="Токены и лимит модели"
+          aria-label={$t("tokens.panel")}
           tabindex="-1"
           class="absolute right-0 bottom-full z-50 mb-2 w-72 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-3 text-[12px] shadow-[var(--shadow-md)]"
         >
           <dl class="space-y-1 font-mono tabular-nums">
-            {#each [{ label: "Промпт", value: breakdown.prompt }, { label: "Вложения", value: breakdown.attachments }, { label: "Дерево проекта", value: breakdown.tree }] as row (row.label)}
+            {#each [{ label: $t("tokens.prompt"), value: breakdown.prompt }, { label: $t("tokens.attachments"), value: breakdown.attachments }, { label: $t("tokens.tree"), value: breakdown.tree }] as row (row.label)}
               <div class="flex justify-between gap-3">
                 <dt class="font-sans text-[var(--text-secondary)]">
                   {row.label}
                 </dt>
-                <dd>{row.value.toLocaleString("ru-RU")}</dd>
+                <dd>{row.value.toLocaleString($locale)}</dd>
               </div>
             {/each}
             <div
               class="flex justify-between gap-3 border-t border-[var(--border)] pt-1 font-semibold"
             >
-              <dt class="font-sans">Всего</dt>
+              <dt class="font-sans">{$t("tokens.total")}</dt>
               <dd class={LEVEL_COLOR[level]}>
-                {tokenEstimate.toLocaleString("ru-RU")}
+                {tokenEstimate.toLocaleString($locale)}
               </dd>
             </div>
           </dl>
@@ -304,7 +302,7 @@
           <div
             class="mt-2 h-1.5 overflow-hidden rounded bg-[var(--bg-lighter)]"
             role="meter"
-            aria-label="Заполнение контекста"
+            aria-label={$t("tokens.meter")}
             aria-valuemin={0}
             aria-valuemax={$tokenLimit.tokens}
             aria-valuenow={tokenEstimate}
@@ -316,15 +314,13 @@
           </div>
           {#if level === "over"}
             <p class="mt-1.5 text-[var(--error)]">
-              Промпт больше контекста модели на {(
-                tokenEstimate - $tokenLimit.tokens
-              ).toLocaleString("ru-RU")}.
+              {$t("tokens.over", { count: tokenEstimate - $tokenLimit.tokens })}
             </p>
           {/if}
 
           <label
             class="mt-3 block text-[var(--text-secondary)]"
-            for="token-model">Модель</label
+            for="token-model">{$t("tokens.model")}</label
           >
           <select
             id="token-model"
@@ -334,10 +330,12 @@
           >
             {#each MODEL_PRESETS as model (model.id)}
               <option value={model.id}>
-                {model.label} — {formatTokensShort(model.contextTokens)}
+                {model.labelKey ? $t(model.labelKey) : model.label} — {formatTokensShort(
+                  model.contextTokens,
+                )}
               </option>
             {/each}
-            <option value={CUSTOM_MODEL_ID}>Свой лимит</option>
+            <option value={CUSTOM_MODEL_ID}>{$t("tokens.customLimit")}</option>
           </select>
 
           {#if $tokenLimitSetting.modelId === CUSTOM_MODEL_ID}
@@ -345,7 +343,7 @@
               class="mt-2 block text-[var(--text-secondary)]"
               for="token-custom"
             >
-              Лимит, токенов
+              {$t("tokens.limitLabel")}
             </label>
             <input
               id="token-custom"
@@ -359,9 +357,7 @@
           {/if}
 
           <p class="mt-2 text-[11px] leading-snug text-[var(--text-tertiary)]">
-            Оценка приблизительная: считается по символам, без токенайзера
-            модели. Изображения не учитываются. Лимиты моделей сверены в {MODELS_CHECKED_AT},
-            они меняются — уточняйте у провайдера.
+            {$t("tokens.note", { date: MODELS_CHECKED_AT })}
           </p>
         </div>
       {/if}

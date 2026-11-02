@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { downloadBlob } from "../../utils/export/common";
   import {
     Archive,
@@ -131,7 +132,7 @@
     onkeydown={handleBackdropKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Экстрактор кода"
+    aria-label={$t("extractor.dialog")}
     tabindex="-1"
   >
     <div
@@ -155,14 +156,14 @@
             Smart Code Extractor
           </h2>
           <p class="mt-1 text-sm text-[var(--text-tertiary)]">
-            Извлечение файлов из markdown-ответов LLM
+            {$t("extractor.subtitle")}
           </p>
         </div>
         <button
           type="button"
           onclick={close}
           class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          aria-label="Закрыть"
+          aria-label={$t("common.close")}
         >
           <X size={20} />
         </button>
@@ -175,7 +176,7 @@
           <span
             class="font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
-            Шаг 1 · Исходный текст
+            {$t("extractor.step1")}
           </span>
           <button
             type="button"
@@ -183,16 +184,16 @@
             disabled={!markdownInput.trim()}
             class="inline-flex h-8 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Распознать файлы
+            {$t("extractor.parse")}
           </button>
         </div>
         <div class="flex min-h-0 flex-1 flex-col p-4">
           <textarea
             id="markdown-input"
             bind:value={markdownInput}
-            placeholder="Вставьте сюда весь текст ответа LLM с code blocks..."
+            placeholder={$t("extractor.inputPlaceholder")}
             class="min-h-0 w-full flex-1 resize-none rounded-lg border border-[var(--border)] bg-[var(--bg-darkest)] px-4 py-3 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
-            aria-label="Ответ LLM в формате Markdown"></textarea>
+            aria-label={$t("extractor.input")}></textarea>
         </div>
       </div>
 
@@ -203,7 +204,7 @@
           <span
             class="font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
-            Шаг 2 · Распознанные файлы
+            {$t("extractor.step2")}
             <span class="text-[var(--accent-hover)]"
               >({extractedFiles.length})</span
             >
@@ -216,7 +217,7 @@
                 class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-3 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
               >
                 <Archive size={13} />
-                Скачать ZIP
+                {$t("extractor.downloadZip")}
               </button>
               <button
                 type="button"
@@ -224,7 +225,7 @@
                 class="inline-flex h-8 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)]"
               >
                 <Plus size={13} />
-                Добавить в вложения
+                {$t("extractor.addToAttachments")}
               </button>
             </div>
           {/if}
@@ -239,11 +240,10 @@
                 class="mb-3 text-[var(--text-tertiary)] opacity-40"
               />
               <p class="text-sm font-medium text-[var(--text-secondary)]">
-                Файлы пока не найдены
+                {$t("extractor.empty")}
               </p>
               <p class="mt-1.5 max-w-md text-xs text-[var(--text-tertiary)]">
-                Вставьте ответ LLM выше и нажмите «Распознать файлы» — блоки
-                кода превратятся в отдельные файлы
+                {$t("extractor.emptyHint")}
               </p>
             </div>
           {:else}
@@ -279,7 +279,7 @@
                         {file.name}
                       </p>
                       <p class="mt-0.5 text-xs text-[var(--text-tertiary)]">
-                        {file.code.length} символов
+                        {$t("common.chars", { count: file.code.length })}
                       </p>
                     {/if}
                   </div>
@@ -291,7 +291,7 @@
                         type="button"
                         onclick={saveRename}
                         class="rounded-md p-1.5 text-[var(--success)] transition-colors hover:bg-[var(--success)]/10"
-                        title="Сохранить"
+                        title={$t("common.save")}
                       >
                         <Plus size={16} />
                       </button>
@@ -299,7 +299,7 @@
                         type="button"
                         onclick={cancelRename}
                         class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
-                        title="Отмена"
+                        title={$t("common.cancel")}
                       >
                         <X size={16} />
                       </button>
@@ -308,7 +308,7 @@
                         type="button"
                         onclick={() => handlePreview(file)}
                         class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
-                        title="Просмотр"
+                        title={$t("common.view")}
                       >
                         <Eye size={16} />
                       </button>
@@ -316,7 +316,7 @@
                         type="button"
                         onclick={() => handleRename(index)}
                         class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
-                        title="Переименовать"
+                        title={$t("common.rename")}
                       >
                         <Pencil size={16} />
                       </button>
@@ -324,7 +324,7 @@
                         type="button"
                         onclick={() => handleDownload(index)}
                         class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
-                        title="Скачать"
+                        title={$t("common.download")}
                       >
                         <Download size={16} />
                       </button>
@@ -332,7 +332,7 @@
                         type="button"
                         onclick={() => handleRemove(index)}
                         class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
-                        title="Удалить"
+                        title={$t("common.delete")}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -355,7 +355,7 @@
     onkeydown={handlePreviewBackdropKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Предпросмотр файла {previewFile.name}"
+    aria-label={$t("extractor.previewFile", { name: previewFile.name })}
     tabindex="-1"
   >
     <div
@@ -379,14 +379,14 @@
             <span class="font-semibold text-[var(--accent-hover)]">
               {previewFile.lang.toUpperCase()}
             </span>
-            · {previewFile.code.length} символов
+            · {$t("common.chars", { count: previewFile.code.length })}
           </p>
         </div>
         <button
           type="button"
           onclick={closePreview}
           class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          aria-label="Закрыть предпросмотр"
+          aria-label={$t("extractor.closePreview")}
         >
           <X size={20} />
         </button>

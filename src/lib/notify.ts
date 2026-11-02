@@ -1,5 +1,7 @@
 import { toast } from "svelte-sonner";
 
+import { translate } from "./i18n";
+
 /**
  * Уведомления внизу справа. Все тексты для пользователя идут через этот
  * модуль, чтобы длительность и формат были одинаковыми.
@@ -15,11 +17,11 @@ export function notifyUndo(message: string, undo: UndoFn): void {
   toast(message, {
     duration: UNDO_DURATION_MS,
     action: {
-      label: "Отменить",
+      label: translate("common.undo"),
       onClick: () => {
         Promise.resolve(undo()).catch((error) => {
           console.error("Undo failed:", error);
-          notifyError("Не удалось отменить удаление");
+          notifyError(translate("notify.undoFailed"));
         });
       },
     },
@@ -30,7 +32,9 @@ export function notifyUndo(message: string, undo: UndoFn): void {
 export function notifyError(message: string, retry?: () => void): void {
   toast.error(message, {
     duration: retry ? Infinity : 8000,
-    action: retry ? { label: "Повторить", onClick: retry } : undefined,
+    action: retry
+      ? { label: translate("common.retry"), onClick: retry }
+      : undefined,
   });
 }
 

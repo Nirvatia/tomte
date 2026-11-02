@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import {
     ChevronDown,
     ChevronRight,
@@ -38,7 +39,7 @@
     renamePromptFile,
   } from "../../utils/projectActions";
   import { exportPromptsToZip } from "../../utils/export/prompts";
-  import { getErrorMessage, pluralize } from "../../utils";
+  import { getErrorMessage } from "../../utils";
 
   let isPromptsSectionOpen = $state(true);
   let editingFileId = $state<string | null>(null);
@@ -56,10 +57,6 @@
   const allSelected = $derived(
     $promptFiles.length > 0 && selectedFiles.length === $promptFiles.length,
   );
-
-  function filesWord(n: number): string {
-    return pluralize(n, "файл", "файла", "файлов");
-  }
 
   function toggleSelected(fileId: string) {
     bulkError = null;
@@ -89,7 +86,7 @@
       const files = ($activeProject?.files ?? []).filter((f) => ids.has(f.id));
       exportPromptsToZip(files, $activeProject?.name || "prompts");
     } catch (error) {
-      bulkError = getErrorMessage(error, "Не удалось выгрузить файлы");
+      bulkError = getErrorMessage(error, $t("prompts.errors.export"));
     } finally {
       actionInProgress = false;
     }
@@ -101,14 +98,14 @@
     const deletingAll = count === $promptFiles.length;
 
     const confirmed = await requestConfirm({
-      title: `Удалить ${count} ${filesWord(count)}?`,
+      title: $t("prompts.deleteMany.title", { count }),
       message:
         selectedFiles.map((f) => `• ${f.name}`).join("\n") +
         (deletingAll
-          ? "\n\nПроект не может остаться без файлов, поэтому будет создан новый пустой файл."
-          : "\n\nЭто действие нельзя отменить."),
-      confirmText: "Удалить",
-      cancelText: "Отмена",
+          ? "\n\n" + $t("prompts.deleteMany.lastNote")
+          : "\n\n" + $t("common.irreversible")),
+      confirmText: $t("common.delete"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
     if (!confirmed) return;
@@ -118,7 +115,7 @@
       await deletePromptFiles(selectedFiles.map((f) => f.id));
       clearSelection();
     } catch (error) {
-      bulkError = getErrorMessage(error, "Не удалось удалить файлы");
+      bulkError = getErrorMessage(error, $t("prompts.errors.deleteMany"));
     } finally {
       actionInProgress = false;
     }
@@ -211,9 +208,9 @@
     actionInProgress = true;
     try {
       const undo = await deletePromptFileWithUndo(fileId);
-      if (undo) notifyUndo(`Файл «${fileName}» удалён`, undo);
+      if (undo) notifyUndo($t("prompts.deleted", { name: fileName }), undo);
     } catch (error) {
-      notifyError(getErrorMessage(error, "Не удалось удалить файл"));
+      notifyError(getErrorMessage(error, $t("prompts.errors.delete")));
     } finally {
       actionInProgress = false;
     }
@@ -231,7 +228,7 @@
     {:else}
       <ChevronRight size={12} />
     {/if}
-    <span>Prompts</span>
+    <span>{$t("prompts.section")}</span>
     <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
       {$promptFiles.length}
     </span>
@@ -242,24 +239,26 @@
       <div
         class="flex items-center gap-2 border-y border-[var(--border)] bg-[var(--bg-light)] py-1 pr-2 pl-[28px] text-[12px] text-[var(--text-secondary)]"
         role="toolbar"
-        aria-label="Действия с выбранными файлами"
+        aria-label={$t("prompts.bulkToolbar")}
       >
         <Checkbox
           checked={allSelected}
           indeterminate={!allSelected}
           onToggle={toggleSelectAll}
-          ariaLabel={allSelected ? "Снять выбор со всех" : "Выбрать все файлы"}
+          ariaLabel={allSelected
+            ? $t("prompts.deselectAll")
+            : $t("prompts.selectAll")}
         />
         <span class="mr-auto">
-          Выбрано {selectedFiles.length}
+          {$t("prompts.selectedCount", { count: selectedFiles.length })}
         </span>
         <button
           type="button"
           onclick={handleExportSelected}
           disabled={actionInProgress}
           class="rounded p-1 transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:opacity-40"
-          title="Скачать выбранные как ZIP (Markdown)"
-          aria-label="Скачать выбранные файлы как ZIP"
+          title={$t("prompts.downloadZipHint")}
+          aria-label={$t("prompts.downloadZip")}
         >
           <Download size={14} />
         </button>
@@ -268,8 +267,8 @@
           onclick={handleDeleteSelected}
           disabled={actionInProgress}
           class="rounded p-1 transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:opacity-40"
-          title="Удалить выбранные"
-          aria-label="Удалить выбранные файлы"
+          title={$t("prompts.deleteSelectedHint")}
+          aria-label={$t("prompts.deleteSelected")}
         >
           <Trash2 size={14} />
         </button>
@@ -277,8 +276,8 @@
           type="button"
           onclick={clearSelection}
           class="rounded p-1 transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          title="Снять выбор"
-          aria-label="Снять выбор"
+          title={$t("common.clearSelection")}
+          aria-label={$t("common.clearSelection")}
         >
           <X size={14} />
         </button>
@@ -325,7 +324,7 @@
             <Checkbox
               checked={selectedIds.includes(file.id)}
               onToggle={() => toggleSelected(file.id)}
-              ariaLabel="Выбрать файл {file.name}"
+              ariaLabel={$t("prompts.selectFile", { name: file.name })}
             />
             <button
               type="button"
@@ -356,7 +355,7 @@
                   ),
                 )}
               class="flex flex-1 items-center gap-2 truncate text-left"
-              title="{file.name} (клик — предпросмотр, двойной клик — закрепить, F2 — переименовать)"
+              title={$t("prompts.rowHint", { name: file.name })}
             >
               <FileText size={14} class="shrink-0" />
               <span class="truncate {isFileInPreview(file.id) ? 'italic' : ''}">
@@ -372,8 +371,8 @@
                 onclick={() => handleStartRename(file.id, file.name)}
                 disabled={actionInProgress}
                 class="rounded p-1 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                title="Переименовать"
-                aria-label="Переименовать файл {file.name}"
+                title={$t("common.rename")}
+                aria-label={$t("prompts.renameFile", { name: file.name })}
               >
                 <Pencil size={14} />
               </button>
@@ -382,8 +381,8 @@
                 onclick={() => handleDeleteFile(file.id, file.name)}
                 disabled={actionInProgress}
                 class="rounded p-1 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-40"
-                title="Удалить"
-                aria-label="Удалить файл {file.name}"
+                title={$t("common.delete")}
+                aria-label={$t("prompts.deleteFile", { name: file.name })}
               >
                 <Trash2 size={14} />
               </button>
@@ -411,7 +410,7 @@
                 cancelNewFile();
               }
             }}
-            placeholder="Имя файла..."
+            placeholder={$t("prompts.fileNamePlaceholder")}
             class="flex-1 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-0.5 text-[13px] text-[var(--text-primary)] focus:outline-none"
           />
         </div>
@@ -420,7 +419,7 @@
       {#if $promptFiles.length === 0 && !isCreatingFile}
         <div class="px-4 py-3 text-center">
           <p class="text-[11px] text-[var(--text-tertiary)]">
-            Нет файлов промптов
+            {$t("prompts.empty")}
           </p>
           <button
             type="button"
@@ -429,7 +428,7 @@
             class="mt-2 inline-flex items-center gap-1 rounded border border-[var(--border)] bg-[var(--bg-light)] px-2.5 py-1 text-[11px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           >
             <Plus size={11} />
-            Создать файл
+            {$t("prompts.createFile")}
           </button>
         </div>
       {/if}

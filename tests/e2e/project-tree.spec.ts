@@ -33,15 +33,15 @@ test.describe("Панель проекта", () => {
     // Проверяем секции только внутри сайдбара,
     // чтобы не цепать StatusBar и другие зоны.
     await expect(
-      sidebar.getByRole("button", { name: /^Prompts/ }),
+      sidebar.getByRole("button", { name: /^Промпты/ }),
     ).toBeVisible();
 
     await expect(
-      sidebar.getByRole("button", { name: /^Attachments/ }),
+      sidebar.getByRole("button", { name: /^Вложения/ }),
     ).toBeVisible();
 
     await expect(
-      sidebar.getByRole("button", { name: /^Project/ }),
+      sidebar.getByRole("button", { name: /^Проект/ }),
     ).toBeVisible();
 
     // Закрываем панель повторным кликом.
@@ -64,7 +64,7 @@ test.describe("Панель проекта", () => {
     const sidebar = page.getByRole("complementary");
 
     await expect(
-      sidebar.getByRole("button", { name: /^Prompts/ }),
+      sidebar.getByRole("button", { name: /^Промпты/ }),
     ).toBeVisible();
 
     // Ищем файл только внутри сайдбара и только точным совпадением.

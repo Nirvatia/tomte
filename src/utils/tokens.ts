@@ -97,7 +97,7 @@ export async function loadTreeFileTokens(node: TreeNode): Promise<number> {
     treeTokenCache.set(node.path, tokens);
     return tokens;
   } catch (error) {
-    console.warn(`Не удалось прочитать файл дерева ${node.path}:`, error);
+    console.warn(`Could not read tree file ${node.path}:`, error);
     return 0;
   }
 }

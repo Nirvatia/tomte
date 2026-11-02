@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import {
     ChevronDown,
     CircleAlert,
@@ -13,6 +14,7 @@
 
   import Checkbox from "../ui/Checkbox.svelte";
   import AppLogo from "./AppLogo.svelte";
+  import LanguageSwitcher from "./LanguageSwitcher.svelte";
 
   import type { ExportFormat } from "../../types";
   import {
@@ -27,6 +29,7 @@
   } from "../../stores";
 
   import { exportFile } from "../../utils/export";
+  import { ExportLimitError } from "../../utils/export/limits";
   import { menu } from "$lib/actions/menu";
   import { formatHotkey, hotkeyFor } from "$lib/hotkeys";
   import { labelAttachments } from "../../utils/files";
@@ -94,9 +97,7 @@
       const filesToExport = [...selectedAttachments, ...selectedTreeFiles];
 
       if (!$editorHtml.trim() && filesToExport.length === 0) {
-        throw new Error(
-          "Нечего экспортировать. Добавьте текст или выберите файлы.",
-        );
+        throw new Error($t("export.nothing"));
       }
 
       const rawName = $activeFile?.name ?? "prompt";
@@ -107,14 +108,11 @@
       });
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Неизвестная ошибка";
-      if (
-        errorMessage.includes("Слишком много") ||
-        errorMessage.includes("Слишком большой")
-      ) {
-        console.warn("Превышен лимит экспорта:", errorMessage);
+        error instanceof Error ? error.message : $t("common.unknownError");
+      if (error instanceof ExportLimitError) {
+        console.warn("Export limit exceeded:", errorMessage);
       } else {
-        console.error("Ошибка экспорта:", error);
+        console.error("Export failed:", error);
       }
       exportError = errorMessage;
     } finally {
@@ -133,125 +131,130 @@
 >
   <AppLogo size="compact" />
 
-  <div bind:this={exportMenuContainer} class="relative">
-    <button
-      type="button"
-      onclick={toggleExportMenu}
-      disabled={isExporting}
-      class="flex h-7 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
-      bind:this={exportButton}
-      aria-haspopup="menu"
-      aria-expanded={$isExportMenuOpen}
-      aria-label="Экспорт"
-      title="Экспорт ({formatHotkey(hotkeyFor('export').keys)})"
-    >
-      {#if isExporting}
-        <LoaderCircle size={14} class="animate-spin" />
-      {:else}
-        <Download size={14} />
-      {/if}
-      <span>Экспорт</span>
-      <ChevronDown
-        size={12}
-        class="transition-transform duration-150 {$isExportMenuOpen
-          ? 'rotate-180'
-          : ''}"
-      />
-    </button>
-
-    {#if $isExportMenuOpen}
-      <div
-        use:menu={{
-          onClose: () => isExportMenuOpen.set(false),
-          returnFocus: exportButton,
-        }}
-        role="menu"
-        aria-label="Формат экспорта"
-        class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
+  <div class="flex items-center gap-3">
+    <LanguageSwitcher />
+    <div bind:this={exportMenuContainer} class="relative">
+      <button
+        type="button"
+        onclick={toggleExportMenu}
+        disabled={isExporting}
+        class="flex h-7 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+        bind:this={exportButton}
+        aria-haspopup="menu"
+        aria-expanded={$isExportMenuOpen}
+        aria-label={$t("export.button")}
+        title={$t("export.exportHint", {
+          keys: formatHotkey(hotkeyFor("export").keys),
+        })}
       >
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("md")}
-          class={EXPORT_ITEM_BASE}
+        {#if isExporting}
+          <LoaderCircle size={14} class="animate-spin" />
+        {:else}
+          <Download size={14} />
+        {/if}
+        <span>{$t("export.button")}</span>
+        <ChevronDown
+          size={12}
+          class="transition-transform duration-150 {$isExportMenuOpen
+            ? 'rotate-180'
+            : ''}"
+        />
+      </button>
+
+      {#if $isExportMenuOpen}
+        <div
+          use:menu={{
+            onClose: () => isExportMenuOpen.set(false),
+            returnFocus: exportButton,
+          }}
+          role="menu"
+          aria-label={$t("export.menu")}
+          class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
         >
-          <FileCode size={14} class="shrink-0" />
-          <span class="flex-1">Markdown</span>
-          {#if $exportFormat === "md"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("pdf")}
-          class={EXPORT_ITEM_BASE}
-        >
-          <FileIcon size={14} class="shrink-0" />
-          <span class="flex-1">PDF Документ</span>
-          {#if $exportFormat === "pdf"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("docx")}
-          class={EXPORT_ITEM_BASE}
-        >
-          <FileText size={14} class="shrink-0" />
-          <span class="flex-1">DOCX Документ</span>
-          {#if $exportFormat === "docx"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("docx-gost")}
-          class={EXPORT_ITEM_BASE}
-          title="Times New Roman 14, интервал 1,5, отступ 1,25 см, поля 30/15/20/20 мм, нумерация страниц"
-        >
-          <FileText size={14} class="shrink-0" />
-          <span class="flex-1">DOCX по ГОСТ 7.32</span>
-          {#if $exportFormat === "docx-gost"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("png")}
-          class={EXPORT_ITEM_BASE}
-        >
-          <Image size={14} class="shrink-0" />
-          <span class="flex-1">PNG Изображение</span>
-          {#if $exportFormat === "png"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <div class="mx-1 my-1.5 h-px bg-[var(--border)]"></div>
-
-        <div class="px-3 py-1.5">
-          <Checkbox
-            checked={openInNewTab}
-            onToggle={() => (openInNewTab = !openInNewTab)}
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("md")}
+            class={EXPORT_ITEM_BASE}
           >
-            <span
-              class="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]"
+            <FileCode size={14} class="shrink-0" />
+            <span class="flex-1">Markdown</span>
+            {#if $exportFormat === "md"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("pdf")}
+            class={EXPORT_ITEM_BASE}
+          >
+            <FileIcon size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.pdf")}</span>
+            {#if $exportFormat === "pdf"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("docx")}
+            class={EXPORT_ITEM_BASE}
+          >
+            <FileText size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.docxFormat")}</span>
+            {#if $exportFormat === "docx"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("docx-gost")}
+            class={EXPORT_ITEM_BASE}
+            title={$t("export.gostHint")}
+          >
+            <FileText size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.gost")}</span>
+            {#if $exportFormat === "docx-gost"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("png")}
+            class={EXPORT_ITEM_BASE}
+          >
+            <Image size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.png")}</span>
+            {#if $exportFormat === "png"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <div class="mx-1 my-1.5 h-px bg-[var(--border)]"></div>
+
+          <div class="px-3 py-1.5">
+            <Checkbox
+              checked={openInNewTab}
+              onToggle={() => (openInNewTab = !openInNewTab)}
             >
-              <ExternalLink size={13} />
-              Открывать в новой вкладке
-            </span>
-          </Checkbox>
+              <span
+                class="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]"
+              >
+                <ExternalLink size={13} />
+                {$t("export.openInNewTab")}
+              </span>
+            </Checkbox>
+          </div>
         </div>
-      </div>
-    {/if}
+      {/if}
+    </div>
   </div>
 </header>
 
@@ -262,7 +265,7 @@
     onkeydown={handleModalBackdropKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Окно ошибки экспорта"
+    aria-label={$t("export.errorDialog")}
     tabindex="-1"
   >
     <div
@@ -287,7 +290,7 @@
         </div>
         <div class="min-w-0 flex-1">
           <h3 class="mb-1 text-[15px] font-bold text-[var(--text-primary)]">
-            Ошибка экспорта
+            {$t("export.errorTitle")}
           </h3>
           <p
             class="whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-secondary)]"
@@ -302,7 +305,7 @@
           onclick={closeErrorModal}
           class="h-9 rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--bg-darkest)] transition-all hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
         >
-          Понятно
+          {$t("common.ok")}
         </button>
       </div>
     </div>

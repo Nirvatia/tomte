@@ -14,6 +14,8 @@ const DB_NAME = "tomte-projects-db";
 /** Каждый тест получает чистую базу и свежий модуль (у модуля свой кэш соединения). */
 async function freshDb(): Promise<ProjectDb> {
   vi.resetModules();
+  // После resetModules словарь заново определяет язык по окружению — возвращаем русский.
+  (await import("../../src/lib/i18n")).locale.set("ru");
   return import("../../src/utils/projectDb");
 }
 
@@ -297,7 +299,7 @@ describe("projectDb: initializeActiveProject", () => {
     const db = await freshDb();
     const result = await db.initializeActiveProject();
 
-    expect(result.name).toBe("Untitled Project");
+    expect(result.name).toBe("Проект без названия");
     expect(result.files).toHaveLength(1);
     expect(await db.loadProject(result.id)).toEqual(result);
   });
@@ -353,7 +355,7 @@ describe("projectDb: initializeActiveProject", () => {
 
     const result = await db.initializeActiveProject();
 
-    expect(result.name).toBe("Untitled Project");
+    expect(result.name).toBe("Проект без названия");
     spy.mockRestore();
   });
 });

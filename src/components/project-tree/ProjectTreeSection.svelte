@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { browser } from "$app/environment";
   import { directoryPicker } from "$lib/actions/directoryPicker";
 
@@ -42,7 +43,7 @@
   } from "../../utils/projectTree";
 
   import { SECTION_TOOL_BTN } from "./constants";
-  import { getErrorMessage, pluralize } from "../../utils";
+  import { getErrorMessage } from "../../utils";
 
   interface Props {
     editor?: Editor | null;
@@ -150,7 +151,7 @@
     } catch (err) {
       // Пользователь закрыл диалог выбора папки — это не ошибка.
       if (!(err instanceof DOMException && err.name === "AbortError")) {
-        error = getErrorMessage(err, "Не удалось прочитать папку");
+        error = getErrorMessage(err, $t("tree.errors.readFolder"));
         console.error(err);
       }
     } finally {
@@ -166,10 +167,10 @@
     try {
       const restored = await restoreGithubTree();
       if (!restored) {
-        error = "Не удалось восстановить репозиторий";
+        error = $t("tree.errors.restore");
       }
     } catch (err) {
-      error = getErrorMessage(err, "Не удалось загрузить репозиторий");
+      error = getErrorMessage(err, $t("tree.errors.loadRepo"));
       console.error(err);
     } finally {
       isLoading = false;
@@ -196,7 +197,7 @@
         await clearGithubConfig();
       }
     } catch (err) {
-      error = getErrorMessage(err, "Не удалось прочитать папку");
+      error = getErrorMessage(err, $t("tree.errors.readFolder"));
       console.error(err);
     } finally {
       isLoading = false;
@@ -211,7 +212,7 @@
       copied = true;
       setTimeout(() => (copied = false), 2000);
     } catch {
-      error = "Не удалось скопировать";
+      error = $t("common.copyFailed");
     }
   }
 
@@ -234,7 +235,7 @@
     {:else}
       <ChevronRight size={12} />
     {/if}
-    <span>Project</span>
+    <span>{$t("tree.section")}</span>
     <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
       {#if totalFiles > 0}
         {#if selectedCount > 0}
@@ -257,8 +258,8 @@
         onclick={handlePickDirectory}
         disabled={isLoading}
         class={SECTION_TOOL_BTN}
-        title="Открыть папку"
-        aria-label="Открыть папку"
+        title={$t("tree.openFolder")}
+        aria-label={$t("tree.openFolder")}
       >
         {#if isLoading}
           <LoaderCircle size={18} class="animate-spin" />
@@ -271,8 +272,8 @@
         type="button"
         onclick={onOpenGithubModal}
         class={SECTION_TOOL_BTN}
-        title="Подключить GitHub"
-        aria-label="Подключить GitHub"
+        title={$t("tree.connectGithub")}
+        aria-label={$t("tree.connectGithub")}
       >
         <FolderGit size={18} />
       </button>
@@ -283,8 +284,8 @@
           onclick={handleRestoreGithub}
           disabled={isLoading}
           class={SECTION_TOOL_BTN}
-          title="Восстановить GitHub репо"
-          aria-label="Восстановить GitHub репо"
+          title={$t("tree.restoreGithub")}
+          aria-label={$t("tree.restoreGithub")}
         >
           <RefreshCw size={18} />
         </button>
@@ -297,8 +298,8 @@
           type="button"
           onclick={handleCopy}
           class="{SECTION_TOOL_BTN} {copied ? 'text-[var(--success)]' : ''}"
-          title={copied ? "Скопировано!" : "Копировать дерево"}
-          aria-label="Копировать дерево"
+          title={copied ? $t("common.copiedExclaim") : $t("tree.copy")}
+          aria-label={$t("tree.copy")}
         >
           {#if copied}
             <span class="text-[11px] font-bold">✓</span>
@@ -311,8 +312,8 @@
           type="button"
           onclick={handleInsertToEditor}
           class={SECTION_TOOL_BTN}
-          title="Вставить дерево в редактор"
-          aria-label="Вставить дерево в редактор"
+          title={$t("tree.insert")}
+          aria-label={$t("tree.insert")}
         >
           <FileInput size={16} />
         </button>
@@ -323,13 +324,13 @@
       {#if $projectTreeNodes.length > 0}
         <div
           class="flex shrink-0 items-center gap-1.5"
-          title="Выбрать все файлы"
+          title={$t("prompts.selectAll")}
         >
           <Checkbox
             checked={isAllSelected}
             indeterminate={isPartialSelected}
             onToggle={toggleSelectAll}
-            ariaLabel="Выбрать все файлы дерева"
+            ariaLabel={$t("tree.selectAll")}
           />
           <span
             class="min-w-[1.25rem] text-right font-mono text-[10px] font-semibold text-[var(--text-tertiary)] tabular-nums"
@@ -353,10 +354,10 @@
       <div class="px-4 py-6 text-center">
         <FolderTree size={24} class="mx-auto mb-2 text-[var(--text-dim)]" />
         <p class="text-xs font-medium text-[var(--text-tertiary)]">
-          Дерево не создано
+          {$t("tree.empty")}
         </p>
         <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
-          Откройте папку или подключите GitHub-репозиторий
+          {$t("tree.emptyHint")}
         </p>
       </div>
     {:else}
@@ -376,15 +377,15 @@
               treeQuery = "";
             }
           }}
-          placeholder="Найти в дереве…"
-          aria-label="Найти в дереве проекта"
+          placeholder={$t("tree.searchPlaceholder")}
+          aria-label={$t("tree.search")}
           class="w-full rounded border border-[var(--border)] bg-[var(--bg-darkest)] px-2 py-1 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)] focus:outline-none"
         />
         {#if filtered}
           <p class="mt-1 text-[11px] text-[var(--text-tertiary)]" role="status">
             {filtered.matches > 0
-              ? `Найдено: ${filtered.matches} ${pluralize(filtered.matches, "файл", "файла", "файлов")}`
-              : "Ничего не найдено"}
+              ? $t("tree.found", { count: filtered.matches })
+              : $t("common.nothingFound")}
           </p>
         {/if}
       </div>

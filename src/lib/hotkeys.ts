@@ -1,3 +1,5 @@
+import type { MessageKey } from "./i18n/types";
+
 /**
  * Горячие клавиши приложения (решение этапа 5). Один список служит и
  * обработчиком, и шпаргалкой, поэтому они не расходятся.
@@ -23,59 +25,60 @@ export type HotkeyId =
 export interface Hotkey {
   id: HotkeyId;
   keys: string;
-  description: string;
+  /** Ключ словаря с описанием. */
+  description: MessageKey;
   /** Срабатывает и при наборе текста (в редакторе, полях ввода). */
   whileTyping: boolean;
-  /** Пометка для шпаргалки. */
-  note?: string;
+  /** Пометка для шпаргалки (ключ словаря). */
+  note?: MessageKey;
 }
 
 export const HOTKEYS: Hotkey[] = [
   {
     id: "save",
     keys: "Mod+S",
-    description: "Сохранить сейчас",
+    description: "hotkeys.save",
     whileTyping: true,
   },
   {
     id: "newFile",
     keys: "Mod+Alt+N",
-    description: "Новый файл промпта",
+    description: "hotkeys.newFile",
     whileTyping: true,
   },
   {
     id: "closeTab",
     keys: "Mod+Alt+W",
-    description: "Закрыть вкладку",
+    description: "hotkeys.closeTab",
     whileTyping: true,
   },
   {
     id: "quickOpen",
     keys: "Mod+K",
-    description: "Найти файл промпта",
+    description: "hotkeys.quickOpen",
     whileTyping: true,
   },
   {
     id: "export",
     keys: "Mod+Alt+E",
-    description: "Экспорт",
+    description: "hotkeys.export",
     whileTyping: true,
   },
   {
     id: "nextTab",
     keys: "Ctrl+Tab",
-    description: "Следующая вкладка",
+    description: "hotkeys.nextTab",
     whileTyping: true,
-    note: "если браузер отдаёт сочетание",
+    note: "hotkeys.browserNote",
   },
   {
     id: "prevTab",
     keys: "Ctrl+Shift+Tab",
-    description: "Предыдущая вкладка",
+    description: "hotkeys.prevTab",
     whileTyping: true,
-    note: "если браузер отдаёт сочетание",
+    note: "hotkeys.browserNote",
   },
-  { id: "help", keys: "?", description: "Эта шпаргалка", whileTyping: false },
+  { id: "help", keys: "?", description: "hotkeys.help", whileTyping: false },
 ];
 
 export function isMacPlatform(): boolean {

@@ -11,7 +11,7 @@ describe("projectDb utils", () => {
     it("должен создавать проект с именем по умолчанию и одним файлом main.md", () => {
       const project = createEmptyProject();
 
-      expect(project.name).toBe("Untitled Project");
+      expect(project.name).toBe("Проект без названия");
       expect(project.files).toHaveLength(1);
       expect(project.files[0].name).toBe("main");
       expect(project.files[0].content).toBe("");

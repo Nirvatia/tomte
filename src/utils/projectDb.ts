@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import { openDB, type IDBPDatabase, type IDBPTransaction } from "idb";
 
 import type { Project, AttachedFile, ProjectTreeSource } from "../types";
@@ -241,9 +242,7 @@ export async function saveProject(
     await Promise.all([...ops, tx.done]);
   } catch (error) {
     console.error("Failed to save project to IndexedDB:", error);
-    throw new Error(
-      "Не удалось сохранить проект. Возможно, превышена квота хранилища браузера.",
-    );
+    throw new Error(translate("errors.saveQuota"));
   }
 }
 
@@ -401,7 +400,9 @@ export function checkProjectSize(project: Project): {
   };
 }
 
-export function createEmptyProject(name: string = "Untitled Project"): Project {
+export function createEmptyProject(
+  name: string = translate("projects.untitled"),
+): Project {
   const now = new Date().toISOString();
   const mainFile = {
     id: crypto.randomUUID(),

@@ -1,34 +1,38 @@
+import { translate } from "$lib/i18n";
 import type { Tag } from "../types";
 
 import { generateId } from "./index";
 
 const TAGS_KEY = "tomte_tags_v1";
 
-const DEFAULT_TAGS: Tag[] = [
-  {
-    id: "default-1",
-    name: "Инструкции для IDE",
-    value:
-      "Реализуй, только не отправляй измененную программу целиком, а дай четкие и понятные инструкции как мне изменить код в IDE (вставить сгенерированный код туда-то, вырезать что-то и т.д.).",
-    favorite: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "default-2",
-    name: "Только код",
-    value:
-      "Пиши код без лишних комментариев и объяснений, только рабочий синтаксис.",
-    favorite: false,
-    createdAt: new Date().toISOString(),
-  },
-];
+/** Теги при первом запуске: на языке интерфейса, дальше это данные пользователя. */
+function defaultTags(): Tag[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: "default-1",
+      name: translate("tags.defaults.ide.name"),
+      value: translate("tags.defaults.ide.value"),
+      favorite: false,
+      createdAt: now,
+    },
+    {
+      id: "default-2",
+      name: translate("tags.defaults.codeOnly.name"),
+      value: translate("tags.defaults.codeOnly.value"),
+      favorite: false,
+      createdAt: now,
+    },
+  ];
+}
 
 export function loadTags(): Tag[] {
   try {
     const data = localStorage.getItem(TAGS_KEY);
     if (!data) {
-      saveTags(DEFAULT_TAGS);
-      return DEFAULT_TAGS;
+      const initial = defaultTags();
+      saveTags(initial);
+      return initial;
     }
     const tags = JSON.parse(data) as Tag[];
     return tags.map((t) => ({
@@ -37,7 +41,7 @@ export function loadTags(): Tag[] {
       createdAt: t.createdAt ?? new Date().toISOString(),
     }));
   } catch {
-    return DEFAULT_TAGS;
+    return defaultTags();
   }
 }
 

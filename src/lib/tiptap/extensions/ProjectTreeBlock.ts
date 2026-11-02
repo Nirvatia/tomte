@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import { Node, type JSONContent } from "@tiptap/core";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import type { EditorState } from "@tiptap/pm/state";
@@ -100,14 +101,14 @@ export const ProjectTreeBlock = Node.create({
       header.contentEditable = "false";
 
       const title = document.createElement("span");
-      title.textContent = "Дерево проекта";
+      title.textContent = translate("treeBlock.title");
 
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "project-tree-block__remove";
       remove.textContent = "×";
-      remove.title = "Убрать дерево из промпта";
-      remove.setAttribute("aria-label", "Убрать дерево из промпта");
+      remove.title = translate("treeBlock.remove");
+      remove.setAttribute("aria-label", translate("treeBlock.remove"));
       remove.addEventListener("mousedown", (event) => event.preventDefault());
       remove.addEventListener("click", () => {
         const pos = typeof getPos === "function" ? getPos() : undefined;

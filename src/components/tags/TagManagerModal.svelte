@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { notifyUndo } from "$lib/notify";
   import {
     Pencil,
@@ -19,7 +20,6 @@
 
   import Checkbox from "../ui/Checkbox.svelte";
 
-  import { pluralize } from "../../utils";
   import {
     addTag,
     loadTags,
@@ -170,12 +170,10 @@
   async function handleDeleteSelected() {
     if (selectedCount === 0) return;
     const confirmed = await requestConfirm({
-      title: "Удалить теги?",
-      message:
-        `Будет удалено ${selectedCount} ${pluralize(selectedCount, "тег", "тега", "тегов")}.\n` +
-        `Это действие нельзя отменить.`,
-      confirmText: "Удалить",
-      cancelText: "Отмена",
+      title: $t("tags.deleteMany.title"),
+      message: $t("tags.deleteMany.message", { count: selectedCount }),
+      confirmText: $t("common.delete"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
     if (!confirmed) return;
@@ -192,7 +190,7 @@
     refresh();
     bumpTagsVersion();
     if (!undo) return;
-    notifyUndo(`Тег «${tag.name}» удалён`, () => {
+    notifyUndo($t("tags.deleted", { name: tag.name }), () => {
       undo();
       refresh();
       bumpTagsVersion();
@@ -244,17 +242,17 @@
             class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
           >
             <TagIcon size={22} class="text-[var(--accent)]" />
-            Менеджер тегов
+            {$t("tags.manager")}
           </h2>
           <p class="mt-1 text-sm text-[var(--text-tertiary)]">
-            Всего:
+            {$t("common.total")}
             <strong class="font-semibold text-[var(--text-primary)]"
               >{tags.length}</strong
             >
             {#if favoritesCount > 0}
               <span class="ml-3 text-[var(--border-light)]">·</span>
               <span class="ml-3 font-medium text-[var(--accent-hover)]">
-                ★ {favoritesCount} избранных
+                {$t("tags.favoritesCount", { count: favoritesCount })}
               </span>
             {/if}
           </p>
@@ -263,7 +261,7 @@
           type="button"
           onclick={close}
           class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          aria-label="Закрыть менеджер тегов"
+          aria-label={$t("tags.closeManager")}
         >
           <X size={20} />
         </button>
@@ -276,19 +274,19 @@
               for="tag-name"
               class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
             >
-              Название
+              {$t("tags.name")}
             </label>
             <input
               bind:this={formNameInput}
               bind:value={formTagName}
               id="tag-name"
               type="text"
-              placeholder="Например: + Без тестов"
+              placeholder={$t("tags.namePlaceholder")}
               class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
               maxlength="50"
             />
             <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-              Короткое название для кнопки (макс. 50 символов)
+              {$t("tags.nameHint")}
             </p>
           </div>
           <div>
@@ -296,18 +294,17 @@
               for="tag-value"
               class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
             >
-              Текст инструкции
+              {$t("tags.value")}
             </label>
             <textarea
               bind:value={formTagValue}
               id="tag-value"
-              placeholder="Введите полный текст инструкции, который будет вставляться в промпт..."
+              placeholder={$t("tags.valuePlaceholder")}
               rows="8"
               class="w-full resize-none rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
               maxlength="5000"></textarea>
             <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-              Этот текст будет вставлен в редактор при клике на тег (макс. 5000
-              символов)
+              {$t("tags.valueHint")}
             </p>
           </div>
         </div>
@@ -320,7 +317,7 @@
             onclick={closeForm}
             class="rounded-md bg-[var(--bg-lighter)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]"
           >
-            Отмена
+            {$t("common.cancel")}
           </button>
           <button
             type="button"
@@ -328,7 +325,7 @@
             disabled={!formTagName.trim() || !formTagValue.trim()}
             class="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {formEditingId ? "Сохранить" : "Создать"}
+            {formEditingId ? $t("common.save") : $t("common.create")}
           </button>
         </div>
       {:else}
@@ -343,9 +340,9 @@
             <input
               type="text"
               bind:value={searchQuery}
-              placeholder="Поиск по имени тега..."
+              placeholder={$t("tags.searchPlaceholder")}
               class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
-              aria-label="Поиск тегов"
+              aria-label={$t("tags.search")}
             />
           </div>
 
@@ -361,7 +358,9 @@
             {:else}
               <StarOff size={14} />
             {/if}
-            {showOnlyFavorites ? "Только избранные" : "Избранные"}
+            {showOnlyFavorites
+              ? $t("tags.onlyFavorites")
+              : $t("tags.favorites")}
           </button>
 
           {#if selectedCount > 0}
@@ -371,14 +370,14 @@
               class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-3 text-xs font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/20"
             >
               <Trash2 size={14} />
-              Удалить ({selectedCount})
+              {$t("common.deleteCount", { count: selectedCount })}
             </button>
             <button
               type="button"
               onclick={deselectAll}
               class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-3 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
             >
-              Снять выделение
+              {$t("common.deselect")}
             </button>
           {/if}
 
@@ -388,7 +387,7 @@
             class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)]"
           >
             <Plus size={14} />
-            Новый тег
+            {$t("tags.new")}
           </button>
         </div>
 
@@ -398,17 +397,16 @@
               <TagIcon size={40} class="mx-auto mb-3 text-[var(--text-dim)]" />
               <p class="text-sm font-medium text-[var(--text-secondary)]">
                 {searchQuery.trim() || showOnlyFavorites
-                  ? "Ничего не найдено"
-                  : "Нет тегов"}
+                  ? $t("common.nothingFound")
+                  : $t("tags.empty")}
               </p>
               {#if searchQuery.trim() || showOnlyFavorites}
                 <p class="mt-1 text-xs text-[var(--text-tertiary)]">
-                  Попробуйте изменить фильтр
+                  {$t("tags.tryFilter")}
                 </p>
               {:else}
                 <p class="mt-1 text-xs text-[var(--text-tertiary)]">
-                  Создайте первый тег, чтобы быстро вставлять инструкции в
-                  промпт
+                  {$t("tags.emptyHint")}
                 </p>
               {/if}
             </div>
@@ -421,32 +419,32 @@
                 onclick={toggleSelectAll}
                 class="flex h-4 w-4 shrink-0 items-center justify-center"
                 aria-label={allFilteredSelected
-                  ? "Снять выделение"
-                  : "Выбрать все"}
+                  ? $t("common.deselect")
+                  : $t("common.selectAll")}
               >
                 {#if allFilteredSelected}
                   <Checkbox
                     checked={true}
-                    ariaLabel="Снять выделение"
+                    ariaLabel={$t("common.deselect")}
                     onToggle={toggleSelectAll}
                   />
                 {:else if someFilteredSelected}
                   <Checkbox
                     indeterminate={true}
-                    ariaLabel="Выбрать все"
+                    ariaLabel={$t("common.selectAll")}
                     onToggle={toggleSelectAll}
                   />
                 {:else}
                   <Checkbox
                     checked={false}
-                    ariaLabel="Выбрать все"
+                    ariaLabel={$t("common.selectAll")}
                     onToggle={toggleSelectAll}
                   />
                 {/if}
               </button>
-              <span class="flex-1">Название</span>
-              <span class="w-20 text-center">Избранный</span>
-              <span class="w-28 text-right">Действия</span>
+              <span class="flex-1">{$t("tags.name")}</span>
+              <span class="w-20 text-center">{$t("tags.favorite")}</span>
+              <span class="w-28 text-right">{$t("common.actions")}</span>
             </div>
 
             <div>
@@ -459,8 +457,8 @@
                       checked={selectedIds.has(tag.id)}
                       onToggle={() => toggleSelect(tag.id)}
                       ariaLabel={selectedIds.has(tag.id)
-                        ? "Снять выделение"
-                        : "Выделить"}
+                        ? $t("common.deselect")
+                        : $t("common.select")}
                     />
                   </div>
 
@@ -484,11 +482,11 @@
                       ? 'text-[var(--accent)] hover:bg-[var(--accent-dim)]'
                       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--accent-hover)]'}"
                     title={tag.favorite
-                      ? "Убрать из избранных"
-                      : "Добавить в избранные"}
+                      ? $t("tags.unfavorite")
+                      : $t("tags.addFavorite")}
                     aria-label={tag.favorite
-                      ? "Убрать из избранных"
-                      : "Добавить в избранные"}
+                      ? $t("tags.unfavorite")
+                      : $t("tags.addFavorite")}
                   >
                     <Star
                       size={16}
@@ -501,8 +499,8 @@
                       type="button"
                       onclick={() => handleApply(tag)}
                       class="rounded-md p-1.5 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
-                      title="Применить к редактору"
-                      aria-label="Применить тег {tag.name}"
+                      title={$t("tags.apply")}
+                      aria-label={$t("tags.applyTag", { name: tag.name })}
                     >
                       <Plus size={15} />
                     </button>
@@ -510,8 +508,8 @@
                       type="button"
                       onclick={() => openEditForm(tag)}
                       class="rounded-md p-1.5 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-                      title="Редактировать"
-                      aria-label="Редактировать тег {tag.name}"
+                      title={$t("common.edit")}
+                      aria-label={$t("tags.editTag", { name: tag.name })}
                     >
                       <Pencil size={15} />
                     </button>
@@ -519,8 +517,8 @@
                       type="button"
                       onclick={() => void handleDeleteOne(tag)}
                       class="rounded-md p-1.5 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
-                      title="Удалить"
-                      aria-label="Удалить тег {tag.name}"
+                      title={$t("common.delete")}
+                      aria-label={$t("tags.deleteTag", { name: tag.name })}
                     >
                       <Trash2 size={15} />
                     </button>

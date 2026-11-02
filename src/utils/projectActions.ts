@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import { get } from "svelte/store";
 
 import type {
@@ -418,7 +419,10 @@ export async function duplicatePromptFile(
     if (index < 0) return null;
     const source = project.files[index];
     created.file = createPromptFileObject(
-      getUniquePromptFileName(project, `${source.name} (копия)`),
+      getUniquePromptFileName(
+        project,
+        translate("projects.copySuffix", { name: source.name }),
+      ),
       source.content,
     );
     return {
@@ -612,23 +616,20 @@ export async function addAttachmentsToProject(
   const liteSizeCheck = checkProjectSize(lite);
 
   const confirmed = await requestConfirm({
-    title: "Превышен лимит проекта",
-    message:
-      `Размер с содержимым новых файлов: ${megabytes(sizeCheck.size, 1)} МБ.\n` +
-      `Лимит проекта: ${megabytes(liteSizeCheck.limit)} МБ.\n\n` +
-      `Добавить новые файлы только как метаданные, без содержимого?\n` +
-      `Существующие вложения изменены не будут.`,
-    confirmText: "Добавить как метаданные",
-    cancelText: "Отмена",
+    title: translate("limits.title"),
+    message: translate("limits.attachmentsMessage", {
+      size: megabytes(sizeCheck.size, 1),
+      limit: megabytes(liteSizeCheck.limit),
+    }),
+    confirmText: translate("limits.addAsMetadata"),
+    cancelText: translate("common.cancel"),
   });
 
   if (!confirmed) {
-    throw new Error("Файлы не добавлены: превышен лимит проекта.");
+    throw new Error(translate("limits.notAdded"));
   }
   if (!liteSizeCheck.ok) {
-    throw new Error(
-      "Даже метаданные новых файлов превышают лимит проекта. Удалите что-нибудь из проекта.",
-    );
+    throw new Error(translate("limits.metadataTooBig"));
   }
 
   lite.totalSize = liteSizeCheck.size;
@@ -826,22 +827,19 @@ export async function setProjectTreeSource(
 
   if (!sizeCheck.ok) {
     const confirmed = await requestConfirm({
-      title: "Превышен лимит проекта",
-      message:
-        `Размер дерева превышает лимит ${megabytes(sizeCheck.limit)} МБ.\n` +
-        `Дерево будет сохранено без содержимого файлов (только структура).\n` +
-        `Продолжить?`,
-      confirmText: "Сохранить структуру",
-      cancelText: "Отмена",
+      title: translate("limits.title"),
+      message: translate("limits.treeMessage", {
+        limit: megabytes(sizeCheck.limit),
+      }),
+      confirmText: translate("limits.saveStructure"),
+      cancelText: translate("common.cancel"),
     });
     if (!confirmed) return false;
 
     updated = withTree(stripFileRefs(updated.projectTreeSource!.nodes));
     sizeCheck = checkProjectSize(updated);
     if (!sizeCheck.ok) {
-      throw new Error(
-        "Даже дерево без содержимого файлов превышает лимит проекта. Удалите часть данных и попробуйте снова.",
-      );
+      throw new Error(translate("limits.treeTooBig"));
     }
   }
 
@@ -918,7 +916,9 @@ export async function switchProject(projectId: string): Promise<void> {
 
 export async function createNewProject(name?: string): Promise<void> {
   await flushPendingEditorSave();
-  const newProject = createEmptyProject(name?.trim() || "Untitled Project");
+  const newProject = createEmptyProject(
+    name?.trim() || translate("projects.untitled"),
+  );
   await saveProject(newProject);
   applyProjectToStores(newProject);
 }
@@ -982,12 +982,12 @@ async function copyGithubConfig(
   if (!token) return { ...rest };
 
   const copyToken = await requestConfirm({
-    title: "Скопировать GitHub-токен?",
-    message:
-      `У проекта сохранён токен для ${config.owner}/${config.repo}.\n` +
-      `Без токена копия будет видеть только публичные репозитории.`,
-    confirmText: "Скопировать токен",
-    cancelText: "Без токена",
+    title: translate("projects.copyToken.title"),
+    message: translate("projects.copyToken.message", {
+      repo: `${config.owner}/${config.repo}`,
+    }),
+    confirmText: translate("projects.copyToken.confirm"),
+    cancelText: translate("projects.copyToken.cancel"),
   });
   return copyToken ? { ...rest, token } : { ...rest };
 }
@@ -1003,7 +1003,7 @@ export async function duplicateProjectById(projectId: string): Promise<void> {
   const newProject: Project = {
     ...source,
     id: crypto.randomUUID(),
-    name: `${source.name} (копия)`,
+    name: translate("projects.copySuffix", { name: source.name }),
     files: source.files.map((f) => ({
       ...f,
       id: crypto.randomUUID(),
@@ -1025,9 +1025,7 @@ export async function duplicateProjectById(projectId: string): Promise<void> {
 
   const sizeCheck = checkProjectSize(newProject);
   if (!sizeCheck.ok) {
-    throw new Error(
-      "Копия проекта превышает лимит. Удалите часть данных и попробуйте снова.",
-    );
+    throw new Error(translate("limits.copyTooBig"));
   }
 
   newProject.totalSize = sizeCheck.size;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { formatRelativeTime, t } from "$lib/i18n";
   import {
     CircleAlert,
     Copy,
@@ -17,7 +18,7 @@
   import { activeProject, isProjectManagerOpen } from "../../stores";
   import { requestAlert, requestConfirm } from "../../stores/confirm";
 
-  import { formatFileSize, getErrorMessage, pluralize } from "../../utils";
+  import { formatFileSize, getErrorMessage } from "../../utils";
   import {
     loadProjectSummaries,
     type ProjectSummary,
@@ -63,7 +64,7 @@
     } catch (error) {
       console.error("Failed to load projects:", error);
       projects = [];
-      errorMessage = "Не удалось загрузить список проектов.";
+      errorMessage = $t("projects.errors.load");
     } finally {
       isLoading = false;
     }
@@ -77,7 +78,9 @@
       : projects,
   );
 
-  const suggestedName = $derived(`Проект ${projects.length + 1}`);
+  const suggestedName = $derived(
+    $t("projects.defaultName", { n: projects.length + 1 }),
+  );
 
   function close() {
     if (actionInProgress) return;
@@ -148,7 +151,7 @@
       cancelCreate();
     } catch (error) {
       console.error("Failed to create project:", error);
-      errorMessage = getErrorMessage(error, "Не удалось создать новый проект.");
+      errorMessage = getErrorMessage(error, $t("projects.errors.create"));
     } finally {
       actionInProgress = false;
     }
@@ -167,7 +170,7 @@
       close();
     } catch (error) {
       console.error("Failed to switch project:", error);
-      errorMessage = getErrorMessage(error, "Не удалось переключить проект.");
+      errorMessage = getErrorMessage(error, $t("projects.errors.switch"));
     } finally {
       actionInProgress = false;
     }
@@ -199,7 +202,7 @@
       await loadProjects();
     } catch (error) {
       console.error("Failed to rename project:", error);
-      errorMessage = getErrorMessage(error, "Не удалось переименовать проект.");
+      errorMessage = getErrorMessage(error, $t("projects.errors.rename"));
     } finally {
       actionInProgress = false;
     }
@@ -215,10 +218,10 @@
     if (actionInProgress) return;
     if (projects.length <= 1) return;
     const confirmed = await requestConfirm({
-      title: "Удалить проект?",
-      message: `Проект «${project.name}» будет удалён.\nЭто действие нельзя отменить.`,
-      confirmText: "Удалить",
-      cancelText: "Отмена",
+      title: $t("projects.delete.title"),
+      message: $t("projects.delete.message", { name: project.name }),
+      confirmText: $t("common.delete"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
     if (!confirmed) return;
@@ -228,16 +231,15 @@
       const success = await deleteProjectById(project.id);
       if (!success) {
         await requestAlert({
-          title: "Нельзя удалить",
-          message:
-            "Это последний проект. Создайте новый проект перед удалением текущего.",
-          confirmText: "Понятно",
+          title: $t("projects.delete.blockedTitle"),
+          message: $t("projects.delete.blockedMessage"),
+          confirmText: $t("common.ok"),
         });
       }
       await loadProjects();
     } catch (error) {
       console.error("Failed to delete project:", error);
-      errorMessage = getErrorMessage(error, "Не удалось удалить проект.");
+      errorMessage = getErrorMessage(error, $t("projects.errors.delete"));
     } finally {
       actionInProgress = false;
     }
@@ -253,29 +255,10 @@
       await loadProjects();
     } catch (error) {
       console.error("Failed to duplicate project:", error);
-      errorMessage = getErrorMessage(error, "Не удалось дублировать проект.");
+      errorMessage = getErrorMessage(error, $t("projects.errors.duplicate"));
     } finally {
       actionInProgress = false;
     }
-  }
-
-  function formatRelativeTime(isoString: string): string {
-    const date = new Date(isoString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMins < 1) return "только что";
-    if (diffMins < 60) return `${diffMins} мин. назад`;
-    if (diffHours < 24) return `${diffHours} ч. назад`;
-    if (diffDays < 7) return `${diffDays} дн. назад`;
-    return date.toLocaleDateString("ru-RU", {
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   }
 </script>
 
@@ -288,7 +271,7 @@
     onkeydown={handleBackdropKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Менеджер проектов"
+    aria-label={$t("projects.manager")}
     tabindex="-1"
   >
     <div
@@ -304,10 +287,11 @@
             class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
           >
             <FolderKanban size={22} class="text-[var(--accent)]" />
-            Менеджер проектов
+            {$t("projects.manager")}
           </h2>
           <p class="mt-1 text-sm text-[var(--text-tertiary)]">
-            Всего: <strong class="font-semibold text-[var(--text-primary)]"
+            {$t("common.total")}
+            <strong class="font-semibold text-[var(--text-primary)]"
               >{projects.length}</strong
             >
           </p>
@@ -317,7 +301,7 @@
           onclick={close}
           disabled={actionInProgress}
           class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-          aria-label="Закрыть менеджер проектов"
+          aria-label={$t("projects.closeManager")}
         >
           <X size={20} />
         </button>
@@ -341,10 +325,10 @@
                 }
               }}
               type="text"
-              placeholder="Имя нового проекта..."
+              placeholder={$t("projects.newNamePlaceholder")}
               class="w-full rounded-md border border-[var(--accent)] bg-[var(--bg-darkest)] px-3.5 py-2 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
               maxlength="100"
-              aria-label="Имя нового проекта"
+              aria-label={$t("projects.newName")}
             />
             <button
               type="button"
@@ -357,7 +341,7 @@
               {:else}
                 <Plus size={14} />
               {/if}
-              Создать
+              {$t("common.create")}
             </button>
             <button
               type="button"
@@ -365,7 +349,7 @@
               disabled={actionInProgress}
               class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
             >
-              Отмена
+              {$t("common.cancel")}
             </button>
           </div>
         {:else}
@@ -378,9 +362,9 @@
               <input
                 type="text"
                 bind:value={searchQuery}
-                placeholder="Поиск по имени проекта..."
+                placeholder={$t("projects.searchPlaceholder")}
                 class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
-                aria-label="Поиск по проектам"
+                aria-label={$t("projects.search")}
               />
             </div>
             <button
@@ -390,7 +374,7 @@
               class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
             >
               <Plus size={14} />
-              Новый проект
+              {$t("projects.new")}
             </button>
           </div>
         {/if}
@@ -410,7 +394,7 @@
           <div class="flex flex-col items-center justify-center py-16">
             <LoaderCircle size={32} class="animate-spin text-[var(--accent)]" />
             <p class="mt-3 text-sm text-[var(--text-tertiary)]">
-              Загрузка проектов...
+              {$t("projects.loading")}
             </p>
           </div>
         {:else if filteredProjects.length === 0}
@@ -420,11 +404,13 @@
               class="mx-auto mb-3 text-[var(--text-dim)]"
             />
             <p class="text-sm font-medium text-[var(--text-secondary)]">
-              {searchQuery.trim() ? "Ничего не найдено" : "Нет проектов"}
+              {searchQuery.trim()
+                ? $t("common.nothingFound")
+                : $t("projects.empty")}
             </p>
             {#if searchQuery.trim()}
               <p class="mt-1 text-xs text-[var(--text-tertiary)]">
-                Попробуйте изменить запрос
+                {$t("projects.tryQuery")}
               </p>
             {/if}
           </div>
@@ -445,9 +431,12 @@
                 }}
                 role="button"
                 tabindex="0"
-                aria-label="{isActive
-                  ? 'Активный проект'
-                  : 'Переключиться на проект'} {project.name}"
+                aria-label={$t(
+                  isActive ? "projects.activeProject" : "projects.switchTo",
+                  {
+                    name: project.name,
+                  },
+                )}
               >
                 {#if renamingProjectId === project.id}
                   <input
@@ -480,7 +469,7 @@
                       <span
                         class="shrink-0 rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)]"
                       >
-                        Активный
+                        {$t("projects.active")}
                       </span>
                     {/if}
                   </div>
@@ -491,28 +480,18 @@
                 >
                   <span class="flex items-center gap-1">
                     <FileText size={12} />
-                    {project.fileCount}
-                    {pluralize(
-                      project.fileCount,
-                      "промпт",
-                      "промпта",
-                      "промптов",
-                    )}
+                    {$t("projects.prompts", { count: project.fileCount })}
                   </span>
                   <span class="flex items-center gap-1">
                     <Paperclip size={12} />
-                    {project.attachmentCount}
-                    {pluralize(
-                      project.attachmentCount,
-                      "вложение",
-                      "вложения",
-                      "вложений",
-                    )}
+                    {$t("projects.attachments", {
+                      count: project.attachmentCount,
+                    })}
                   </span>
                   {#if project.hasTree}
                     <span class="flex items-center gap-1">
                       <FolderTree size={12} />
-                      дерево
+                      {$t("projects.hasTree")}
                     </span>
                   {/if}
                   <span class="font-mono"
@@ -531,8 +510,10 @@
                       onclick={(event) => startRename(project, event)}
                       disabled={actionInProgress}
                       class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                      title="Переименовать"
-                      aria-label="Переименовать проект {project.name}"
+                      title={$t("common.rename")}
+                      aria-label={$t("projects.renameProject", {
+                        name: project.name,
+                      })}
                     >
                       <Pencil size={13} />
                     </button>
@@ -541,8 +522,10 @@
                       onclick={(event) => handleDuplicate(project, event)}
                       disabled={actionInProgress}
                       class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                      title="Дублировать"
-                      aria-label="Дублировать проект {project.name}"
+                      title={$t("common.duplicate")}
+                      aria-label={$t("projects.duplicateProject", {
+                        name: project.name,
+                      })}
                     >
                       <Copy size={13} />
                     </button>
@@ -552,9 +535,11 @@
                       disabled={projects.length <= 1 || actionInProgress}
                       class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
                       title={projects.length <= 1
-                        ? "Нельзя удалить последний проект"
-                        : "Удалить"}
-                      aria-label="Удалить проект {project.name}"
+                        ? $t("projects.delete.lastHint")
+                        : $t("common.delete")}
+                      aria-label={$t("projects.deleteProject", {
+                        name: project.name,
+                      })}
                     >
                       <Trash2 size={13} />
                     </button>

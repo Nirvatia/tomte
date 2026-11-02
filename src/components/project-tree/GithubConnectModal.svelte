@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { X, FolderGit, LoaderCircle } from "@lucide/svelte";
 
   import type { GithubRepoConfig } from "../../utils/github";
@@ -72,7 +73,7 @@
   async function handleConnect() {
     const parsed = parseGithubUrl(githubUrl);
     if (!parsed) {
-      error = "Неверный URL репозитория. Пример: https://github.com/owner/repo";
+      error = $t("github.badUrl");
       return;
     }
 
@@ -98,15 +99,14 @@
       });
 
       if (!saved) {
-        error =
-          "Дерево не сохранено: превышен лимит проекта или операция была отменена.";
+        error = $t("github.notSaved");
         return;
       }
 
       await setGithubConfig(config);
       onClose();
     } catch (err) {
-      error = getErrorMessage(err, "Не удалось загрузить репозиторий");
+      error = getErrorMessage(err, $t("tree.errors.loadRepo"));
       console.error(err);
     } finally {
       isLoading = false;
@@ -123,7 +123,7 @@
     onkeydown={handleBackdropKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Подключить GitHub"
+    aria-label={$t("tree.connectGithub")}
     tabindex="-1"
   >
     <div
@@ -136,13 +136,13 @@
           class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
         >
           <FolderGit size={20} class="text-[var(--accent)]" />
-          Подключить GitHub
+          {$t("tree.connectGithub")}
         </h3>
         <button
           type="button"
           onclick={onClose}
           class="rounded p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          aria-label="Закрыть"
+          aria-label={$t("common.close")}
         >
           <X size={18} />
         </button>
@@ -161,7 +161,7 @@
           <label
             for="github-url"
             class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
-            >URL репозитория</label
+            >{$t("github.url")}</label
           >
           <input
             id="github-url"
@@ -175,7 +175,7 @@
           <label
             for="github-branch"
             class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
-            >Ветка (branch)</label
+            >{$t("github.branch")}</label
           >
           <input
             id="github-branch"
@@ -193,7 +193,7 @@
             Personal Access Token
             <span
               class="normal-case tracking-normal text-[var(--text-tertiary)]/70"
-              >(опционально, для приватных)</span
+              >{$t("github.tokenOptional")}</span
             >
           </label>
           <input
@@ -213,9 +213,9 @@
         >
           {#if isLoading}
             <LoaderCircle size={15} class="animate-spin" />
-            <span>Загрузка...</span>
+            <span>{$t("common.loading")}</span>
           {:else}
-            <span>Подключить</span>
+            <span>{$t("github.connect")}</span>
           {/if}
         </button>
       </div>

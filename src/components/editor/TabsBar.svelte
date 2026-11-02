@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { FileText, Plus, X } from "@lucide/svelte";
   import { autofocus } from "$lib/actions/autofocus";
   import type { PromptFile } from "../../types";
@@ -151,7 +152,7 @@
   onwheel={handleWheel}
   class="tabsbar-scroll flex h-[40px] shrink-0 items-end overflow-x-auto border-b border-[var(--border)] bg-[var(--bg-dark)]"
   role="tablist"
-  aria-label="Файлы промптов"
+  aria-label={$t("tabs.list")}
 >
   {#each displayFiles as file (file.id)}
     {@const isActive = $activeFileId === file.id}
@@ -170,11 +171,11 @@
       }}
       role="tab"
       aria-selected={isActive}
-      aria-label="Вкладка {file.name}{isPreviewTab(file.id)
-        ? ' (предпросмотр)'
-        : ''}"
+      aria-label={$t(isPreviewTab(file.id) ? "tabs.previewTab" : "tabs.tab", {
+        name: file.name,
+      })}
       tabindex="0"
-      title="{file.name} (двойной клик или F2 — переименовать)"
+      title={$t("tabs.hint", { name: file.name })}
       onclick={() => handleSelectFile(file.id)}
       ondblclick={() => startRename(file)}
       onkeydown={(event) => handleTabKeydown(event, file)}
@@ -202,7 +203,7 @@
             if (event.key === "Enter") void finishRename();
             if (event.key === "Escape") cancelRename();
           }}
-          aria-label="Новое имя файла {file.name}"
+          aria-label={$t("tabs.renameInput", { name: file.name })}
           class="w-28 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
           maxlength="50"
         />
@@ -221,8 +222,8 @@
         type="button"
         onclick={(event) => handleCloseFile(event, file.id)}
         class="ml-1 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[3px] opacity-0 transition-all group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-[var(--bg-lighter)]"
-        aria-label="Закрыть вкладку {file.name}"
-        title="Закрыть"
+        aria-label={$t("tabs.closeTab", { name: file.name })}
+        title={$t("common.close")}
       >
         <X size={14} />
       </button>
@@ -249,7 +250,7 @@
           }
         }}
         class="w-28 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
-        placeholder="Имя файла..."
+        placeholder={$t("prompts.fileNamePlaceholder")}
         maxlength="50"
       />
     </div>
@@ -260,8 +261,8 @@
     onclick={handleCreateNewFile}
     disabled={actionInProgress}
     class="flex h-[39px] w-[39px] shrink-0 items-center justify-center text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-    aria-label="Создать новый файл промпта"
-    title="Новый файл"
+    aria-label={$t("tabs.newFile")}
+    title={$t("tabs.newFileHint")}
   >
     <Plus size={16} />
   </button>

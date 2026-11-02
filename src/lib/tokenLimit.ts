@@ -1,6 +1,7 @@
 import { derived, writable } from "svelte/store";
 
 import { CUSTOM_MODEL_ID, MODEL_PRESETS } from "./models";
+import { translate } from "./i18n";
 
 /**
  * С какой моделью сравниваем размер промпта. Это настройка этого браузера,
@@ -53,7 +54,7 @@ tokenLimitSetting.subscribe((value) => {
 /** Текущий лимит в токенах и подпись для него. */
 export const tokenLimit = derived(tokenLimitSetting, ($s) => {
   if ($s.modelId === CUSTOM_MODEL_ID) {
-    return { tokens: $s.customTokens, label: "Свой лимит" };
+    return { tokens: $s.customTokens, label: translate("tokens.customLimit") };
   }
   const preset =
     MODEL_PRESETS.find((m) => m.id === $s.modelId) ?? MODEL_PRESETS[0];

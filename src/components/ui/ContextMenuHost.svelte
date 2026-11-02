@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { menu } from "$lib/actions/menu";
   import { closeContextMenu, contextMenu } from "../../stores/contextMenu";
 
@@ -48,7 +49,7 @@
       returnFocus: $contextMenu.returnFocus,
     }}
     role="menu"
-    aria-label="Действия"
+    aria-label={$t("common.actions")}
     tabindex="-1"
     class="fixed z-[95] min-w-52 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1 shadow-[var(--shadow-md)]"
     style="left: {position.left}px; top: {position.top}px;"

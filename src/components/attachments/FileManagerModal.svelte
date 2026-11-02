@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { notifyUndo } from "$lib/notify";
   import {
     CircleAlert,
@@ -25,7 +26,7 @@
   } from "../../stores";
   import { requestConfirm } from "../../stores/confirm";
 
-  import { getErrorMessage, pluralize } from "../../utils";
+  import { getErrorMessage } from "../../utils";
   import { processFile } from "../../utils/files";
   import {
     addAttachmentsToProject,
@@ -71,7 +72,7 @@
       }
     } catch (error) {
       console.error("Failed to add attachments:", error);
-      errorMessage = getErrorMessage(error, "Не удалось добавить файлы.");
+      errorMessage = getErrorMessage(error, $t("attachments.errors.add"));
     } finally {
       actionInProgress = false;
     }
@@ -111,15 +112,17 @@
     errorMessage = null;
 
     try {
-      const name = $attachedFiles.find((f) => f.id === id)?.name ?? "файл";
+      const name =
+        $attachedFiles.find((f) => f.id === id)?.name ??
+        $t("attachments.fallbackName");
       const undo = await removeAttachmentWithUndo(id);
-      if (undo) notifyUndo(`Вложение «${name}» удалено`, undo);
+      if (undo) notifyUndo($t("attachments.deleted", { name }), undo);
       if (previewFile?.id === id) {
         previewFile = null;
       }
     } catch (error) {
       console.error("Failed to remove file:", error);
-      errorMessage = getErrorMessage(error, "Не удалось удалить файл.");
+      errorMessage = getErrorMessage(error, $t("attachments.errors.delete"));
     } finally {
       actionInProgress = false;
     }
@@ -147,10 +150,10 @@
 
     const count = $selectedFilesCount;
     const confirmed = await requestConfirm({
-      title: "Удалить выбранные файлы?",
-      message: `Будет удалено ${count} ${pluralize(count, "файл", "файла", "файлов")}.\nЭто действие нельзя отменить.`,
-      confirmText: "Удалить",
-      cancelText: "Отмена",
+      title: $t("attachments.manager.deleteTitle"),
+      message: $t("attachments.deleteMany.message", { count }),
+      confirmText: $t("common.delete"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
 
@@ -173,7 +176,7 @@
       console.error("Failed to delete selected files:", error);
       errorMessage = getErrorMessage(
         error,
-        "Не удалось удалить выбранные файлы.",
+        $t("attachments.errors.deleteMany"),
       );
     } finally {
       actionInProgress = false;
@@ -213,7 +216,7 @@
     onkeydown={preventEnterSpace}
     role="dialog"
     aria-modal="true"
-    aria-label="Менеджер файлов"
+    aria-label={$t("attachments.manager.title")}
     tabindex="-1"
   >
     <div
@@ -230,11 +233,11 @@
             class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
           >
             <FolderOpen size={24} class="text-[var(--accent)]" />
-            Менеджер файлов
+            {$t("attachments.manager.title")}
           </h2>
 
           <p class="mt-1 text-sm text-[var(--text-tertiary)]">
-            Всего:
+            {$t("common.total")}
             <strong class="font-semibold text-[var(--text-primary)]">
               {$attachedFiles.length}
             </strong>
@@ -242,7 +245,7 @@
             {#if $selectedFilesCount > 0}
               <span class="ml-3 text-[var(--border-light)]">|</span>
               <span class="ml-3 font-medium text-[var(--accent-hover)]">
-                Выбрано: {$selectedFilesCount}
+                {$t("common.selectedColon", { count: $selectedFilesCount })}
               </span>
             {/if}
           </p>
@@ -253,7 +256,7 @@
           onclick={close}
           disabled={actionInProgress}
           class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-          aria-label="Закрыть менеджер файлов"
+          aria-label={$t("attachments.manager.close")}
         >
           <X size={20} />
         </button>
@@ -270,7 +273,7 @@
             class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           >
             <SquareCheck size={16} />
-            Выбрать всё
+            {$t("attachments.manager.selectAll")}
           </button>
 
           <button
@@ -280,7 +283,7 @@
             class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           >
             <SquareX size={16} />
-            Снять выделение
+            {$t("common.deselect")}
           </button>
 
           <button
@@ -290,7 +293,7 @@
             class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-4 py-2.5 text-sm font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/20 disabled:pointer-events-none disabled:opacity-40"
           >
             <Trash2 size={16} />
-            Удалить выбранные
+            {$t("prompts.deleteSelectedHint")}
           </button>
 
           <button
@@ -300,7 +303,7 @@
             class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--success)]/30 bg-[var(--success)]/10 px-4 py-2.5 text-sm font-medium text-[var(--success)] transition-colors hover:bg-[var(--success)]/20 disabled:pointer-events-none disabled:opacity-40"
           >
             <Upload size={16} />
-            Загрузить
+            {$t("attachments.uploadShort")}
           </button>
         </div>
 
@@ -325,10 +328,10 @@
               class="mx-auto mb-4 text-[var(--text-tertiary)] opacity-40"
             />
             <p class="text-lg font-medium text-[var(--text-secondary)]">
-              Нет загруженных файлов
+              {$t("attachments.manager.empty")}
             </p>
             <p class="mt-2 text-sm text-[var(--text-tertiary)]">
-              Закройте это окно и загрузите файлы в правом сайдбаре
+              {$t("attachments.manager.emptyHint")}
             </p>
           </div>
         {:else}

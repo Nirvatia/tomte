@@ -3,6 +3,7 @@ import { gfm } from "turndown-plugin-gfm";
 import type { ExportFile } from "../../types";
 import { sanitizeFileName } from "../index";
 import { resolveExportLabel } from "../files";
+import { translate } from "$lib/i18n";
 import { downloadBlob } from "./common";
 
 const turndownService = new TurndownService({
@@ -135,7 +136,7 @@ export async function exportToMD(
 
   const filesToExport = files.filter((f) => f.content);
   if (filesToExport.length > 0) {
-    markdown += "\n\n---\n\n## 📎 Прикреплённые файлы\n\n";
+    markdown += `\n\n---\n\n## 📎 ${translate("export.md.attachments")}\n\n`;
     for (const file of filesToExport) {
       const ext = file.name.split(".").pop()?.toLowerCase() || "";
       const supportedLangs = [

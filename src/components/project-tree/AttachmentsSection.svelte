@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { notifyUndo } from "$lib/notify";
   import { dropzone } from "$lib/actions/dropzone";
 
@@ -27,7 +28,7 @@
     totalFilesCount,
   } from "../../stores";
 
-  import { getErrorMessage, pluralize } from "../../utils";
+  import { getErrorMessage } from "../../utils";
   import { processFile } from "../../utils/files";
   import {
     addAttachmentsToProject,
@@ -81,7 +82,7 @@
       }
     } catch (error) {
       console.error("Failed to add attachments:", error);
-      errorMessage = getErrorMessage(error, "Не удалось добавить файлы.");
+      errorMessage = getErrorMessage(error, $t("attachments.errors.add"));
     } finally {
       actionInProgress = false;
     }
@@ -113,12 +114,14 @@
     errorMessage = null;
 
     try {
-      const name = $attachedFiles.find((f) => f.id === id)?.name ?? "файл";
+      const name =
+        $attachedFiles.find((f) => f.id === id)?.name ??
+        $t("attachments.fallbackName");
       const undo = await removeAttachmentWithUndo(id);
-      if (undo) notifyUndo(`Вложение «${name}» удалено`, undo);
+      if (undo) notifyUndo($t("attachments.deleted", { name }), undo);
     } catch (error) {
       console.error("Failed to remove attachment:", error);
-      errorMessage = getErrorMessage(error, "Не удалось удалить файл.");
+      errorMessage = getErrorMessage(error, $t("attachments.errors.delete"));
     } finally {
       actionInProgress = false;
     }
@@ -155,10 +158,10 @@
 
     const count = idsToDelete.size;
     const confirmed = await requestConfirm({
-      title: "Удалить вложения?",
-      message: `Будет удалено ${count} ${pluralize(count, "файл", "файла", "файлов")}.\nЭто действие нельзя отменить.`,
-      confirmText: "Удалить",
-      cancelText: "Отмена",
+      title: $t("attachments.deleteMany.title"),
+      message: $t("attachments.deleteMany.message", { count }),
+      confirmText: $t("common.delete"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
 
@@ -173,7 +176,7 @@
       console.error("Failed to delete selected attachments:", error);
       errorMessage = getErrorMessage(
         error,
-        "Не удалось удалить выбранные файлы.",
+        $t("attachments.errors.deleteMany"),
       );
     } finally {
       actionInProgress = false;
@@ -192,7 +195,7 @@
     {:else}
       <ChevronRight size={12} />
     {/if}
-    <span>Attachments</span>
+    <span>{$t("attachments.section")}</span>
     <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
       {$totalFilesCount}
     </span>
@@ -207,8 +210,8 @@
         onclick={() => attachmentFileInput?.click()}
         disabled={actionInProgress}
         class={SECTION_TOOL_BTN}
-        title="Загрузить файлы"
-        aria-label="Загрузить файлы"
+        title={$t("attachments.upload")}
+        aria-label={$t("attachments.upload")}
       >
         <Upload size={18} />
       </button>
@@ -217,8 +220,8 @@
         onclick={() => isFileManagerOpen.set(true)}
         disabled={actionInProgress}
         class={SECTION_TOOL_BTN}
-        title="Открыть менеджер файлов"
-        aria-label="Открыть менеджер файлов"
+        title={$t("attachments.openManager")}
+        aria-label={$t("attachments.openManager")}
       >
         <FolderOpen size={18} />
       </button>
@@ -231,8 +234,8 @@
             onclick={deleteSelectedAttachments}
             disabled={actionInProgress}
             class="flex h-7 cursor-pointer items-center gap-1 rounded px-2 text-[11px] font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/10 disabled:pointer-events-none disabled:opacity-40"
-            title="Удалить выбранные"
-            aria-label="Удалить выбранные вложения"
+            title={$t("prompts.deleteSelectedHint")}
+            aria-label={$t("attachments.deleteSelected")}
           >
             <Trash2 size={14} />
             <span class="font-mono tabular-nums"
@@ -243,13 +246,13 @@
 
         <div
           class="flex shrink-0 items-center gap-1.5"
-          title="Выбрать все вложения"
+          title={$t("attachments.selectAll")}
         >
           <Checkbox
             checked={isAllAttachmentsSelected}
             indeterminate={isPartialAttachmentsSelected}
             onToggle={toggleSelectAllAttachments}
-            ariaLabel="Выбрать все вложения"
+            ariaLabel={$t("attachments.selectAll")}
           />
         </div>
       {/if}
@@ -272,12 +275,12 @@
         <div class="px-4 py-6 text-center">
           <Paperclip size={24} class="mx-auto mb-2 text-[var(--text-dim)]" />
           <p class="text-xs font-medium text-[var(--text-tertiary)]">
-            Нет вложений
+            {$t("attachments.empty")}
           </p>
           <p
             class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]"
           >
-            Загрузите файлы или перетащите их сюда
+            {$t("attachments.emptyHint")}
           </p>
           <button
             type="button"
@@ -286,7 +289,7 @@
             class="mt-3 inline-flex items-center gap-1 rounded border border-[var(--border)] bg-[var(--bg-light)] px-2.5 py-1 text-[11px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           >
             <Upload size={11} />
-            Загрузить
+            {$t("attachments.uploadShort")}
           </button>
         </div>
       {:else}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { Type } from "@lucide/svelte";
   import type { Editor } from "@tiptap/core";
 
@@ -61,15 +62,15 @@
     type="button"
     onclick={toggle}
     class={BTN_BASE}
-    aria-label="Размер шрифта"
-    title="Размер шрифта"
+    aria-label={$t("fontSize.label")}
+    title={$t("fontSize.label")}
   >
     <Type size={18} />
   </button>
   {#if isOpen}
     <div
       role="dialog"
-      aria-label="Выбор размера шрифта"
+      aria-label={$t("fontSize.pick")}
       class="absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
     >
       <button
@@ -79,7 +80,7 @@
       >
         <Type size={16} class="shrink-0 text-[var(--text-tertiary)]" />
         <span class="text-[13px] text-[var(--text-secondary)]"
-          >По умолчанию</span
+          >{$t("fontSize.default")}</span
         >
       </button>
       <div class="mx-1 my-1 h-px bg-[var(--border)]"></div>
@@ -101,7 +102,7 @@
             style="font-size: {size.value}"
             class="truncate text-[var(--text-primary)]"
           >
-            Пример текста
+            {$t("fontSize.sample")}
           </span>
         </button>
       {/each}

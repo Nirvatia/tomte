@@ -113,11 +113,11 @@ describe("ProjectTreeSidebar", () => {
   it("рендерит основные секции", async () => {
     render(ProjectTreeSidebar);
 
-    expect(await screen.findByText("Explorer")).toBeInTheDocument();
+    expect(await screen.findByText("Проводник")).toBeInTheDocument();
 
-    expect(screen.getAllByText("Prompts").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Attachments").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Project").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Промпты").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Вложения").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Проект").length).toBeGreaterThan(0);
   });
 
   it("показывает кнопку изменения ширины, когда панель открыта", () => {

@@ -1,3 +1,4 @@
+import { translate } from "$lib/i18n";
 import type { AttachedFile, ExportFile } from "../types";
 import { generateId } from "./index";
 
@@ -123,7 +124,7 @@ export function readAsDataUrl(file: Blob): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = () =>
-      reject(reader.error ?? new Error("Не удалось прочитать файл"));
+      reject(reader.error ?? new Error(translate("files.readFailed")));
     reader.readAsDataURL(file);
   });
 }
@@ -157,7 +158,7 @@ export async function processFile(file: File): Promise<AttachedFile> {
       const { width, height } = await measureImage(dataUrl);
       return { ...base, type: "image", dataUrl, width, height };
     } catch (error) {
-      console.warn(`Не удалось прочитать изображение ${file.name}:`, error);
+      console.warn(`Could not read image ${file.name}:`, error);
     }
   }
 

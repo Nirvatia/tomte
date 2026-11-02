@@ -231,7 +231,7 @@ export async function getSelectedTreeFilesAsAttachments(
         content,
       } as AttachedFile;
     } catch (error) {
-      console.warn(`Не удалось прочитать ${node.path}:`, error);
+      console.warn(`Could not read ${node.path}:`, error);
       return null;
     }
   });

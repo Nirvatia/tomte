@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { Table } from "@lucide/svelte";
   import type { Editor } from "@tiptap/core";
 
@@ -85,8 +86,8 @@
     type="button"
     onclick={toggle}
     class="{BTN_BASE} {editor?.isActive('table') ? 'tb-active' : ''}"
-    aria-label="Вставить таблицу"
-    title="Вставить таблицу"
+    aria-label={$t("table.insert")}
+    title={$t("table.insert")}
     aria-haspopup="dialog"
     aria-expanded={isOpen}
   >
@@ -95,13 +96,13 @@
   {#if isOpen}
     <div
       role="dialog"
-      aria-label="Выбор размера таблицы"
+      aria-label={$t("table.pickSize")}
       class="absolute left-0 top-full z-50 mt-2 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-3 shadow-[var(--shadow-md)]"
     >
       <div
         class="mb-2 px-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
       >
-        Выберите размер
+        {$t("table.chooseSize")}
       </div>
       <div
         class="grid gap-1"
@@ -119,7 +120,7 @@
               )
                 ? 'border-[var(--accent-hover)] bg-[var(--accent-dim)]'
                 : 'border-[var(--border)] bg-[var(--bg-darkest)] hover:border-[var(--accent)]'}"
-              aria-label="Таблица {row + 1}×{col + 1}"
+              aria-label={$t("table.cell", { rows: row + 1, cols: col + 1 })}
             ></button>
           {/each}
         {/each}

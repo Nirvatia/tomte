@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { FileText } from "@lucide/svelte";
 
   import ModalShell from "../ui/ModalShell.svelte";
@@ -53,14 +54,14 @@
 </script>
 
 {#if $isQuickOpenOpen}
-  <ModalShell label="Найти файл промпта" onClose={close} placement="top">
+  <ModalShell label={$t("hotkeys.quickOpen")} onClose={close} placement="top">
     <input
       use:autofocus
       bind:value={query}
       onkeydown={handleKeydown}
       type="text"
-      placeholder="Имя файла промпта…"
-      aria-label="Имя файла промпта"
+      placeholder={$t("quickOpen.placeholder")}
+      aria-label={$t("quickOpen.input")}
       aria-controls="quick-open-results"
       aria-activedescendant={results[highlighted]
         ? `quick-open-${results[highlighted].id}`
@@ -89,13 +90,13 @@
           <span class="truncate">{file.name}</span>
           {#if file.id === $activeFileId}
             <span class="ml-auto text-[11px] text-[var(--text-tertiary)]"
-              >открыт</span
+              >{$t("quickOpen.open")}</span
             >
           {/if}
         </li>
       {:else}
         <li class="px-4 py-3 text-[13px] text-[var(--text-tertiary)]">
-          Ничего не найдено
+          {$t("common.nothingFound")}
         </li>
       {/each}
     </ul>

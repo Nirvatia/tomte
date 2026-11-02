@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { FolderKanban, Tag, Map } from "@lucide/svelte";
   import {
     isProjectManagerOpen,
@@ -16,8 +17,8 @@
     class="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded transition-colors {$isProjectManagerOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
-    aria-label="Открыть менеджер проектов"
-    title="Менеджер проектов"
+    aria-label={$t("activity.projects")}
+    title={$t("projects.manager")}
   >
     {#if $isProjectManagerOpen}
       <div
@@ -33,8 +34,8 @@
     class="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded transition-colors {$isTagManagerOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
-    aria-label="Открыть менеджер тегов"
-    title="Теги"
+    aria-label={$t("activity.tags")}
+    title={$t("activity.tagsTitle")}
   >
     {#if $isTagManagerOpen}
       <div
@@ -50,8 +51,8 @@
     class="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded transition-colors {$isCodeMapOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
-    aria-label="Открыть генератор карты кода"
-    title="Карта кода"
+    aria-label={$t("activity.codeMap")}
+    title={$t("activity.codeMapTitle")}
   >
     {#if $isCodeMapOpen}
       <div

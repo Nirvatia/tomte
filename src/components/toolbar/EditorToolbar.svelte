@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import {
     Undo2,
     Redo2,
@@ -127,11 +128,10 @@
 
   async function handleClearDraft() {
     const confirmed = await requestConfirm({
-      title: "Очистить проект?",
-      message:
-        "Это удалит текст активного файла, вложения и дерево проекта.\nДействие нельзя отменить.",
-      confirmText: "Очистить",
-      cancelText: "Отмена",
+      title: $t("toolbar.clearProject.title"),
+      message: $t("toolbar.clearProject.message"),
+      confirmText: $t("common.clear"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
     if (!confirmed) return;
@@ -168,10 +168,10 @@
   async function handleClear() {
     if (!editor) return;
     const confirmed = await requestConfirm({
-      title: "Очистить весь текст?",
-      message: "Текст редактора будет удалён.",
-      confirmText: "Очистить",
-      cancelText: "Отмена",
+      title: $t("toolbar.clearText.title"),
+      message: $t("toolbar.clearText.message"),
+      confirmText: $t("common.clear"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
     if (!confirmed) return;
@@ -209,10 +209,10 @@
   async function deleteTable() {
     if (!editor) return;
     const confirmed = await requestConfirm({
-      title: "Удалить таблицу?",
-      message: "Таблица будет удалена из документа.",
-      confirmText: "Удалить",
-      cancelText: "Отмена",
+      title: $t("toolbar.deleteTable.title"),
+      message: $t("toolbar.deleteTable.message"),
+      confirmText: $t("common.delete"),
+      cancelText: $t("common.cancel"),
       danger: true,
     });
     if (!confirmed) return;
@@ -236,8 +236,9 @@
 
 <svelte:window onclick={handleClickOutside} />
 
+<!-- @container: подписи прячутся, когда тулбару не хватает ширины (длинные языки). -->
 <div
-  class="flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
+  class="@container flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
 >
   <button
     type="button"
@@ -245,8 +246,8 @@
     class="w-8 h-8 flex items-center justify-center rounded-[5px] transition-all duration-150 {$isProjectTreeOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
-    aria-label="Открыть панель структуры проекта"
-    title="Структура проекта"
+    aria-label={$t("toolbar.openTree")}
+    title={$t("toolbar.treeTitle")}
   >
     <FolderTree size={18} />
   </button>
@@ -257,8 +258,8 @@
       onclick={() => run(() => editor?.chain().focus().undo().run())}
       disabled={!toolbarState.canUndo}
       class={btnClass(false)}
-      aria-label="Отменить"
-      title="Отменить (Ctrl+Z)"
+      aria-label={$t("common.undo")}
+      title={$t("toolbar.undoHint")}
     >
       <Undo2 size={18} />
     </button>
@@ -267,8 +268,8 @@
       onclick={() => run(() => editor?.chain().focus().redo().run())}
       disabled={!toolbarState.canRedo}
       class={btnClass(false)}
-      aria-label="Повторить"
-      title="Повторить (Ctrl+Y)"
+      aria-label={$t("common.redo")}
+      title={$t("toolbar.redoHint")}
     >
       <Redo2 size={18} />
     </button>
@@ -280,8 +281,8 @@
       onclick={() =>
         run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
       class={btnClass(isBlockActive("h1"))}
-      aria-label="Заголовок 1"
-      title="Заголовок 1"
+      aria-label={$t("toolbar.h1")}
+      title={$t("toolbar.h1")}
     >
       <Heading1 size={18} />
     </button>
@@ -290,8 +291,8 @@
       onclick={() =>
         run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
       class={btnClass(isBlockActive("h2"))}
-      aria-label="Заголовок 2"
-      title="Заголовок 2"
+      aria-label={$t("toolbar.h2")}
+      title={$t("toolbar.h2")}
     >
       <Heading2 size={18} />
     </button>
@@ -306,8 +307,8 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleBold().run())}
       class={btnClass(isActive("bold"))}
-      aria-label="Жирный"
-      title="Жирный (Ctrl+B)"
+      aria-label={$t("toolbar.bold")}
+      title={$t("toolbar.boldHint")}
     >
       <Bold size={18} />
     </button>
@@ -315,8 +316,8 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleItalic().run())}
       class={btnClass(isActive("italic"))}
-      aria-label="Курсив"
-      title="Курсив (Ctrl+I)"
+      aria-label={$t("toolbar.italic")}
+      title={$t("toolbar.italicHint")}
     >
       <Italic size={18} />
     </button>
@@ -324,8 +325,8 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleUnderline().run())}
       class={btnClass(isActive("underline"))}
-      aria-label="Подчёркнутый"
-      title="Подчёркнутый (Ctrl+U)"
+      aria-label={$t("toolbar.underline")}
+      title={$t("toolbar.underlineHint")}
     >
       <UnderlineIcon size={18} />
     </button>
@@ -333,8 +334,8 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleStrike().run())}
       class={btnClass(isActive("strike"))}
-      aria-label="Зачёркнутый"
-      title="Зачёркнутый"
+      aria-label={$t("toolbar.strike")}
+      title={$t("toolbar.strike")}
     >
       <Strikethrough size={18} />
     </button>
@@ -342,8 +343,8 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleHighlight().run())}
       class={btnClass(isActive("highlight"))}
-      aria-label="Выделение"
-      title="Выделение"
+      aria-label={$t("toolbar.highlight")}
+      title={$t("toolbar.highlight")}
     >
       <Highlighter size={18} />
     </button>
@@ -351,8 +352,8 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleCode().run())}
       class={btnClass(isActive("code"))}
-      aria-label="Код"
-      title="Код"
+      aria-label={$t("toolbar.code")}
+      title={$t("toolbar.code")}
     >
       <Code size={18} />
     </button>
@@ -364,8 +365,8 @@
       onclick={() =>
         run(() => editor?.chain().focus().toggleBulletList().run())}
       class={btnClass(isBlockActive("bulletList"))}
-      aria-label="Маркированный список"
-      title="Маркированный список"
+      aria-label={$t("toolbar.bulletList")}
+      title={$t("toolbar.bulletList")}
     >
       <List size={18} />
     </button>
@@ -374,8 +375,8 @@
       onclick={() =>
         run(() => editor?.chain().focus().toggleOrderedList().run())}
       class={btnClass(isBlockActive("orderedList"))}
-      aria-label="Нумерованный список"
-      title="Нумерованный список"
+      aria-label={$t("toolbar.orderedList")}
+      title={$t("toolbar.orderedList")}
     >
       <ListOrdered size={18} />
     </button>
@@ -384,8 +385,8 @@
       onclick={() =>
         run(() => editor?.chain().focus().liftListItem("listItem").run())}
       class={btnClass(false)}
-      aria-label="Уменьшить отступ"
-      title="Уменьшить отступ"
+      aria-label={$t("toolbar.outdent")}
+      title={$t("toolbar.outdent")}
     >
       <ListIndentDecrease size={18} />
     </button>
@@ -394,8 +395,8 @@
       onclick={() =>
         run(() => editor?.chain().focus().sinkListItem("listItem").run())}
       class={btnClass(false)}
-      aria-label="Увеличить отступ"
-      title="Увеличить отступ"
+      aria-label={$t("toolbar.indent")}
+      title={$t("toolbar.indent")}
     >
       <ListIndentIncrease size={18} />
     </button>
@@ -404,8 +405,8 @@
       onclick={() =>
         run(() => editor?.chain().focus().toggleBlockquote().run())}
       class={btnClass(isBlockActive("blockquote"))}
-      aria-label="Цитата"
-      title="Цитата"
+      aria-label={$t("toolbar.quote")}
+      title={$t("toolbar.quote")}
     >
       <Quote size={18} />
     </button>
@@ -417,14 +418,14 @@
       <div
         class="select-none px-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--warning)]"
       >
-        Таблица
+        {$t("toolbar.table")}
       </div>
       <button
         type="button"
         onclick={addRowBefore}
         class={btnClass(false)}
-        aria-label="Добавить строку выше"
-        title="Добавить строку выше"
+        aria-label={$t("toolbar.rowAbove")}
+        title={$t("toolbar.rowAbove")}
       >
         <Rows3 size={18} />
       </button>
@@ -432,8 +433,8 @@
         type="button"
         onclick={addRowAfter}
         class={btnClass(false)}
-        aria-label="Добавить строку ниже"
-        title="Добавить строку ниже"
+        aria-label={$t("toolbar.rowBelow")}
+        title={$t("toolbar.rowBelow")}
       >
         <Rows3 size={18} class="rotate-180" />
       </button>
@@ -441,8 +442,8 @@
         type="button"
         onclick={addColumnBefore}
         class={btnClass(false)}
-        aria-label="Добавить столбец слева"
-        title="Добавить столбец слева"
+        aria-label={$t("toolbar.colLeft")}
+        title={$t("toolbar.colLeft")}
       >
         <Columns3 size={18} />
       </button>
@@ -450,8 +451,8 @@
         type="button"
         onclick={addColumnAfter}
         class={btnClass(false)}
-        aria-label="Добавить столбец справа"
-        title="Добавить столбец справа"
+        aria-label={$t("toolbar.colRight")}
+        title={$t("toolbar.colRight")}
       >
         <Columns3 size={18} class="rotate-180" />
       </button>
@@ -459,8 +460,8 @@
         type="button"
         onclick={deleteRow}
         class={btnClass(false)}
-        aria-label="Удалить строку"
-        title="Удалить строку"
+        aria-label={$t("toolbar.deleteRow")}
+        title={$t("toolbar.deleteRow")}
       >
         <Minus size={18} class="text-[var(--error)]" />
       </button>
@@ -468,8 +469,8 @@
         type="button"
         onclick={deleteColumn}
         class={btnClass(false)}
-        aria-label="Удалить столбец"
-        title="Удалить столбец"
+        aria-label={$t("toolbar.deleteCol")}
+        title={$t("toolbar.deleteCol")}
       >
         <Minus size={18} class="rotate-90 text-[var(--error)]" />
       </button>
@@ -477,8 +478,8 @@
         type="button"
         onclick={deleteTable}
         class={`${TOOLBAR_BTN_BASE} hover:bg-[var(--error)]/10`}
-        aria-label="Удалить таблицу"
-        title="Удалить таблицу"
+        aria-label={$t("toolbar.deleteTable.button")}
+        title={$t("toolbar.deleteTable.button")}
       >
         <Trash size={18} class="text-[var(--error)]" />
       </button>
@@ -490,8 +491,8 @@
       type="button"
       onclick={handleCopy}
       class={btnClass(false)}
-      aria-label="Копировать текст"
-      title="Копировать текст"
+      aria-label={$t("toolbar.copyText")}
+      title={$t("toolbar.copyText")}
     >
       <Copy size={18} />
     </button>
@@ -499,8 +500,8 @@
       type="button"
       onclick={handleClear}
       class={`${TOOLBAR_BTN_BASE} hover:bg-[var(--error)]/10`}
-      aria-label="Очистить весь текст"
-      title="Очистить весь текст"
+      aria-label={$t("toolbar.clearText.button")}
+      title={$t("toolbar.clearText.button")}
     >
       <Trash2 size={18} class="text-[var(--error)]" />
     </button>
@@ -508,8 +509,8 @@
       type="button"
       onclick={handleClearDraft}
       class={`${TOOLBAR_BTN_BASE} hover:bg-[var(--accent-dim)]`}
-      aria-label="Очистить проект"
-      title="Очистить проект (текст + вложения + дерево)"
+      aria-label={$t("toolbar.clearProject.button")}
+      title={$t("toolbar.clearProject.hint")}
     >
       <Eraser size={18} class="text-[var(--warning)]" />
     </button>
@@ -525,15 +526,16 @@
           : ''}"
         aria-haspopup="menu"
         aria-expanded={isToolsMenuOpen}
-        aria-label="Открыть меню инструментов"
+        aria-label={$t("toolbar.toolsOpen")}
+        title={$t("toolbar.tools")}
       >
         <Wrench size={15} />
-        <span>Инструменты</span>
+        <span class="hidden @5xl:inline">{$t("toolbar.tools")}</span>
       </button>
       {#if isToolsMenuOpen}
         <div
           role="menu"
-          aria-label="Меню инструментов"
+          aria-label={$t("toolbar.toolsMenu")}
           class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
         >
           <button
@@ -546,7 +548,7 @@
             class={MENU_ITEM_BASE}
           >
             <Eye size={15} class="shrink-0" />
-            <span class="flex-1">Предпросмотр</span>
+            <span class="flex-1">{$t("toolbar.preview")}</span>
           </button>
           <button
             type="button"
@@ -558,7 +560,7 @@
             class={MENU_ITEM_BASE}
           >
             <Brain size={15} class="shrink-0" />
-            <span class="flex-1">Smart Extractor</span>
+            <span class="flex-1">{$t("toolbar.extractor")}</span>
           </button>
           <div class="mx-1 my-1.5 h-px bg-[var(--border)]"></div>
           <button
@@ -571,7 +573,7 @@
             class={MENU_ITEM_BASE}
           >
             <FlaskConical size={15} class="shrink-0" />
-            <span class="flex-1">Тест</span>
+            <span class="flex-1">{$t("toolbar.testData")}</span>
           </button>
         </div>
       {/if}
