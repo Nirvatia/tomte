@@ -13,6 +13,8 @@
       text: string;
       charCount: number;
     }) => void;
+    /** Число символов после программной загрузки текста (смена файла), без сохранения. */
+    onContentLoaded?: (charCount: number) => void;
   }
 
   let {
@@ -20,6 +22,7 @@
     editable = true,
     onReady = () => {},
     onUpdate = () => {},
+    onContentLoaded = () => {},
   }: Props = $props();
 
   let editor: Editor | null = $state(null);
@@ -50,6 +53,7 @@
     });
 
     onReady(editor);
+    onContentLoaded(editor.storage.characterCount.characters());
   });
 
   onDestroy(() => {
@@ -61,6 +65,7 @@
       isProgrammaticUpdate = true;
       editor.commands.setContent(content);
       isProgrammaticUpdate = false;
+      onContentLoaded(editor.storage.characterCount.characters());
     }
   });
 

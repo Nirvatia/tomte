@@ -58,7 +58,7 @@
       }
       currentHtml = file.content;
       loadedFileId = file.id;
-      charCount = 0;
+      // charCount обновит TiptapEditor через onContentLoaded после загрузки текста.
     } else if (!file && loadedFileId !== null) {
       if (pendingSave) {
         void debouncedSaveToProject.flush();
@@ -231,6 +231,7 @@
           content={currentHtml}
           onReady={handleReady}
           onUpdate={handleUpdate}
+          onContentLoaded={(count) => (charCount = count)}
         />
       </div>
 
@@ -275,7 +276,7 @@
         {/if}
       </span>
       <span class="flex items-center gap-3">
-        <span class="text-[var(--text-dim)]">{$activeFile.name}</span>
+        <span class="text-[var(--text-tertiary)]">{$activeFile.name}</span>
         <span>{charCount} символов</span>
       </span>
     </div>
