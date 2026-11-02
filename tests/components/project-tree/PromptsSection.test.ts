@@ -5,9 +5,11 @@ import "@testing-library/jest-dom/vitest";
 import PromptsSection from "../../../src/components/project-tree/PromptsSection.svelte";
 import { activeProject } from "../../../src/stores";
 import { requestConfirm } from "../../../src/stores/confirm";
+import { exportPromptsToZip } from "../../../src/utils/export/prompts";
 import {
   createPromptFile,
   deletePromptFile,
+  deletePromptFiles,
   pinPromptFile,
   previewPromptFile,
   renamePromptFile,
@@ -21,9 +23,15 @@ vi.mock("../../../src/stores/confirm", () => ({
 vi.mock("../../../src/utils/projectActions", () => ({
   createPromptFile: vi.fn(),
   deletePromptFile: vi.fn(),
+  deletePromptFiles: vi.fn(),
+  flushPendingEditorSave: vi.fn().mockResolvedValue(undefined),
   pinPromptFile: vi.fn(),
   previewPromptFile: vi.fn(),
   renamePromptFile: vi.fn(),
+}));
+
+vi.mock("../../../src/utils/export/prompts", () => ({
+  exportPromptsToZip: vi.fn(),
 }));
 
 function setProjectFiles(files: any[] = []) {
@@ -255,6 +263,96 @@ describe("PromptsSection", () => {
       await waitFor(() => {
         expect(createPromptFile).toHaveBeenCalledWith("new-prompt");
       });
+    });
+  });
+
+  describe("Выбор нескольких файлов", () => {
+    const files = [
+      { id: "1", name: "one", content: "<p>1</p>" },
+      { id: "2", name: "two", content: "<p>2</p>" },
+      { id: "3", name: "three", content: "<p>3</p>" },
+    ];
+
+    async function selectFiles(...names: string[]) {
+      for (const name of names) {
+        await fireEvent.click(
+          screen.getByRole("checkbox", { name: `Выбрать файл ${name}` }),
+        );
+      }
+    }
+
+    it("панель действий появляется только при выборе", async () => {
+      setProjectFiles(files);
+      render(PromptsSection);
+
+      expect(screen.queryByRole("toolbar")).toBeNull();
+      await selectFiles("one", "three");
+
+      expect(screen.getByRole("toolbar")).toBeInTheDocument();
+      expect(screen.getByText("Выбрано 2")).toBeInTheDocument();
+    });
+
+    it("удаляет выбранные одним действием после подтверждения", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(true);
+      vi.mocked(deletePromptFiles).mockResolvedValue(true);
+      setProjectFiles(files);
+      render(PromptsSection);
+
+      await selectFiles("one", "three");
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Удалить выбранные файлы" }),
+      );
+
+      await waitFor(() => {
+        expect(deletePromptFiles).toHaveBeenCalledWith(["1", "3"]);
+      });
+      expect(requestConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Удалить 2 файла?" }),
+      );
+      await waitFor(() => expect(screen.queryByRole("toolbar")).toBeNull());
+    });
+
+    it("не удаляет, если подтверждение отменено", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(false);
+      setProjectFiles(files);
+      render(PromptsSection);
+
+      await selectFiles("two");
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Удалить выбранные файлы" }),
+      );
+
+      await waitFor(() => expect(requestConfirm).toHaveBeenCalled());
+      expect(deletePromptFiles).not.toHaveBeenCalled();
+    });
+
+    it("скачивает выбранные файлы ZIP-архивом", async () => {
+      setProjectFiles(files);
+      render(PromptsSection);
+
+      await selectFiles("two", "three");
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Скачать выбранные файлы как ZIP" }),
+      );
+
+      await waitFor(() => {
+        expect(exportPromptsToZip).toHaveBeenCalledWith(
+          [files[1], files[2]],
+          "Test Project",
+        );
+      });
+    });
+
+    it("«выбрать все» выделяет все файлы", async () => {
+      setProjectFiles(files);
+      render(PromptsSection);
+
+      await selectFiles("one");
+      await fireEvent.click(
+        screen.getByRole("checkbox", { name: "Выбрать все файлы" }),
+      );
+
+      expect(screen.getByText("Выбрано 3")).toBeInTheDocument();
     });
   });
 });

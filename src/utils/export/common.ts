@@ -1,6 +1,18 @@
 import type { ExportFile } from "../../types";
 import { resolveExportLabel } from "../files";
 
+/** Отдаёт браузеру файл на скачивание. */
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export function createExportContainer(html: string): HTMLDivElement {
   const container = document.createElement("div");
   container.style.cssText = `

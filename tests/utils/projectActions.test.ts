@@ -17,6 +17,7 @@ import {
   createPromptFile,
   renamePromptFile,
   deletePromptFile,
+  deletePromptFiles,
   activatePromptFile,
   previewPromptFile,
   pinPromptFile,
@@ -270,6 +271,56 @@ describe("projectActions", () => {
       const result = await deletePromptFile("missing-id");
 
       expect(result).toBe(false);
+      expect(saveProject).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("deletePromptFiles", () => {
+    it("удаляет несколько файлов одним сохранением и переключает на соседнюю вкладку", async () => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+            promptFile("f4", "four"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2", "f3"]);
+      activeFileId.set("f2");
+
+      const result = await deletePromptFiles(["f2", "f3"]);
+
+      expect(result).toBe(true);
+      expect(saveProject).toHaveBeenCalledTimes(1);
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual(["f1", "f4"]);
+      expect(get(openFileIds)).toEqual(["f1"]);
+      expect(get(activeFileId)).toBe("f1");
+    });
+
+    it("при удалении всех файлов создаёт пустой main", async () => {
+      activeProject.set(
+        makeProject({
+          files: [promptFile("f1", "one"), promptFile("f2", "two")],
+        }),
+      );
+      openFileIds.set(["f1", "f2"]);
+      activeFileId.set("f1");
+
+      await deletePromptFiles(["f1", "f2"]);
+
+      const files = get(activeProject)!.files;
+      expect(files).toHaveLength(1);
+      expect(files[0].name).toBe("main");
+      expect(get(activeFileId)).toBe(files[0].id);
+      expect(get(openFileIds)).toEqual([files[0].id]);
+    });
+
+    it("ничего не делает, если таких файлов нет", async () => {
+      activeProject.set(makeProject());
+
+      expect(await deletePromptFiles(["missing"])).toBe(false);
       expect(saveProject).not.toHaveBeenCalled();
     });
   });

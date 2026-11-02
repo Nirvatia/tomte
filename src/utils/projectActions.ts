@@ -227,13 +227,23 @@ function pickNextActiveId(
 
 export async function deletePromptFile(fileId: string): Promise<boolean> {
   if (!fileId) return false;
+  return deletePromptFiles([fileId]);
+}
+
+/**
+ * Удаляет несколько файлов промптов за одно сохранение.
+ * Если удалены все, создаёт пустой main: проект не остаётся без файлов.
+ * Вкладки и активный файл поправляет так же, как при закрытии вкладки.
+ */
+export async function deletePromptFiles(fileIds: string[]): Promise<boolean> {
+  const ids = new Set(fileIds);
+  if (ids.size === 0) return false;
 
   const created = { file: null as PromptFile | null };
   const updated = await updateProject((project) => {
-    if (!project.files.some((f) => f.id === fileId)) return null;
+    if (!project.files.some((f) => ids.has(f.id))) return null;
 
-    let files = project.files.filter((f) => f.id !== fileId);
-    // Проект не остаётся без файлов: вместо последнего создаём пустой.
+    let files = project.files.filter((f) => !ids.has(f.id));
     if (files.length === 0) {
       created.file = createPromptFileObject("main");
       files = [created.file];
@@ -250,27 +260,26 @@ export async function deletePromptFile(fileId: string): Promise<boolean> {
   }
 
   const files = updated.files;
-  const exists = (id: string | null) =>
+  const exists = (id: string | null): id is string =>
     id !== null && files.some((f) => f.id === id);
 
   const oldOpenIds = get(openFileIds);
   const oldActiveId = get(activeFileId);
   const oldPreviewId = get(previewFileId);
   const nextOpenIds = oldOpenIds.filter(exists);
+  const nextPreviewId = exists(oldPreviewId) ? oldPreviewId : null;
 
   let nextActiveId = oldActiveId;
   if (!exists(nextActiveId)) {
     nextActiveId =
-      pickNextActiveId(fileId, oldOpenIds, nextOpenIds) ??
-      (oldPreviewId !== fileId && exists(oldPreviewId) ? oldPreviewId : null) ??
+      (oldActiveId && pickNextActiveId(oldActiveId, oldOpenIds, nextOpenIds)) ??
+      nextPreviewId ??
       files[0]?.id ??
       null;
   }
 
   openFileIds.set(nextOpenIds);
-  if (oldPreviewId === fileId) {
-    previewFileId.set(null);
-  }
+  previewFileId.set(nextPreviewId);
   activeFileId.set(nextActiveId);
 
   if (nextActiveId && !nextOpenIds.includes(nextActiveId)) {

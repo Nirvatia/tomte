@@ -17,7 +17,7 @@ import type { ExportFile } from "../../types";
 
 import { sanitizeFileName } from "../index";
 import { buildPreviewHtml } from "../preview";
-import { exportTitle } from "./common";
+import { downloadBlob, exportTitle } from "./common";
 
 function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
   const parser = new DOMParser();
@@ -421,14 +421,7 @@ export async function exportToDOCX(
     });
 
     const blob = await Packer.toBlob(doc);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${sanitizeFileName(fileName)}.docx`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, `${sanitizeFileName(fileName)}.docx`);
   } catch (error) {
     console.error("DOCX Export Error:", error);
     throw new Error(

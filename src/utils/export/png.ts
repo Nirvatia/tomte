@@ -3,6 +3,7 @@ import { domToPng } from "modern-screenshot";
 import type { ExportFile } from "../../types";
 
 import { sanitizeFileName } from "../index";
+import { downloadBlob } from "./common";
 import { buildPreviewHtml } from "../preview";
 
 import {
@@ -31,14 +32,7 @@ export async function exportToPNG(
 
     const response = await fetch(dataUrl);
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${sanitizeFileName(fileName)}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, `${sanitizeFileName(fileName)}.png`);
   } catch (error) {
     console.error("PNG Export Error:", error);
     throw new Error(

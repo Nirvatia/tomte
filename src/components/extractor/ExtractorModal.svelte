@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { downloadBlob } from "../../utils/export/common";
   import {
     Archive,
     Download,
@@ -84,14 +85,7 @@
 
   function handleDownloadAll() {
     const blob = createZipBlob(extractedFiles);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "extracted_files.zip";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, "extracted_files.zip");
   }
 
   async function handleAddToAttachments() {

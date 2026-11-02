@@ -3,6 +3,7 @@ import { gfm } from "turndown-plugin-gfm";
 import type { ExportFile } from "../../types";
 import { sanitizeFileName } from "../index";
 import { resolveExportLabel } from "../files";
+import { downloadBlob } from "./common";
 
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -120,14 +121,17 @@ function tightenLists(markdown: string): string {
   return result.join("\n");
 }
 
+/** HTML редактора → Markdown (GFM, плотные списки). */
+export function htmlToMarkdown(html: string): string {
+  return tightenLists(turndownService.turndown(prepareHtmlForMarkdown(html)));
+}
+
 export async function exportToMD(
   editorHtml: string,
   files: ExportFile[],
   fileName: string,
 ): Promise<void> {
-  const preparedHtml = prepareHtmlForMarkdown(editorHtml);
-  let markdown = turndownService.turndown(preparedHtml);
-  markdown = tightenLists(markdown);
+  let markdown = htmlToMarkdown(editorHtml);
 
   const filesToExport = files.filter((f) => f.content);
   if (filesToExport.length > 0) {
@@ -167,12 +171,5 @@ export async function exportToMD(
   }
 
   const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${sanitizeFileName(fileName)}.md`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, `${sanitizeFileName(fileName)}.md`);
 }
