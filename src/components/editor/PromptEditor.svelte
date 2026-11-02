@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { onDestroy } from "svelte";
   import { get } from "svelte/store";
   import type { Editor } from "@tiptap/core";
@@ -86,10 +87,13 @@
     } catch (error) {
       console.error("Failed to save project:", error);
       saveStatus = "error";
-      saveErrorMessage = getErrorMessage(error, "Не удалось сохранить проект");
+      saveErrorMessage = getErrorMessage(error, $t("editor.saveFailed"));
       // Одно уведомление на серию ошибок, а не на каждое нажатие клавиши.
       if (!wasError) {
-        notifyError(`Текст не сохранён: ${saveErrorMessage}`, retrySave);
+        notifyError(
+          $t("editor.notSavedToast", { reason: saveErrorMessage }),
+          retrySave,
+        );
       }
     }
   }
@@ -195,7 +199,10 @@
       } catch (error) {
         console.error("Error processing dropped file:", error);
         notifyError(
-          `«${file.name}»: ${getErrorMessage(error, "не удалось добавить")}`,
+          $t("editor.dropFailed", {
+            name: file.name,
+            reason: getErrorMessage(error, $t("editor.addFailed")),
+          }),
         );
       }
     }
@@ -221,7 +228,7 @@
         }
       } catch (error) {
         console.error("Error processing pasted image:", error);
-        notifyError(getErrorMessage(error, "Не удалось вставить картинку"));
+        notifyError(getErrorMessage(error, $t("editor.pasteFailed")));
       }
     }
   }
@@ -237,7 +244,7 @@
         ? 'ring-2 ring-inset ring-[var(--warning)]'
         : ''}"
       role="region"
-      aria-label="Область редактора"
+      aria-label={$t("editor.region")}
     >
       <div class="h-full overflow-y-auto p-8 lg:px-12 lg:py-8">
         <TiptapEditor
@@ -256,7 +263,7 @@
           <div class="text-center">
             <Upload size={44} class="mx-auto mb-3 text-[var(--warning)]" />
             <p class="text-lg font-semibold text-[var(--text-primary)]">
-              Отпустите файлы для загрузки
+              {$t("editor.dropHere")}
             </p>
           </div>
         </div>
@@ -269,36 +276,34 @@
       <span
         class="flex items-center gap-1.5"
         role="status"
-        aria-label="Статус сохранения"
+        aria-label={$t("editor.saveStatus")}
       >
         {#if saveStatus === "saving"}
           <Save size={13} class="animate-pulse text-[var(--warning)]" />
-          <span class="text-[var(--accent-hover)]">Сохранение…</span>
+          <span class="text-[var(--accent-hover)]">{$t("editor.saving")}</span>
         {:else if saveStatus === "error"}
           <TriangleAlert size={13} class="text-[var(--error)]" />
           <span class="text-[var(--error)]" title={saveErrorMessage}>
-            Не сохранено: {saveErrorMessage}
+            {$t("editor.notSaved", { reason: saveErrorMessage })}
           </span>
           <button
             type="button"
             onclick={retrySave}
             class="ml-1 rounded px-1.5 py-0.5 text-[var(--text-secondary)] underline hover:text-[var(--text-primary)]"
           >
-            Повторить
+            {$t("common.retry")}
           </button>
         {:else if saveStatus === "saved"}
           <CircleCheck size={13} class="text-[var(--success)]" />
-          <span class="text-[var(--success)]">Сохранено</span>
+          <span class="text-[var(--success)]">{$t("editor.saved")}</span>
         {:else}
           <span class="h-1.5 w-1.5 rounded-full bg-[var(--warning)]"></span>
-          <span title="Сохранится автоматически через секунду"
-            >Не сохранено</span
-          >
+          <span title={$t("editor.dirtyHint")}>{$t("editor.dirty")}</span>
         {/if}
       </span>
       <span class="flex items-center gap-3">
         <span class="text-[var(--text-tertiary)]">{$activeFile.name}</span>
-        <span>{charCount} символов</span>
+        <span>{$t("common.chars", { count: charCount })}</span>
       </span>
     </div>
 
@@ -309,11 +314,10 @@
     <div class="text-center">
       <FileText size={48} class="mx-auto mb-4 text-[var(--text-dim)]" />
       <p class="text-sm font-medium text-[var(--text-secondary)]">
-        Нет открытых файлов
+        {$t("editor.noFiles")}
       </p>
       <p class="mt-1.5 max-w-64 text-xs text-[var(--text-tertiary)]">
-        Выберите файл в панели проекта или создайте новый через кнопку «+» на
-        табах
+        {$t("editor.noFilesHint")}
       </p>
     </div>
   </div>

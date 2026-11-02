@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import {
     ChevronDown,
     ChevronRight,
@@ -119,11 +120,13 @@
     } catch (error) {
       console.error("Ошибка чтения файла:", error);
       await requestAlert({
-        title: "Ошибка чтения файла",
-        message: `Не удалось прочитать файл «${node.name}».\n\n${
-          error instanceof Error ? error.message : "Неизвестная ошибка"
-        }`,
-        confirmText: "Понятно",
+        title: $t("tree.readError.title"),
+        message: $t("tree.readError.message", {
+          name: node.name,
+          reason:
+            error instanceof Error ? error.message : $t("common.unknownError"),
+        }),
+        confirmText: $t("common.ok"),
         danger: true,
       });
     } finally {
@@ -160,7 +163,7 @@
     checked={isSelected}
     indeterminate={isPartial}
     onToggle={toggleSelect}
-    ariaLabel="Выбрать {node.name}"
+    ariaLabel={$t("tree.selectNode", { name: node.name })}
   />
 
   <button
@@ -170,9 +173,9 @@
     aria-expanded={node.type === "directory" ? isOpen : undefined}
     aria-label={node.type === "directory"
       ? isOpen
-        ? "Свернуть папку"
-        : "Развернуть папку"
-      : "Файл"}
+        ? $t("tree.collapse")
+        : $t("tree.expand")
+      : $t("tree.file")}
   >
     {#if node.type === "directory"}
       {#if isOpen}
@@ -206,8 +209,8 @@
       type="button"
       onclick={handleInsertLink}
       class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:opacity-100 group-focus-within:opacity-100"
-      title="Вставить ссылку на файл"
-      aria-label="Вставить ссылку на файл {node.name}"
+      title={$t("tree.insertRef")}
+      aria-label={$t("tree.insertRefTo", { name: node.name })}
     >
       <Link size={14} />
     </button>
@@ -217,8 +220,8 @@
       onclick={handlePreview}
       disabled={isPreviewLoading}
       class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] group-hover:opacity-100 group-focus-within:opacity-100 disabled:pointer-events-none"
-      title="Просмотреть содержимое"
-      aria-label="Просмотреть содержимое {node.name}"
+      title={$t("tree.viewContent")}
+      aria-label={$t("tree.viewContentOf", { name: node.name })}
     >
       {#if isPreviewLoading}
         <LoaderCircle size={14} class="animate-spin" />

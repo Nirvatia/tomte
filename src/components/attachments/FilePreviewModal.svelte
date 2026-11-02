@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { FileText, Image as ImageIcon, X } from "@lucide/svelte";
 
   import type { AttachedFile } from "../../types";
@@ -46,7 +47,7 @@
     onkeydown={handleBackdropKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Просмотр файла {file.name}"
+    aria-label={$t("files.previewOf", { name: file.name })}
     tabindex="-1"
   >
     <div
@@ -79,11 +80,11 @@
             </h2>
             <p class="mt-0.5 font-mono text-xs text-[var(--text-tertiary)]">
               {file.type === "image"
-                ? "Изображение"
+                ? $t("files.typeImage")
                 : file.type === "binary"
-                  ? "Файл"
-                  : "Текстовый файл"} ·
-              {file.size.toLocaleString()} байт
+                  ? $t("tree.file")
+                  : $t("files.typeText")} ·
+              {$t("files.bytes", { count: file.size })}
             </p>
           </div>
         </div>
@@ -92,7 +93,7 @@
           type="button"
           onclick={onClose}
           class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          aria-label="Закрыть просмотр файла"
+          aria-label={$t("files.closePreview")}
         >
           <X size={20} />
         </button>
@@ -113,18 +114,15 @@
         {:else}
           <div class="py-20 text-center">
             <p class="text-sm font-medium text-[var(--text-secondary)]">
-              Содержимое недоступно
+              {$t("files.noContent")}
             </p>
             <p
               class="mx-auto mt-2 max-w-md text-xs leading-relaxed text-[var(--text-tertiary)]"
             >
               {#if file.type === "binary"}
-                Это не текст и не изображение, поэтому сохранены только имя и
-                размер. В экспорт содержимое не попадёт.
+                {$t("files.binaryNote")}
               {:else}
-                Файл сохранён только как метаданные, либо содержимое не было
-                загружено. Такое может произойти, если проект превысил лимит
-                хранилища.
+                {$t("files.metadataNote")}
               {/if}
             </p>
           </div>

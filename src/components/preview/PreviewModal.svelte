@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { CircleAlert, FileText, Image as ImageIcon, X } from "@lucide/svelte";
   import { attachedFiles, isPreviewOpen } from "../../stores";
   import { buildPreviewHtml } from "../../utils/preview";
@@ -50,7 +51,7 @@
     onkeydown={handleBackdropKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Предпросмотр промпта"
+    aria-label={$t("preview.dialog")}
     tabindex="-1"
   >
     <div
@@ -71,10 +72,10 @@
             class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
           >
             <FileText size={24} class="text-[var(--accent)]" />
-            Предпросмотр финального промпта
+            {$t("preview.title")}
           </h2>
           <p class="mt-1 font-mono text-xs text-[var(--text-tertiary)]">
-            Файлов:
+            {$t("preview.files")}
             <strong class="font-semibold text-[var(--text-primary)]">
               {previewData.stats.totalFiles}
             </strong>
@@ -84,7 +85,7 @@
           type="button"
           onclick={close}
           class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          aria-label="Закрыть предпросмотр"
+          aria-label={$t("extractor.closePreview")}
         >
           <X size={20} />
         </button>
@@ -99,7 +100,7 @@
           >
             <ImageIcon size={13} class="text-[var(--accent-hover)]" />
             <span class="text-[var(--text-tertiary)]">
-              Изображений использовано:
+              {$t("preview.usedImages")}
               <strong class="font-semibold text-[var(--text-primary)]">
                 {previewData.stats.usedImages}
               </strong>
@@ -112,7 +113,7 @@
             >
               <CircleAlert size={13} class="text-[var(--warning)]" />
               <span class="text-[var(--text-tertiary)]">
-                Без плейсхолдера:
+                {$t("preview.noPlaceholder")}
                 <strong class="font-semibold text-[var(--accent-hover)]">
                   {previewData.stats.unusedImages}
                 </strong>
@@ -125,7 +126,7 @@
           >
             <FileText size={13} class="text-[var(--success)]" />
             <span class="text-[var(--text-tertiary)]">
-              Файлов использовано:
+              {$t("preview.usedFiles")}
               <strong class="font-semibold text-[var(--text-primary)]">
                 {previewData.stats.usedFiles}
               </strong>
@@ -138,7 +139,7 @@
             >
               <FileText size={13} class="text-[var(--success)]" />
               <span class="text-[var(--text-tertiary)]">
-                Прикреплено в конец:
+                {$t("preview.appended")}
                 <strong class="font-semibold text-[var(--success)]">
                   {previewData.stats.attachedTexts}
                 </strong>
@@ -158,10 +159,10 @@
               class="mb-3 text-[var(--text-tertiary)] opacity-40"
             />
             <p class="text-sm font-medium text-[var(--text-secondary)]">
-              Нечего просматривать
+              {$t("preview.empty")}
             </p>
             <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-              Добавьте текст в редактор или загрузите файлы
+              {$t("preview.emptyHint")}
             </p>
           </div>
         {:else}

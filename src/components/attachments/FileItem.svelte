@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { CircleAlert, Eye, FileText, Link, Trash2 } from "@lucide/svelte";
 
   import Checkbox from "../ui/Checkbox.svelte";
@@ -73,7 +74,7 @@
     <Checkbox
       checked={isSelected}
       onToggle={handleCheckboxClick}
-      ariaLabel="Выбрать файл {file.name}"
+      ariaLabel={$t("prompts.selectFile", { name: file.name })}
     />
   </div>
 
@@ -108,8 +109,8 @@
       {#if !hasContent}
         <span
           class="inline-flex items-center text-[var(--warning)]"
-          title="Содержимое не сохранено (только метаданные)"
-          aria-label="Содержимое не сохранено"
+          title={$t("files.metadataOnlyHint")}
+          aria-label={$t("files.metadataOnly")}
         >
           <CircleAlert size={12} />
         </span>
@@ -124,8 +125,8 @@
       type="button"
       onclick={handleInsertPlaceholderClick}
       class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-      title="Вставить ссылку на файл"
-      aria-label="Вставить ссылку на файл {file.name}"
+      title={$t("tree.insertRef")}
+      aria-label={$t("tree.insertRefTo", { name: file.name })}
     >
       <Link size={16} />
     </button>
@@ -134,8 +135,8 @@
       type="button"
       onclick={handlePreviewClick}
       class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-      title="Просмотреть файл"
-      aria-label="Просмотреть файл {file.name}"
+      title={$t("files.view")}
+      aria-label={$t("files.viewNamed", { name: file.name })}
     >
       <Eye size={16} />
     </button>
@@ -144,8 +145,8 @@
       type="button"
       onclick={handleRemoveClick}
       class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
-      title="Удалить файл"
-      aria-label="Удалить файл {file.name}"
+      title={$t("files.delete")}
+      aria-label={$t("files.deleteNamed", { name: file.name })}
     >
       <Trash2 size={16} />
     </button>

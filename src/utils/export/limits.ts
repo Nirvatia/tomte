@@ -1,4 +1,10 @@
+import { translate } from "$lib/i18n";
 import type { AttachedFile, ExportFormat } from "../../types";
+
+/** Экспорт упёрся в лимит: ожидаемая ситуация, а не сбой. */
+export class ExportLimitError extends Error {
+  name = "ExportLimitError";
+}
 
 const LIMITS = {
   pdf: { maxFiles: 20, maxChars: 300000 },
@@ -17,10 +23,11 @@ export function validateExportLimits(
   if (!limits) return;
 
   if (files.length > limits.maxFiles) {
-    throw new Error(
-      `Слишком много файлов для экспорта в ${format.toUpperCase()}. ` +
-        `Максимум: ${limits.maxFiles}. ` +
-        `Совет: Для больших проектов используйте формат Markdown (.md).`,
+    throw new ExportLimitError(
+      translate("export.limits.tooManyFiles", {
+        format: format.toUpperCase(),
+        max: limits.maxFiles,
+      }),
     );
   }
 
@@ -31,10 +38,12 @@ export function validateExportLimits(
 
   if (totalChars > limits.maxChars) {
     const sizeInKb = (totalChars / 1024).toFixed(1);
-    throw new Error(
-      `Слишком большой объём текста для ${format.toUpperCase()} (${sizeInKb} КБ). ` +
-        `Максимум: ~${(limits.maxChars / 1024).toFixed(0)} КБ. ` +
-        `Совет: Снимите выделение с крупных файлов или используйте экспорт в Markdown (.md).`,
+    throw new ExportLimitError(
+      translate("export.limits.tooMuchText", {
+        format: format.toUpperCase(),
+        size: sizeInKb,
+        max: (limits.maxChars / 1024).toFixed(0),
+      }),
     );
   }
 }
