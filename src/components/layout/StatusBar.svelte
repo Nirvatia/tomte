@@ -237,12 +237,10 @@
   </span>
   <div class="ml-auto flex items-center gap-3">
     <span>
-      {$promptFiles.length}
       {$t("projects.prompts", { count: $promptFiles.length })}
     </span>
     <span>·</span>
     <span>
-      {$attachedFiles.length}
       {$t("projects.attachments", { count: $attachedFiles.length })}
     </span>
     <span>·</span>

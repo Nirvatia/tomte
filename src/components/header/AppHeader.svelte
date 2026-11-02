@@ -14,6 +14,7 @@
 
   import Checkbox from "../ui/Checkbox.svelte";
   import AppLogo from "./AppLogo.svelte";
+  import LanguageSwitcher from "./LanguageSwitcher.svelte";
 
   import type { ExportFormat } from "../../types";
   import {
@@ -111,7 +112,7 @@
       if (error instanceof ExportLimitError) {
         console.warn("Export limit exceeded:", errorMessage);
       } else {
-        console.error("Ошибка экспорта:", error);
+        console.error("Export failed:", error);
       }
       exportError = errorMessage;
     } finally {
@@ -130,127 +131,130 @@
 >
   <AppLogo size="compact" />
 
-  <div bind:this={exportMenuContainer} class="relative">
-    <button
-      type="button"
-      onclick={toggleExportMenu}
-      disabled={isExporting}
-      class="flex h-7 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
-      bind:this={exportButton}
-      aria-haspopup="menu"
-      aria-expanded={$isExportMenuOpen}
-      aria-label={$t("export.button")}
-      title={$t("export.exportHint", {
-        keys: formatHotkey(hotkeyFor("export").keys),
-      })}
-    >
-      {#if isExporting}
-        <LoaderCircle size={14} class="animate-spin" />
-      {:else}
-        <Download size={14} />
-      {/if}
-      <span>{$t("export.button")}</span>
-      <ChevronDown
-        size={12}
-        class="transition-transform duration-150 {$isExportMenuOpen
-          ? 'rotate-180'
-          : ''}"
-      />
-    </button>
-
-    {#if $isExportMenuOpen}
-      <div
-        use:menu={{
-          onClose: () => isExportMenuOpen.set(false),
-          returnFocus: exportButton,
-        }}
-        role="menu"
-        aria-label={$t("export.menu")}
-        class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
+  <div class="flex items-center gap-3">
+    <LanguageSwitcher />
+    <div bind:this={exportMenuContainer} class="relative">
+      <button
+        type="button"
+        onclick={toggleExportMenu}
+        disabled={isExporting}
+        class="flex h-7 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+        bind:this={exportButton}
+        aria-haspopup="menu"
+        aria-expanded={$isExportMenuOpen}
+        aria-label={$t("export.button")}
+        title={$t("export.exportHint", {
+          keys: formatHotkey(hotkeyFor("export").keys),
+        })}
       >
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("md")}
-          class={EXPORT_ITEM_BASE}
+        {#if isExporting}
+          <LoaderCircle size={14} class="animate-spin" />
+        {:else}
+          <Download size={14} />
+        {/if}
+        <span>{$t("export.button")}</span>
+        <ChevronDown
+          size={12}
+          class="transition-transform duration-150 {$isExportMenuOpen
+            ? 'rotate-180'
+            : ''}"
+        />
+      </button>
+
+      {#if $isExportMenuOpen}
+        <div
+          use:menu={{
+            onClose: () => isExportMenuOpen.set(false),
+            returnFocus: exportButton,
+          }}
+          role="menu"
+          aria-label={$t("export.menu")}
+          class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
         >
-          <FileCode size={14} class="shrink-0" />
-          <span class="flex-1">Markdown</span>
-          {#if $exportFormat === "md"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("pdf")}
-          class={EXPORT_ITEM_BASE}
-        >
-          <FileIcon size={14} class="shrink-0" />
-          <span class="flex-1">{$t("export.pdf")}</span>
-          {#if $exportFormat === "pdf"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("docx")}
-          class={EXPORT_ITEM_BASE}
-        >
-          <FileText size={14} class="shrink-0" />
-          <span class="flex-1">{$t("export.docxFormat")}</span>
-          {#if $exportFormat === "docx"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("docx-gost")}
-          class={EXPORT_ITEM_BASE}
-          title={$t("export.gostHint")}
-        >
-          <FileText size={14} class="shrink-0" />
-          <span class="flex-1">{$t("export.gost")}</span>
-          {#if $exportFormat === "docx-gost"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          role="menuitem"
-          onclick={() => handleExport("png")}
-          class={EXPORT_ITEM_BASE}
-        >
-          <Image size={14} class="shrink-0" />
-          <span class="flex-1">{$t("export.png")}</span>
-          {#if $exportFormat === "png"}
-            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
-          {/if}
-        </button>
-
-        <div class="mx-1 my-1.5 h-px bg-[var(--border)]"></div>
-
-        <div class="px-3 py-1.5">
-          <Checkbox
-            checked={openInNewTab}
-            onToggle={() => (openInNewTab = !openInNewTab)}
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("md")}
+            class={EXPORT_ITEM_BASE}
           >
-            <span
-              class="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]"
+            <FileCode size={14} class="shrink-0" />
+            <span class="flex-1">Markdown</span>
+            {#if $exportFormat === "md"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("pdf")}
+            class={EXPORT_ITEM_BASE}
+          >
+            <FileIcon size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.pdf")}</span>
+            {#if $exportFormat === "pdf"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("docx")}
+            class={EXPORT_ITEM_BASE}
+          >
+            <FileText size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.docxFormat")}</span>
+            {#if $exportFormat === "docx"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("docx-gost")}
+            class={EXPORT_ITEM_BASE}
+            title={$t("export.gostHint")}
+          >
+            <FileText size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.gost")}</span>
+            {#if $exportFormat === "docx-gost"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => handleExport("png")}
+            class={EXPORT_ITEM_BASE}
+          >
+            <Image size={14} class="shrink-0" />
+            <span class="flex-1">{$t("export.png")}</span>
+            {#if $exportFormat === "png"}
+              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+            {/if}
+          </button>
+
+          <div class="mx-1 my-1.5 h-px bg-[var(--border)]"></div>
+
+          <div class="px-3 py-1.5">
+            <Checkbox
+              checked={openInNewTab}
+              onToggle={() => (openInNewTab = !openInNewTab)}
             >
-              <ExternalLink size={13} />
-              {$t("export.openInNewTab")}
-            </span>
-          </Checkbox>
+              <span
+                class="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]"
+              >
+                <ExternalLink size={13} />
+                {$t("export.openInNewTab")}
+              </span>
+            </Checkbox>
+          </div>
         </div>
-      </div>
-    {/if}
+      {/if}
+    </div>
   </div>
 </header>
 

@@ -232,11 +232,11 @@ describe("ExtractorModal", () => {
       ).toBeInTheDocument();
     });
 
-    it("показывает кнопку 'Добавить в вложения' при наличии файлов", async () => {
+    it("показывает кнопку 'Добавить во вложения' при наличии файлов", async () => {
       await extractFiles();
 
       expect(
-        screen.getByRole("button", { name: /Добавить в вложения/ }),
+        screen.getByRole("button", { name: /Добавить во вложения/ }),
       ).toBeInTheDocument();
     });
   });
@@ -271,7 +271,7 @@ describe("ExtractorModal", () => {
       await screen.findByText("script.py");
 
       await fireEvent.click(
-        screen.getByRole("button", { name: /Добавить в вложения/ }),
+        screen.getByRole("button", { name: /Добавить во вложения/ }),
       );
 
       await waitFor(() => {

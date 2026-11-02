@@ -29,6 +29,7 @@ describe("tokenLimit", () => {
     mod.tokenLimitSetting.set({ modelId: "custom", customTokens: 50_000 });
 
     vi.resetModules();
+    (await import("../../src/lib/i18n")).locale.set("ru");
     mod = await import("../../src/lib/tokenLimit");
     expect(get(mod.tokenLimit)).toEqual({
       tokens: 50_000,

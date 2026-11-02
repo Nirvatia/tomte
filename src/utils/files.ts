@@ -158,7 +158,7 @@ export async function processFile(file: File): Promise<AttachedFile> {
       const { width, height } = await measureImage(dataUrl);
       return { ...base, type: "image", dataUrl, width, height };
     } catch (error) {
-      console.warn(`Не удалось прочитать изображение ${file.name}:`, error);
+      console.warn(`Could not read image ${file.name}:`, error);
     }
   }
 

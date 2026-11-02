@@ -170,7 +170,7 @@ export const ru = {
     unsupported: "Неподдерживаемый формат экспорта: {format}",
   },
   extractor: {
-    addToAttachments: "Добавить в вложения",
+    addToAttachments: "Добавить во вложения",
     closePreview: "Закрыть предпросмотр",
     dialog: "Экстрактор кода",
     downloadZip: "Скачать ZIP",
@@ -326,7 +326,7 @@ export const ru = {
     searchPlaceholder: "Поиск по имени проекта...",
     switchTo: "Переключиться на проект {name}",
     tryQuery: "Попробуйте изменить запрос",
-    untitled: "Untitled Project",
+    untitled: "Проект без названия",
   },
   prompts: {
     bulkToolbar: "Действия с выбранными файлами",
@@ -368,6 +368,9 @@ export const ru = {
     open: "открыт",
     placeholder: "Имя файла промпта…",
   },
+  settings: {
+    language: "Язык интерфейса",
+  },
   shortcuts: {
     alignCenter: "Выровнять по центру",
     alignLeft: "Выровнять влево",
@@ -382,6 +385,7 @@ export const ru = {
   },
   sidebar: {
     resize: "Изменить ширину панели",
+    title: "Проводник",
   },
   table: {
     cell: "Таблица {rows}×{cols}",
@@ -507,7 +511,7 @@ export const ru = {
       message: "Таблица будет удалена из документа.",
       title: "Удалить таблицу?",
     },
-    extractor: "Smart Extractor",
+    extractor: "Экстрактор кода",
     h1: "Заголовок 1",
     h2: "Заголовок 2",
     highlight: "Выделение",

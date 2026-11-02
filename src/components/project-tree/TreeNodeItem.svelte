@@ -118,7 +118,7 @@
         content,
       });
     } catch (error) {
-      console.error("Ошибка чтения файла:", error);
+      console.error("File read failed:", error);
       await requestAlert({
         title: $t("tree.readError.title"),
         message: $t("tree.readError.message", {

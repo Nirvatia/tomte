@@ -113,7 +113,7 @@ describe("ProjectTreeSidebar", () => {
   it("рендерит основные секции", async () => {
     render(ProjectTreeSidebar);
 
-    expect(await screen.findByText("Explorer")).toBeInTheDocument();
+    expect(await screen.findByText("Проводник")).toBeInTheDocument();
 
     expect(screen.getAllByText("Промпты").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Вложения").length).toBeGreaterThan(0);

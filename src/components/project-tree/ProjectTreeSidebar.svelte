@@ -145,7 +145,7 @@
       <span
         class="text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
       >
-        Explorer
+        {$t("sidebar.title")}
       </span>
       <div class="flex gap-3">
         <button
@@ -153,7 +153,7 @@
           onclick={() => void handleCreatePromptFile()}
           disabled={isCreatingPrompt}
           class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-          title="New Prompt File"
+          title={$t("tabs.newFile")}
           aria-label={$t("tabs.newFile")}
         >
           <Plus size={18} />

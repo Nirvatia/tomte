@@ -236,8 +236,9 @@
 
 <svelte:window onclick={handleClickOutside} />
 
+<!-- @container: подписи прячутся, когда тулбару не хватает ширины (длинные языки). -->
 <div
-  class="flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
+  class="@container flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
 >
   <button
     type="button"
@@ -526,9 +527,10 @@
         aria-haspopup="menu"
         aria-expanded={isToolsMenuOpen}
         aria-label={$t("toolbar.toolsOpen")}
+        title={$t("toolbar.tools")}
       >
         <Wrench size={15} />
-        <span>{$t("toolbar.tools")}</span>
+        <span class="hidden @5xl:inline">{$t("toolbar.tools")}</span>
       </button>
       {#if isToolsMenuOpen}
         <div
