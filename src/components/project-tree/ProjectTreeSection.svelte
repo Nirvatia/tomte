@@ -200,12 +200,9 @@
 
   function handleInsertToEditor() {
     if (!editor || !$projectTreeString) return;
-    editor
-      .chain()
-      .focus()
-      .setCodeBlock()
-      .insertContent($projectTreeString)
-      .run();
+    // Отдельным блоком после текущего абзаца: текст вокруг не трогаем,
+    // а уже вставленное дерево обновляем на месте.
+    editor.chain().focus().insertProjectTree($projectTreeString).run();
   }
 </script>
 

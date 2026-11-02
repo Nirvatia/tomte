@@ -338,6 +338,48 @@
   color: inherit;
 }
 
+/* Блок «Дерево проекта»: подпись и кнопка удаления над обычным pre. */
+.tiptap-prose .project-tree-block {
+  margin: 1rem 0;
+}
+
+.tiptap-prose .project-tree-block pre {
+  margin: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.tiptap-prose .project-tree-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.5rem 0.25rem 1rem;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 0.6rem 0.6rem 0 0;
+  background-color: var(--bg-light);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+.tiptap-prose .project-tree-block__remove {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tiptap-prose .project-tree-block__remove:hover,
+.tiptap-prose .project-tree-block__remove:focus-visible {
+  background-color: var(--bg-lighter);
+  color: var(--error);
+}
+
 .tiptap-prose table {
   border-collapse: collapse;
   width: 100%;

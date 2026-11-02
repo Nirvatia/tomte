@@ -13,6 +13,7 @@ import CharacterCount from "@tiptap/extension-character-count";
 import type { Extensions } from "@tiptap/core";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { FontSize } from "./extensions/FontSize";
+import { ProjectTreeBlock } from "./extensions/ProjectTreeBlock";
 
 export function buildExtensions(): Extensions {
   return [
@@ -52,5 +53,6 @@ export function buildExtensions(): Extensions {
     TableCell,
     TableHeader,
     CharacterCount,
+    ProjectTreeBlock,
   ];
 }

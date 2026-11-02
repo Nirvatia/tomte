@@ -54,18 +54,11 @@ vi.mock("../../../src/utils/projectTree", () => ({
 
 function makeEditorMock() {
   const run = vi.fn();
-  const insertContent = vi.fn(() => ({ run }));
-  const setCodeBlock = vi.fn(() => ({ insertContent }));
-  const focus = vi.fn(() => ({ insertContent, setCodeBlock }));
+  const insertProjectTree = vi.fn(() => ({ run }));
+  const focus = vi.fn(() => ({ insertProjectTree }));
   const chain = vi.fn(() => ({ focus }));
 
-  return {
-    chain,
-    focus,
-    setCodeBlock,
-    insertContent,
-    run,
-  };
+  return { chain, focus, insertProjectTree, run };
 }
 
 describe("ProjectTreeSection", () => {
@@ -196,7 +189,7 @@ describe("ProjectTreeSection", () => {
   });
 
   describe("Вставка дерева в редактор", () => {
-    it("вставляет дерево в редактор как code block", async () => {
+    it("вставляет дерево в редактор отдельным блоком", async () => {
       const editor = makeEditorMock();
 
       setActiveTree([], "project");
@@ -215,8 +208,9 @@ describe("ProjectTreeSection", () => {
 
       expect(editor.chain).toHaveBeenCalled();
       expect(editor.focus).toHaveBeenCalled();
-      expect(editor.setCodeBlock).toHaveBeenCalled();
-      expect(editor.insertContent).toHaveBeenCalledWith(get(projectTreeString));
+      expect(editor.insertProjectTree).toHaveBeenCalledWith(
+        get(projectTreeString),
+      );
       expect(editor.run).toHaveBeenCalled();
     });
   });
