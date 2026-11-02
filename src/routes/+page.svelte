@@ -18,8 +18,10 @@
   import { getPlaceholder } from "../utils/files";
   import { initializeActiveProject } from "../utils/projectDb";
   import { applyProjectToStores } from "../utils/projectActions";
+  import { getLastProjectId } from "../utils/lastProject";
 
   let editor = $state<Editor | null>(null);
+  let isReady = $state(false);
 
   function handleEditorReady(newEditor: Editor) {
     editor = newEditor;
@@ -36,29 +38,39 @@
   }
 
   onMount(async () => {
-    const project = await initializeActiveProject();
+    const project = await initializeActiveProject(getLastProjectId());
     applyProjectToStores(project);
+    isReady = true;
   });
 </script>
 
-<AppHeader />
-<div class="flex flex-1 overflow-hidden">
-  <ActivityBar />
-  <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
-  <div class="flex flex-1 flex-col overflow-hidden bg-[var(--bg-darkest)]">
-    <TabsBar />
-    <EditorToolbar {editor} />
-    <main class="flex-1 overflow-hidden">
-      <PromptEditor onEditorReady={handleEditorReady} />
-    </main>
+{#if isReady}
+  <AppHeader />
+  <div class="flex flex-1 overflow-hidden">
+    <ActivityBar />
+    <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
+    <div class="flex flex-1 flex-col overflow-hidden bg-[var(--bg-darkest)]">
+      <TabsBar />
+      <EditorToolbar {editor} />
+      <main class="flex-1 overflow-hidden">
+        <PromptEditor onEditorReady={handleEditorReady} />
+      </main>
+    </div>
   </div>
-</div>
-<StatusBar />
-<FileManagerModal />
-<ExtractorModal />
-<ProjectManagerModal />
-<TagManagerModal {editor} />
-<CodeMapModal
-  isOpen={$isCodeMapOpen}
-  onClose={() => isCodeMapOpen.set(false)}
-/>
+  <StatusBar />
+  <FileManagerModal />
+  <ExtractorModal />
+  <ProjectManagerModal />
+  <TagManagerModal {editor} />
+  <CodeMapModal
+    isOpen={$isCodeMapOpen}
+    onClose={() => isCodeMapOpen.set(false)}
+  />
+{:else}
+  <div
+    class="flex flex-1 items-center justify-center text-sm text-[var(--text-tertiary)]"
+    role="status"
+  >
+    Загрузка проекта…
+  </div>
+{/if}

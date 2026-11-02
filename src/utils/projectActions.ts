@@ -37,6 +37,7 @@ import {
 } from "./projectDb";
 import { calculateStats, getTreeGithubConfig } from "./projectTree";
 import { fetchGithubTree, resolveGithubToken } from "./github";
+import { rememberLastProject } from "./lastProject";
 
 // ════════════════════════════════════════════
 // Общие помощники
@@ -110,6 +111,7 @@ export function applyProjectToStores(project: Project): void {
   openFileIds.set([]);
   resetProjectScopedStores();
   activeProject.set(project);
+  rememberLastProject(project.id);
 
   if (project.files.length > 0) {
     openFileIds.set([project.files[0].id]);
@@ -730,6 +732,29 @@ export async function deleteProjectById(projectId: string): Promise<boolean> {
   return true;
 }
 
+/**
+ * Настройки GitHub для копии проекта. Токен — секрет, поэтому без спроса
+ * его не размножаем: копия без токена работает с публичными репозиториями,
+ * для приватного токен можно ввести заново.
+ */
+async function copyGithubConfig(
+  config: GithubRepoConfig | undefined,
+): Promise<GithubRepoConfig | undefined> {
+  if (!config) return undefined;
+  const { token, ...rest } = config;
+  if (!token) return { ...rest };
+
+  const copyToken = await requestConfirm({
+    title: "Скопировать GitHub-токен?",
+    message:
+      `У проекта сохранён токен для ${config.owner}/${config.repo}.\n` +
+      `Без токена копия будет видеть только публичные репозитории.`,
+    confirmText: "Скопировать токен",
+    cancelText: "Без токена",
+  });
+  return copyToken ? { ...rest, token } : { ...rest };
+}
+
 export async function duplicateProjectById(projectId: string): Promise<void> {
   await flushPendingEditorSave();
   const current = get(activeProject);
@@ -755,7 +780,7 @@ export async function duplicateProjectById(projectId: string): Promise<void> {
     projectTreeSource: source.projectTreeSource
       ? { ...source.projectTreeSource }
       : undefined,
-    githubConfig: source.githubConfig ? { ...source.githubConfig } : undefined,
+    githubConfig: await copyGithubConfig(source.githubConfig),
     createdAt: now,
     updatedAt: now,
     totalSize: 0,

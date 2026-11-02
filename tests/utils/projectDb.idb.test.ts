@@ -321,6 +321,27 @@ describe("projectDb: initializeActiveProject", () => {
     expect(await db.loadProjectSummaries()).toHaveLength(2);
   });
 
+  it("открывает последний открытый проект, даже если он не самый свежий", async () => {
+    const db = await freshDb();
+    await db.saveProject(
+      makeProject({ id: "old", updatedAt: "2024-01-01T00:00:00Z" }),
+    );
+    await db.saveProject(
+      makeProject({ id: "new", updatedAt: "2024-02-01T00:00:00Z" }),
+    );
+
+    expect((await db.initializeActiveProject("old")).id).toBe("old");
+  });
+
+  it("если последнего открытого больше нет, берёт самый свежий", async () => {
+    const db = await freshDb();
+    await db.saveProject(
+      makeProject({ id: "new", updatedAt: "2024-02-01T00:00:00Z" }),
+    );
+
+    expect((await db.initializeActiveProject("deleted")).id).toBe("new");
+  });
+
   it("создаёт проект в памяти, если база недоступна", async () => {
     const db = await freshDb();
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});

@@ -424,8 +424,18 @@ export function createEmptyProject(name: string = "Untitled Project"): Project {
   return project;
 }
 
-export async function initializeActiveProject(): Promise<Project> {
+/**
+ * Проект для старта: preferredId (последний открытый), если он ещё есть,
+ * иначе самый свежий, иначе новый пустой.
+ */
+export async function initializeActiveProject(
+  preferredId?: string | null,
+): Promise<Project> {
   try {
+    if (preferredId) {
+      const preferred = await loadProject(preferredId);
+      if (preferred) return preferred;
+    }
     const summaries = await loadProjectSummaries();
     for (const summary of summaries) {
       const project = await loadProject(summary.id);

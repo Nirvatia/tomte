@@ -25,6 +25,7 @@ import {
   addAttachmentsToProject,
   removeAttachmentFromProject,
   removeSelectedAttachmentsFromProject,
+  duplicateProjectById,
 } from "../../src/utils/projectActions";
 
 import {
@@ -661,6 +662,58 @@ describe("projectActions", () => {
 
       expect(deletedCount).toBe(0);
       expect(saveProject).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("duplicateProjectById", () => {
+    const github = {
+      owner: "me",
+      repo: "repo",
+      branch: "main",
+      token: "ghp_secret",
+    };
+
+    function savedCopy(): Project {
+      return vi.mocked(saveProject).mock.calls.at(-1)![0] as Project;
+    }
+
+    it("без согласия копирует настройки GitHub без токена", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(false);
+      activeProject.set(makeProject({ githubConfig: github }));
+
+      await duplicateProjectById("project-1");
+
+      expect(requestConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Скопировать GitHub-токен?" }),
+      );
+      expect(savedCopy().githubConfig).toEqual({
+        owner: "me",
+        repo: "repo",
+        branch: "main",
+      });
+      expect(savedCopy().id).not.toBe("project-1");
+    });
+
+    it("с согласием копирует токен", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(true);
+      activeProject.set(makeProject({ githubConfig: github }));
+
+      await duplicateProjectById("project-1");
+
+      expect(savedCopy().githubConfig?.token).toBe("ghp_secret");
+    });
+
+    it("без токена ничего не спрашивает", async () => {
+      activeProject.set(
+        makeProject({
+          githubConfig: { owner: "me", repo: "repo", branch: "main" },
+        }),
+      );
+
+      await duplicateProjectById("project-1");
+
+      expect(requestConfirm).not.toHaveBeenCalled();
+      expect(savedCopy().name).toBe("Test Project (копия)");
     });
   });
 });
