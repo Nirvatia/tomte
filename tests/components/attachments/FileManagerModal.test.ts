@@ -16,7 +16,7 @@ import { processFile } from "../../../src/utils/files";
 import {
   addAttachmentsToProject,
   pruneSelectedFileIds,
-  removeAttachmentFromProject,
+  removeAttachmentWithUndo,
   removeSelectedAttachmentsFromProject,
 } from "../../../src/utils/projectActions";
 import type { AttachedFile } from "../../../src/types";
@@ -43,7 +43,7 @@ vi.mock("../../../src/utils/files", () => ({
 vi.mock("../../../src/utils/projectActions", () => ({
   addAttachmentsToProject: vi.fn(),
   pruneSelectedFileIds: vi.fn(),
-  removeAttachmentFromProject: vi.fn(),
+  removeAttachmentWithUndo: vi.fn(),
   removeSelectedAttachmentsFromProject: vi.fn(),
 }));
 
@@ -104,7 +104,7 @@ describe("FileManagerModal", () => {
     );
     vi.mocked(addAttachmentsToProject).mockResolvedValue(undefined as any);
     vi.mocked(pruneSelectedFileIds).mockReturnValue(undefined as any);
-    vi.mocked(removeAttachmentFromProject).mockResolvedValue(undefined as any);
+    vi.mocked(removeAttachmentWithUndo).mockResolvedValue(undefined as any);
     vi.mocked(removeSelectedAttachmentsFromProject).mockResolvedValue(1);
   });
 
@@ -298,12 +298,12 @@ describe("FileManagerModal", () => {
       );
 
       await waitFor(() => {
-        expect(removeAttachmentFromProject).toHaveBeenCalledWith("single");
+        expect(removeAttachmentWithUndo).toHaveBeenCalledWith("single");
       });
     });
 
     it("показывает ошибку, если удаление одного файла не удалось", async () => {
-      vi.mocked(removeAttachmentFromProject).mockRejectedValue(
+      vi.mocked(removeAttachmentWithUndo).mockRejectedValue(
         new Error("remove error"),
       );
 

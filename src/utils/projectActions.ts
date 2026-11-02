@@ -92,6 +92,36 @@ async function updateProject(
   return updated;
 }
 
+/**
+ * Меняет проект по id: активный — как обычно, другой (пользователь успел
+ * переключиться) — читает из базы, меняет и сохраняет, не трогая сторы.
+ * Возвращает true, если проект был активным.
+ */
+async function updateProjectById(
+  projectId: string,
+  mutate: (project: Project) => Project | null,
+  changes: ProjectSaveChanges = SAVE_META,
+): Promise<boolean> {
+  if (get(activeProject)?.id === projectId) {
+    await updateProject(mutate, changes);
+    return true;
+  }
+  const stored = await loadProject(projectId);
+  const next = stored && mutate(stored);
+  if (!next) return false;
+  const updated: Project = { ...next, updatedAt: nowIso() };
+  updated.totalSize = calculateProjectSize(updated);
+  await saveProject(updated, changes);
+  return false;
+}
+
+/** Вставляет элемент на прежнее место (или в конец, если список стал короче). */
+function insertAt<T>(items: T[], index: number, item: T): T[] {
+  const next = [...items];
+  next.splice(Math.min(Math.max(index, 0), next.length), 0, item);
+  return next;
+}
+
 function resetProjectScopedStores(): void {
   selectedFileIds.set(new Set());
   selectedProjectFiles.set([]);
@@ -290,6 +320,62 @@ export async function deletePromptFiles(fileIds: string[]): Promise<boolean> {
   return true;
 }
 
+function isEmptyContent(html: string): boolean {
+  return html.replace(/<p><\/p>/g, "").trim() === "";
+}
+
+/**
+ * Удаляет файл промпта и возвращает функцию отмены (null, если удалять нечего).
+ * Отмена возвращает файл на прежнее место, вкладку и активность; пустой main,
+ * созданный вместо последнего файла, убирает.
+ */
+export async function deletePromptFileWithUndo(
+  fileId: string,
+): Promise<(() => Promise<void>) | null> {
+  await flushPendingEditorSave();
+  const project = get(activeProject);
+  const index = project?.files.findIndex((f) => f.id === fileId) ?? -1;
+  if (!project || index < 0) return null;
+
+  const file = project.files[index];
+  const tabIndex = get(openFileIds).indexOf(fileId);
+  const wasActive = get(activeFileId) === fileId;
+  const idsBefore = new Set(project.files.map((f) => f.id));
+
+  if (!(await deletePromptFiles([fileId]))) return null;
+  const placeholder = get(activeProject)?.files.find(
+    (f) => !idsBefore.has(f.id),
+  );
+
+  return async () => {
+    const isActive = await updateProjectById(project.id, (current) => {
+      if (current.files.some((f) => f.id === file.id)) return null;
+      const files = current.files.filter(
+        (f) =>
+          !(
+            placeholder &&
+            f.id === placeholder.id &&
+            isEmptyContent(f.content)
+          ),
+      );
+      return { ...current, files: insertAt(files, index, file) };
+    });
+    if (!isActive) return;
+
+    const files = get(activeProject)?.files ?? [];
+    openFileIds.update((ids) => {
+      const kept = ids.filter((id) => files.some((f) => f.id === id));
+      return tabIndex >= 0 && !kept.includes(file.id)
+        ? insertAt(kept, tabIndex, file.id)
+        : kept;
+    });
+    if (wasActive || !files.some((f) => f.id === get(activeFileId))) {
+      if (!get(openFileIds).includes(file.id)) previewFileId.set(file.id);
+      activeFileId.set(file.id);
+    }
+  };
+}
+
 export async function activatePromptFile(fileId: string): Promise<void> {
   await navigate(() => {
     if (!hasFile(fileId)) return;
@@ -453,6 +539,36 @@ export async function removeAttachmentFromProject(
 ): Promise<void> {
   if (!get(activeProject)) return;
   await removeAttachments(new Set([fileId]));
+}
+
+/** Удаляет вложение и возвращает функцию отмены (null, если удалять нечего). */
+export async function removeAttachmentWithUndo(
+  fileId: string,
+): Promise<(() => Promise<void>) | null> {
+  const project = get(activeProject);
+  const index = project?.attachments.findIndex((f) => f.id === fileId) ?? -1;
+  if (!project || index < 0) return null;
+
+  const file = project.attachments[index];
+  const wasSelected = get(selectedFileIds).has(fileId);
+  await removeAttachments(new Set([fileId]));
+
+  return async () => {
+    const isActive = await updateProjectById(
+      project.id,
+      (current) =>
+        current.attachments.some((f) => f.id === file.id)
+          ? null
+          : {
+              ...current,
+              attachments: insertAt(current.attachments, index, file),
+            },
+      { attachments: { put: [file] } },
+    );
+    if (isActive && wasSelected) {
+      selectedFileIds.update((ids) => new Set([...ids, file.id]));
+    }
+  };
 }
 
 export async function removeAttachmentsFromProject(

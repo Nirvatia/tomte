@@ -26,10 +26,13 @@ import {
   removeAttachmentFromProject,
   removeSelectedAttachmentsFromProject,
   duplicateProjectById,
+  deletePromptFileWithUndo,
+  removeAttachmentWithUndo,
 } from "../../src/utils/projectActions";
 
 import {
   saveProject,
+  loadProject,
   checkProjectSize,
   calculateProjectSize,
 } from "../../src/utils/projectDb";
@@ -714,6 +717,100 @@ describe("projectActions", () => {
 
       expect(requestConfirm).not.toHaveBeenCalled();
       expect(savedCopy().name).toBe("Test Project (копия)");
+    });
+  });
+
+  describe("удаление с отменой", () => {
+    it("отмена возвращает файл на место, во вкладки и делает активным", async () => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2", "f3"]);
+      activeFileId.set("f2");
+
+      const undo = await deletePromptFileWithUndo("f2");
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual(["f1", "f3"]);
+
+      await undo!();
+
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual([
+        "f1",
+        "f2",
+        "f3",
+      ]);
+      expect(get(openFileIds)).toEqual(["f1", "f2", "f3"]);
+      expect(get(activeFileId)).toBe("f2");
+    });
+
+    it("отмена удаления последнего файла убирает созданный пустой main", async () => {
+      activeProject.set(
+        makeProject({ files: [promptFile("f1", "only", "<p>текст</p>")] }),
+      );
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+
+      const undo = await deletePromptFileWithUndo("f1");
+      expect(get(activeProject)!.files[0].name).toBe("main");
+
+      await undo!();
+
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual(["f1"]);
+      expect(get(activeFileId)).toBe("f1");
+    });
+
+    it("возвращает null, если файла нет", async () => {
+      activeProject.set(makeProject());
+      expect(await deletePromptFileWithUndo("missing")).toBeNull();
+    });
+
+    it("отмена возвращает вложение на место и восстанавливает выбор", async () => {
+      const a = attachment({ id: "a" });
+      const b = attachment({ id: "b" });
+      const c = attachment({ id: "c" });
+      activeProject.set(makeProject({ attachments: [a, b, c] }));
+      selectedFileIds.set(new Set(["b"]));
+
+      const undo = await removeAttachmentWithUndo("b");
+      expect(get(selectedFileIds).has("b")).toBe(false);
+
+      await undo!();
+
+      expect(get(activeProject)!.attachments.map((f) => f.id)).toEqual([
+        "a",
+        "b",
+        "c",
+      ]);
+      expect(get(selectedFileIds).has("b")).toBe(true);
+      expect(saveProject).toHaveBeenLastCalledWith(expect.anything(), {
+        attachments: { put: [b] },
+      });
+    });
+
+    it("отмена после смены проекта восстанавливает файл в исходный проект через базу", async () => {
+      const original = makeProject({
+        id: "p-old",
+        files: [promptFile("f1", "one"), promptFile("f2", "two")],
+      });
+      activeProject.set(original);
+      const undo = await deletePromptFileWithUndo("f2");
+      const afterDelete = get(activeProject)!;
+
+      // Пользователь переключился на другой проект.
+      activeProject.set(makeProject({ id: "p-new" }));
+      vi.mocked(loadProject).mockResolvedValue(afterDelete);
+
+      await undo!();
+
+      const saved = vi.mocked(saveProject).mock.calls.at(-1)![0] as Project;
+      expect(saved.id).toBe("p-old");
+      expect(saved.files.map((f) => f.id)).toEqual(["f1", "f2"]);
+      expect(get(activeProject)!.id).toBe("p-new");
     });
   });
 });

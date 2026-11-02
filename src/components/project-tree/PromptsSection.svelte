@@ -13,6 +13,7 @@
   import Checkbox from "../ui/Checkbox.svelte";
 
   import { autofocus } from "$lib/actions/autofocus";
+  import { notifyError, notifyUndo } from "$lib/notify";
   import { requestConfirm } from "../../stores/confirm";
   import {
     activeFileId,
@@ -24,7 +25,7 @@
 
   import {
     createPromptFile,
-    deletePromptFile,
+    deletePromptFileWithUndo,
     deletePromptFiles,
     flushPendingEditorSave,
     pinPromptFile,
@@ -199,26 +200,15 @@
     editingFileName = "";
   }
 
+  // Один файл удаляется сразу, с отменой в уведомлении (решение этапа 5).
   async function handleDeleteFile(fileId: string, fileName: string) {
     if (actionInProgress) return;
-    const isLastFile = $promptFiles.length <= 1;
-    const message = isLastFile
-      ? `Удалить файл «${fileName}»?\n\nПроект не может остаться без файлов, поэтому будет создан новый пустой файл.`
-      : `Удалить файл «${fileName}»?\nЭто действие нельзя отменить.`;
-
-    const confirmed = await requestConfirm({
-      title: isLastFile ? "Удалить последний файл?" : "Удалить файл промпта?",
-      message,
-      confirmText: "Удалить",
-      cancelText: "Отмена",
-      danger: true,
-    });
-
-    if (!confirmed) return;
-
     actionInProgress = true;
     try {
-      await deletePromptFile(fileId);
+      const undo = await deletePromptFileWithUndo(fileId);
+      if (undo) notifyUndo(`Файл «${fileName}» удалён`, undo);
+    } catch (error) {
+      notifyError(getErrorMessage(error, "Не удалось удалить файл"));
     } finally {
       actionInProgress = false;
     }

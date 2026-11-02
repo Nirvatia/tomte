@@ -6,9 +6,10 @@ import PromptsSection from "../../../src/components/project-tree/PromptsSection.
 import { activeProject } from "../../../src/stores";
 import { requestConfirm } from "../../../src/stores/confirm";
 import { exportPromptsToZip } from "../../../src/utils/export/prompts";
+import { notifyError, notifyUndo } from "$lib/notify";
 import {
   createPromptFile,
-  deletePromptFile,
+  deletePromptFileWithUndo,
   deletePromptFiles,
   pinPromptFile,
   previewPromptFile,
@@ -22,12 +23,17 @@ vi.mock("../../../src/stores/confirm", () => ({
 
 vi.mock("../../../src/utils/projectActions", () => ({
   createPromptFile: vi.fn(),
-  deletePromptFile: vi.fn(),
+  deletePromptFileWithUndo: vi.fn(),
   deletePromptFiles: vi.fn(),
   flushPendingEditorSave: vi.fn().mockResolvedValue(undefined),
   pinPromptFile: vi.fn(),
   previewPromptFile: vi.fn(),
   renamePromptFile: vi.fn(),
+}));
+
+vi.mock("$lib/notify", () => ({
+  notifyUndo: vi.fn(),
+  notifyError: vi.fn(),
 }));
 
 vi.mock("../../../src/utils/export/prompts", () => ({
@@ -172,69 +178,42 @@ describe("PromptsSection", () => {
   });
 
   describe("Удаление файла", () => {
-    it("удаляет файл, если подтверждение принято", async () => {
-      vi.mocked(requestConfirm).mockResolvedValue(true);
-
+    // Решение этапа 5: один файл удаляется сразу, отмена — в уведомлении.
+    it("удаляет файл без вопроса и предлагает отмену", async () => {
+      const undo = vi.fn();
+      vi.mocked(deletePromptFileWithUndo).mockResolvedValue(undo);
       setProjectFiles([
         { id: "1", name: "prompt-1.md" },
         { id: "2", name: "prompt-2.md" },
       ]);
-
       render(PromptsSection);
 
-      const deleteButton = screen.getByRole("button", {
-        name: "Удалить файл prompt-1.md",
-      });
-
-      await fireEvent.click(deleteButton);
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Удалить файл prompt-1.md" }),
+      );
 
       await waitFor(() => {
-        expect(deletePromptFile).toHaveBeenCalledWith("1");
+        expect(deletePromptFileWithUndo).toHaveBeenCalledWith("1");
       });
+      expect(requestConfirm).not.toHaveBeenCalled();
+      expect(notifyUndo).toHaveBeenCalledWith(
+        "Файл «prompt-1.md» удалён",
+        undo,
+      );
     });
 
-    it("не удаляет файл, если подтверждение отменено", async () => {
-      vi.mocked(requestConfirm).mockResolvedValue(false);
-
-      setProjectFiles([
-        { id: "1", name: "prompt-1.md" },
-        { id: "2", name: "prompt-2.md" },
-      ]);
-
-      render(PromptsSection);
-
-      const deleteButton = screen.getByRole("button", {
-        name: "Удалить файл prompt-1.md",
-      });
-
-      await fireEvent.click(deleteButton);
-
-      await waitFor(() => {
-        expect(deletePromptFile).not.toHaveBeenCalled();
-      });
-    });
-
-    it("использует специальный заголовок для последнего файла", async () => {
-      vi.mocked(requestConfirm).mockResolvedValue(false);
-
+    it("показывает ошибку, если удалить не удалось", async () => {
+      vi.mocked(deletePromptFileWithUndo).mockRejectedValue(
+        new Error("db fail"),
+      );
       setProjectFiles([{ id: "1", name: "only.md" }]);
-
       render(PromptsSection);
 
-      const deleteButton = screen.getByRole("button", {
-        name: "Удалить файл only.md",
-      });
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Удалить файл only.md" }),
+      );
 
-      await fireEvent.click(deleteButton);
-
-      await waitFor(() => {
-        expect(requestConfirm).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: "Удалить последний файл?",
-            danger: true,
-          }),
-        );
-      });
+      await waitFor(() => expect(notifyError).toHaveBeenCalledWith("db fail"));
     });
   });
 

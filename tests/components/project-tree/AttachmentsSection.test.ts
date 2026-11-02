@@ -13,7 +13,7 @@ import { requestConfirm } from "../../../src/stores/confirm";
 import { processFile } from "../../../src/utils/files";
 import {
   addAttachmentsToProject,
-  removeAttachmentFromProject,
+  removeAttachmentWithUndo,
   removeAttachmentsFromProject,
 } from "../../../src/utils/projectActions";
 
@@ -37,7 +37,7 @@ vi.mock("../../../src/utils/index", () => ({
 
 vi.mock("../../../src/utils/projectActions", () => ({
   addAttachmentsToProject: vi.fn(),
-  removeAttachmentFromProject: vi.fn(),
+  removeAttachmentWithUndo: vi.fn(),
   removeAttachmentsFromProject: vi.fn(),
 }));
 
@@ -146,7 +146,7 @@ describe("AttachmentsSection", () => {
       await fireEvent.click(removeButton);
 
       await waitFor(() => {
-        expect(removeAttachmentFromProject).toHaveBeenCalledWith("1");
+        expect(removeAttachmentWithUndo).toHaveBeenCalledWith("1");
       });
     });
 

@@ -250,3 +250,39 @@ describe("tags", () => {
     });
   });
 });
+
+describe("removeTagWithUndo", () => {
+  beforeEach(() => {
+    const storage: Record<string, string> = {};
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage[key] ?? null,
+      setItem: (key: string, value: string) => {
+        storage[key] = value;
+      },
+      removeItem: (key: string) => {
+        delete storage[key];
+      },
+    });
+  });
+
+  it("удаляет тег, а отмена возвращает его на прежнее место", async () => {
+    const { addTag, loadTags, removeTagWithUndo } =
+      await import("../../src/utils/tags");
+    const a = addTag("a", "1");
+    const b = addTag("b", "2");
+    const c = addTag("c", "3");
+    const before = loadTags().map((t) => t.id);
+
+    const undo = removeTagWithUndo(b.id);
+    expect(loadTags().map((t) => t.id)).not.toContain(b.id);
+
+    undo!();
+    expect(loadTags().map((t) => t.id)).toEqual(before);
+    expect(before).toEqual(expect.arrayContaining([a.id, c.id]));
+  });
+
+  it("возвращает null для несуществующего тега", async () => {
+    const { removeTagWithUndo } = await import("../../src/utils/tags");
+    expect(removeTagWithUndo("missing")).toBeNull();
+  });
+});

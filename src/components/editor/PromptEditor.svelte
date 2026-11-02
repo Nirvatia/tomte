@@ -24,7 +24,9 @@
     pendingSaveController,
   } from "../../stores";
 
-  import { createFlushableAsync } from "../../utils";
+  import { createFlushableAsync, getErrorMessage } from "../../utils";
+  import { notifyError } from "$lib/notify";
+  import type { Project } from "../../types";
   import { getPlaceholder, processFile } from "../../utils/files";
   import {
     estimatePromptFileSize,
@@ -43,9 +45,12 @@
   let currentHtml = $state("");
   let dropZoneActive = $state(false);
   let editorInstance: Editor | null = $state(null);
-  let saveStatus = $state<"idle" | "saving" | "saved" | "error">("idle");
+  /**
+   * dirty — есть изменения, автосохранение через 800 мс; saving — пишем в базу;
+   * saved — всё в базе; error — запись не удалась, данные пока только в памяти.
+   */
+  let saveStatus = $state<"saved" | "dirty" | "saving" | "error">("saved");
   let saveErrorMessage = $state("");
-  let saveStatusTimer: ReturnType<typeof setTimeout> | null = null;
 
   let loadedFileId: string | null = $state(null);
   let pendingSave: { fileId: string; content: string } | null = $state(null);
@@ -69,14 +74,29 @@
     }
   });
 
-  function markSaved() {
-    if (saveStatusTimer) {
-      clearTimeout(saveStatusTimer);
+  /** Пишет метаданные проекта (промпты) и обновляет статус. */
+  async function persist(project: Project) {
+    const wasError = saveStatus === "error";
+    saveStatus = "saving";
+    try {
+      // Пишем только метаданные и промпты: вложения и дерево не трогаем.
+      await saveProject(project, SAVE_META);
+      // Если пока писали, текст снова поменялся, статус остаётся «не сохранено».
+      saveStatus = pendingSave ? "dirty" : "saved";
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      saveStatus = "error";
+      saveErrorMessage = getErrorMessage(error, "Не удалось сохранить проект");
+      // Одно уведомление на серию ошибок, а не на каждое нажатие клавиши.
+      if (!wasError) {
+        notifyError(`Текст не сохранён: ${saveErrorMessage}`, retrySave);
+      }
     }
-    saveStatus = "saved";
-    saveStatusTimer = setTimeout(() => {
-      saveStatus = "idle";
-    }, 2000);
+  }
+
+  function retrySave() {
+    const project = get(activeProject);
+    if (project) void persist(project);
   }
 
   async function savePendingNow() {
@@ -107,18 +127,7 @@
     };
 
     activeProject.set(updatedProject);
-
-    try {
-      saveStatus = "saving";
-      // Пишем только метаданные и промпты: вложения и дерево не трогаем.
-      await saveProject(updatedProject, SAVE_META);
-      markSaved();
-    } catch (error) {
-      console.error("Failed to save project:", error);
-      saveStatus = "error";
-      saveErrorMessage =
-        error instanceof Error ? error.message : "Не удалось сохранить проект";
-    }
+    await persist(updatedProject);
   }
 
   const debouncedSaveToProject = createFlushableAsync(savePendingNow, 800);
@@ -133,14 +142,15 @@
   });
 
   onDestroy(() => {
-    if (saveStatusTimer) {
-      clearTimeout(saveStatusTimer);
-    }
     void debouncedSaveToProject.flush();
   });
 
-  function handleBeforeUnload() {
+  function handleBeforeUnload(event: BeforeUnloadEvent) {
     void debouncedSaveToProject.flush();
+    // Дождаться асинхронной записи браузер не даст, поэтому предупреждаем.
+    if (saveStatus !== "saved") {
+      event.preventDefault();
+    }
   }
 
   $effect(() => {
@@ -167,6 +177,7 @@
     }
 
     pendingSave = { fileId, content: data.html };
+    if (saveStatus !== "error") saveStatus = "dirty";
     debouncedSaveToProject();
   }
 
@@ -183,6 +194,9 @@
         await addAttachmentsToProject([attachedFile]);
       } catch (error) {
         console.error("Error processing dropped file:", error);
+        notifyError(
+          `«${file.name}»: ${getErrorMessage(error, "не удалось добавить")}`,
+        );
       }
     }
   }
@@ -207,6 +221,7 @@
         }
       } catch (error) {
         console.error("Error processing pasted image:", error);
+        notifyError(getErrorMessage(error, "Не удалось вставить картинку"));
       }
     }
   }
@@ -251,27 +266,34 @@
     <div
       class="mt-3 flex shrink-0 items-center justify-between font-mono text-xs text-[var(--text-tertiary)]"
     >
-      <span class="flex items-center gap-1.5">
+      <span
+        class="flex items-center gap-1.5"
+        role="status"
+        aria-label="Статус сохранения"
+      >
         {#if saveStatus === "saving"}
           <Save size={13} class="animate-pulse text-[var(--warning)]" />
-          <span class="text-[var(--accent-hover)]">Сохранение...</span>
+          <span class="text-[var(--accent-hover)]">Сохранение…</span>
         {:else if saveStatus === "error"}
           <TriangleAlert size={13} class="text-[var(--error)]" />
-          <span
-            class="text-[var(--error)]"
-            role="alert"
-            title={saveErrorMessage}
-          >
+          <span class="text-[var(--error)]" title={saveErrorMessage}>
             Не сохранено: {saveErrorMessage}
           </span>
+          <button
+            type="button"
+            onclick={retrySave}
+            class="ml-1 rounded px-1.5 py-0.5 text-[var(--text-secondary)] underline hover:text-[var(--text-primary)]"
+          >
+            Повторить
+          </button>
         {:else if saveStatus === "saved"}
           <CircleCheck size={13} class="text-[var(--success)]" />
           <span class="text-[var(--success)]">Сохранено</span>
         {:else}
-          <span
-            class="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--success)] shadow-[0_0_7px_rgba(52,211,153,0.8)]"
-          ></span>
-          <span>Автосохранение включено</span>
+          <span class="h-1.5 w-1.5 rounded-full bg-[var(--warning)]"></span>
+          <span title="Сохранится автоматически через секунду"
+            >Не сохранено</span
+          >
         {/if}
       </span>
       <span class="flex items-center gap-3">
