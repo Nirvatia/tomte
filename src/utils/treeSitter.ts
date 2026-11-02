@@ -83,114 +83,177 @@ export function getLanguage(ext: string): Promise<Language | null> {
   return pending;
 }
 
+/** Узлы, которые попадают в карту: функции, методы, классы, типы. */
 const DECL_TYPES = new Set([
+  // JS/TS
   "function_declaration",
-  "function_definition",
-  "function_item",
+  "generator_function_declaration",
   "class_declaration",
-  "class_definition",
-  "class_specifier",
+  "abstract_class_declaration",
   "method_definition",
-  "method_declaration",
   "interface_declaration",
   "type_alias_declaration",
-  "type_declaration",
-  "type_item",
   "enum_declaration",
-  "enum_item",
-  "struct_item",
+  // Python, C/C++, PHP
+  "function_definition",
+  "class_definition",
+  "class_specifier",
   "struct_specifier",
+  "namespace_definition",
+  "template_declaration",
+  // Java, C#, Go, PHP
+  "method_declaration",
+  "constructor_declaration",
+  "type_declaration",
   "struct_declaration",
+  "record_declaration",
+  // Rust
+  "function_item",
+  "struct_item",
+  "enum_item",
+  "type_item",
   "impl_item",
   "trait_item",
+  // Ruby
+  "method",
+  "singleton_method",
+  "class",
+  "module",
+  // PowerShell
+  "function_statement",
+  // CSS: селекторы правил; INI: секции
+  "rule_set",
+  "section",
 ]);
 
+/** Внутрь этих узлов заходим, чтобы показать методы и вложенные типы. */
+const CONTAINER_TYPES = new Set([
+  "class_declaration",
+  "abstract_class_declaration",
+  "class_definition",
+  "class_specifier",
+  "struct_specifier",
+  "namespace_definition",
+  "interface_declaration",
+  "struct_declaration",
+  "record_declaration",
+  "impl_item",
+  "trait_item",
+  "class",
+  "module",
+]);
+
+/** Тела, которые прячем за «...». */
 const BODY_TYPES = new Set([
   "statement_block",
   "block",
   "class_body",
   "declaration_list",
   "field_declaration_list",
-  "object",
+  "enum_body",
   "object_type",
+  "interface_body",
+  "compound_statement",
+  "body_statement",
+  "script_block",
   "body",
 ]);
 
-const CONTAINER_TYPES = new Set([
-  "class_declaration",
-  "class_definition",
+/** Прототипы C/C++: «int f(int a);» и методы, объявленные внутри класса. */
+const PROTOTYPE_TYPES = new Set(["declaration", "field_declaration"]);
+
+/** Узлы-обёртки, внутри которых может лежать тело (export, template, модификаторы). */
+const BODY_WRAPPERS = new Set([
+  "export_statement",
+  "declaration",
+  "modifiers",
+  "function_definition",
   "class_specifier",
-  "interface_interface",
-  "interface_declaration",
-  "impl_item",
-  "trait_item",
-  "struct_item",
   "struct_specifier",
 ]);
 
+const MAX_SIGNATURE_LENGTH = 200;
+
+function findBody(node: Node, depth = 0): Node | null {
+  const byField = node.childForFieldName("body");
+  if (byField) return byField;
+  for (const child of node.children) {
+    if (BODY_TYPES.has(child.type)) return child;
+    if (depth < 2 && BODY_WRAPPERS.has(child.type)) {
+      const found = findBody(child, depth + 1);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+/** Как показать спрятанное тело: зависит от того, как язык оформляет блоки. */
+function bodyMarker(body: Node, head: string): string {
+  if (body.type === "block" && head.endsWith(":")) return " ..."; // Python
+  if (body.type === "body_statement") return ""; // Ruby: «def m(x)» достаточно
+  return " { ... }";
+}
+
+function oneLine(text: string): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  return flat.length > MAX_SIGNATURE_LENGTH
+    ? flat.slice(0, MAX_SIGNATURE_LENGTH - 1) + "…"
+    : flat;
+}
+
+function isExported(node: Node): boolean {
+  for (let current = node.parent; current; current = current.parent) {
+    if (current.type === "export_statement") return true;
+    if (DECL_TYPES.has(current.type)) return false;
+  }
+  return false;
+}
+
 function getSignature(node: Node): string {
-  function findBody(n: Node): Node | null {
-    for (const child of n.children) {
-      if (BODY_TYPES.has(child.type)) return child;
-      if (
-        child.type === "export_statement" ||
-        child.type === "declaration" ||
-        child.type === "modifiers"
-      ) {
-        const found = findBody(child);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  const bodyNode = findBody(node);
-
-  let signature = "";
-  if (bodyNode) {
-    const textBeforeBody = node.text.substring(
-      0,
-      bodyNode.startIndex - node.startIndex,
-    );
-    signature = textBeforeBody.trim() + " { ... }";
+  // INI: секция — это её заголовок «[name]», настройки под ним не нужны.
+  if (node.type === "section") return oneLine(node.text.split("\n")[0]);
+  const body = findBody(node);
+  let signature: string;
+  if (body) {
+    // Открывающая скобка иногда остаётся в заголовке (PowerShell: тело внутри «{»).
+    const head = node.text
+      .slice(0, body.startIndex - node.startIndex)
+      .trim()
+      .replace(/\{$/, "")
+      .trim();
+    signature = oneLine(head) + bodyMarker(body, head);
   } else {
-    signature = node.text.trim();
+    signature = oneLine(node.text);
   }
-
-  let isExported = false;
-  let current = node.parent;
-  while (current) {
-    if (current.type === "export_statement") {
-      isExported = true;
-      break;
-    }
-    if (DECL_TYPES.has(current.type)) break;
-    current = current.parent;
-  }
-
-  if (isExported && !signature.startsWith("export")) {
+  if (isExported(node) && !signature.startsWith("export")) {
     signature = "export " + signature;
   }
-
   return signature;
 }
 
-function walk(n: Node, results: string[]) {
-  if (DECL_TYPES.has(n.type)) {
-    const sig = getSignature(n);
-    results.push(`L${n.startPosition.row + 1} ${sig}`);
+/** declaration/field_declaration, объявляющие функцию (а не переменную). */
+function isPrototype(node: Node): boolean {
+  if (!PROTOTYPE_TYPES.has(node.type)) return false;
+  const declarator = node.childForFieldName("declarator");
+  return declarator?.type === "function_declarator";
+}
 
+function walk(n: Node, results: string[]) {
+  // Корень файла объявлением не бывает: у Python он называется module,
+  // как модуль в Ruby.
+  if (n.parent && DECL_TYPES.has(n.type)) {
+    results.push(`L${n.startPosition.row + 1} ${getSignature(n)}`);
     if (CONTAINER_TYPES.has(n.type)) {
-      for (const child of n.children) {
-        walk(child, results);
-      }
+      const body = findBody(n);
+      for (const child of (body ?? n).children) walk(child, results);
     }
     return;
   }
-
-  for (const child of n.children) {
-    walk(child, results);
+  if (isPrototype(n)) {
+    results.push(`L${n.startPosition.row + 1} ${oneLine(n.text)}`);
+    return;
   }
+  for (const child of n.children) walk(child, results);
 }
 
 export async function parseFileOutline(

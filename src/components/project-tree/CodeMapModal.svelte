@@ -1,7 +1,8 @@
 <script lang="ts">
   import { X, Copy, Check, Folder, LoaderCircle } from "@lucide/svelte";
   import { projectTreeNodes, projectTreeRootName } from "../../stores";
-  import { generateCodeMap } from "../../utils/codeMap";
+  import { generateCodeMap, type CodeMapResult } from "../../utils/codeMap";
+  import { pluralize } from "../../utils";
   import type { TreeNode } from "../../utils/projectTree";
   import CodeMapFolderItem from "./CodeMapFolderItem.svelte";
 
@@ -13,6 +14,8 @@
 
   let selectedNode = $state<TreeNode | null>(null);
   let generatedMap = $state("");
+  let report = $state<CodeMapResult | null>(null);
+  let generateError = $state<string | null>(null);
   let copied = $state(false);
   let isGenerating = $state(false);
 
@@ -29,6 +32,8 @@
         selectedNode = null;
       }
       generatedMap = "";
+      report = null;
+      generateError = null;
       copied = false;
     }
   });
@@ -36,6 +41,8 @@
   function handleSelect(node: TreeNode) {
     selectedNode = node;
     generatedMap = "";
+    report = null;
+    generateError = null;
     copied = false;
   }
 
@@ -43,11 +50,15 @@
     if (!selectedNode) return;
     isGenerating = true;
     try {
-      generatedMap = await generateCodeMap(selectedNode);
+      report = await generateCodeMap(selectedNode);
+      generatedMap = report.text;
+      generateError = null;
       copied = false;
     } catch (err) {
       console.error(err);
-      generatedMap = "Error generating code map";
+      report = null;
+      generatedMap = "";
+      generateError = "Не удалось построить карту кода";
     } finally {
       isGenerating = false;
     }
@@ -179,10 +190,48 @@
             </div>
           </div>
           <div class="flex-1 overflow-y-auto p-4">
+            {#if report && (report.noContent.length > 0 || report.failed.length > 0)}
+              <div
+                class="mb-3 rounded border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]"
+                role="status"
+              >
+                {#if report.noContent.length > 0}
+                  <p>
+                    Пропущено {report.noContent.length}
+                    {pluralize(
+                      report.noContent.length,
+                      "файл",
+                      "файла",
+                      "файлов",
+                    )}: дерево сохранено без содержимого (проект не влез в
+                    лимит). Откройте папку заново, чтобы прочитать файлы.
+                  </p>
+                {/if}
+                {#if report.failed.length > 0}
+                  <p class="mt-1">
+                    Не удалось разобрать: {report.failed
+                      .slice(0, 5)
+                      .join(", ")}{report.failed.length > 5
+                      ? ` и ещё ${report.failed.length - 5}`
+                      : ""}.
+                  </p>
+                {/if}
+              </div>
+            {/if}
+            {#if generateError}
+              <p class="text-sm text-[var(--error)]" role="alert">
+                {generateError}
+              </p>
+            {:else if report && !generatedMap}
+              <p class="text-sm text-[var(--text-tertiary)]">
+                В выбранной папке нет поддерживаемых файлов с функциями или
+                классами.
+              </p>
+            {/if}
             {#if generatedMap}
               <pre
                 class="font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap">{generatedMap}</pre>
-            {:else}
+            {:else if !report && !generateError}
               <div
                 class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]"
               >
