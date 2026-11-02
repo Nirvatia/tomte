@@ -34,7 +34,6 @@ async function main() {
   console.log("Ядро:      ", corePath);
   console.log("Грамматика:", tsPath);
 
-  const coreBytes = await readFile(corePath);
   const langBytes = await readFile(tsPath);
 
   await Parser.init({

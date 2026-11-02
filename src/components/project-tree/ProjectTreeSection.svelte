@@ -35,12 +35,14 @@
   } from "../../utils/projectActions";
   import {
     calculateStats,
+    filterTree,
     hasFileSystemAccess,
     readDirectoryRecursive,
     readDirectoryViaInput,
   } from "../../utils/projectTree";
 
   import { SECTION_TOOL_BTN } from "./constants";
+  import { getErrorMessage, pluralize } from "../../utils";
 
   interface Props {
     editor?: Editor | null;
@@ -68,22 +70,33 @@
     $projectTreeNodes.length === 0 ? null : calculateStats($projectTreeNodes),
   );
 
+  // Поиск по дереву (5.6). Пока он активен, «выбрать все» действует на найденное.
+  let treeQuery = $state("");
+  const filtered = $derived(
+    treeQuery.trim() ? filterTree($projectTreeNodes, treeQuery) : null,
+  );
+  const visibleNodes = $derived(filtered?.nodes ?? $projectTreeNodes);
+  const visiblePaths = $derived(getAllFilePaths(visibleNodes));
+
   const totalFiles = $derived(stats?.totalFiles ?? 0);
   const selectedCount = $derived($selectedProjectFiles.length);
+  const selectedVisible = $derived(
+    visiblePaths.filter((p) => $selectedProjectFiles.includes(p)).length,
+  );
   const isAllSelected = $derived(
-    totalFiles > 0 && selectedCount === totalFiles,
+    visiblePaths.length > 0 && selectedVisible === visiblePaths.length,
   );
   const isPartialSelected = $derived(
-    totalFiles > 0 && selectedCount > 0 && selectedCount < totalFiles,
+    selectedVisible > 0 && selectedVisible < visiblePaths.length,
   );
 
-function toggleSelectAll() {
-  if (selectedCount > 0) {
-    deselectAll();
-  } else {
-    selectAll();
+  function toggleSelectAll() {
+    if (selectedVisible > 0) {
+      deselectAll();
+    } else {
+      selectAll();
+    }
   }
-}
 
   function getAllFilePaths(nodes: typeof $projectTreeNodes): string[] {
     const paths: string[] = [];
@@ -101,11 +114,16 @@ function toggleSelectAll() {
   }
 
   function selectAll() {
-    selectedProjectFiles.set(getAllFilePaths($projectTreeNodes));
+    selectedProjectFiles.update((current) => [
+      ...new Set([...current, ...visiblePaths]),
+    ]);
   }
 
   function deselectAll() {
-    selectedProjectFiles.set([]);
+    const visible = new Set(visiblePaths);
+    selectedProjectFiles.update((current) =>
+      current.filter((path) => !visible.has(path)),
+    );
   }
 
   async function handlePickDirectory() {
@@ -114,9 +132,7 @@ function toggleSelectAll() {
 
     try {
       if (supportsFileSystem) {
-        const dirHandle = await (window as any).showDirectoryPicker({
-          mode: "read",
-        });
+        const dirHandle = await window.showDirectoryPicker!({ mode: "read" });
         const nodes = await readDirectoryRecursive(dirHandle);
         const fileCount = calculateStats(nodes).totalFiles;
         const saved = await setProjectTreeSource({
@@ -131,9 +147,10 @@ function toggleSelectAll() {
       } else {
         fileInput?.click();
       }
-    } catch (err: any) {
-      if (err.name !== "AbortError") {
-        error = err.message || "Не удалось прочитать папку";
+    } catch (err) {
+      // Пользователь закрыл диалог выбора папки — это не ошибка.
+      if (!(err instanceof DOMException && err.name === "AbortError")) {
+        error = getErrorMessage(err, "Не удалось прочитать папку");
         console.error(err);
       }
     } finally {
@@ -151,8 +168,8 @@ function toggleSelectAll() {
       if (!restored) {
         error = "Не удалось восстановить репозиторий";
       }
-    } catch (err: any) {
-      error = err.message || "Не удалось загрузить репозиторий";
+    } catch (err) {
+      error = getErrorMessage(err, "Не удалось загрузить репозиторий");
       console.error(err);
     } finally {
       isLoading = false;
@@ -178,8 +195,8 @@ function toggleSelectAll() {
       if (saved) {
         await clearGithubConfig();
       }
-    } catch (err: any) {
-      error = err.message || "Не удалось прочитать папку";
+    } catch (err) {
+      error = getErrorMessage(err, "Не удалось прочитать папку");
       console.error(err);
     } finally {
       isLoading = false;
@@ -193,19 +210,16 @@ function toggleSelectAll() {
       await navigator.clipboard.writeText($projectTreeString);
       copied = true;
       setTimeout(() => (copied = false), 2000);
-    } catch (err) {
+    } catch {
       error = "Не удалось скопировать";
     }
   }
 
   function handleInsertToEditor() {
     if (!editor || !$projectTreeString) return;
-    editor
-      .chain()
-      .focus()
-      .setCodeBlock()
-      .insertContent($projectTreeString)
-      .run();
+    // Отдельным блоком после текущего абзаца: текст вокруг не трогаем,
+    // а уже вставленное дерево обновляем на месте.
+    editor.chain().focus().insertProjectTree($projectTreeString).run();
   }
 </script>
 
@@ -341,7 +355,7 @@ function toggleSelectAll() {
         <p class="text-xs font-medium text-[var(--text-tertiary)]">
           Дерево не создано
         </p>
-        <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-dim)]">
+        <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
           Откройте папку или подключите GitHub-репозиторий
         </p>
       </div>
@@ -352,9 +366,31 @@ function toggleSelectAll() {
       >
         {$projectTreeRootName}
       </div>
+      <div class="border-b border-[var(--border)] px-3 py-1.5">
+        <input
+          type="search"
+          bind:value={treeQuery}
+          onkeydown={(event) => {
+            if (event.key === "Escape" && treeQuery) {
+              event.stopPropagation();
+              treeQuery = "";
+            }
+          }}
+          placeholder="Найти в дереве…"
+          aria-label="Найти в дереве проекта"
+          class="w-full rounded border border-[var(--border)] bg-[var(--bg-darkest)] px-2 py-1 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)] focus:outline-none"
+        />
+        {#if filtered}
+          <p class="mt-1 text-[11px] text-[var(--text-tertiary)]" role="status">
+            {filtered.matches > 0
+              ? `Найдено: ${filtered.matches} ${pluralize(filtered.matches, "файл", "файла", "файлов")}`
+              : "Ничего не найдено"}
+          </p>
+        {/if}
+      </div>
       <div class="py-1">
-        {#each $projectTreeNodes as node (node.path)}
-          <TreeNodeItem {node} depth={0} {editor} />
+        {#each visibleNodes as node (node.path)}
+          <TreeNodeItem {node} depth={0} {editor} forceOpen={!!filtered} />
         {/each}
       </div>
     {/if}

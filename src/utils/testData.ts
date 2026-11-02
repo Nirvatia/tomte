@@ -42,11 +42,7 @@ export const TEST_PROMPT_HTML = `
   </table>
 `;
 
-export function applyTestData(
-  editor: Editor | null,
-  setFileName: (name: string) => void,
-) {
+export function applyTestData(editor: Editor | null) {
   if (!editor) return;
   editor.commands.setContent(TEST_PROMPT_HTML);
-  setFileName("test_export_document");
 }

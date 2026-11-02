@@ -1,13 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
-import { get } from "svelte/store";
 
 import TabsBar from "../../../src/components/editor/TabsBar.svelte";
 import {
@@ -15,7 +9,6 @@ import {
   activeFileId,
   openFileIds,
   previewFileId,
-  promptFiles,
 } from "../../../src/stores";
 import {
   activatePromptFile,
@@ -30,6 +23,8 @@ vi.mock("../../../src/utils/projectActions", () => ({
   closePromptFileTab: vi.fn(),
   createPromptFile: vi.fn(),
   renamePromptFile: vi.fn(),
+  moveTab: vi.fn(),
+  moveTabBy: vi.fn(),
 }));
 
 function makeFile(overrides: Partial<PromptFile> = {}): PromptFile {
@@ -66,7 +61,6 @@ describe("TabsBar", () => {
     vi.mocked(activatePromptFile).mockResolvedValue(undefined);
     vi.mocked(closePromptFileTab).mockResolvedValue(undefined);
     vi.mocked(createPromptFile).mockResolvedValue("new-file-id");
-    vi.mocked(renamePromptFile).mockResolvedValue(true);
   });
 
   describe("Рендеринг вкладок", () => {
@@ -257,33 +251,65 @@ describe("TabsBar", () => {
       await fireEvent.keyDown(input, { key: "Escape" });
 
       await waitFor(() => {
-        expect(
-          screen.queryByPlaceholderText("Имя файла..."),
-        ).toBeNull();
+        expect(screen.queryByPlaceholderText("Имя файла...")).toBeNull();
       });
 
       expect(createPromptFile).not.toHaveBeenCalled();
     });
   });
 
-  describe("Переименование файла", () => {
-    it("переименовывает файл по Enter", async () => {
+  describe("Клавиатура", () => {
+    it("Enter на вкладке переключает на файл", async () => {
       const file1 = makeFile({ id: "f1", name: "main" });
-
-      setProject([file1]);
-      openFileIds.set(["f1"]);
+      const file2 = makeFile({ id: "f2", name: "second" });
+      setProject([file1, file2]);
+      openFileIds.set(["f1", "f2"]);
       activeFileId.set("f1");
 
       render(TabsBar);
+      const tab = await screen.findByRole("tab", { name: "Вкладка second" });
+      await fireEvent.keyDown(tab, { key: "Enter" });
 
-      await screen.findByText("main");
+      expect(activatePromptFile).toHaveBeenCalledWith("f2");
+    });
+  });
 
-      // Двойной клик для начала переименования не предусмотрен в TabsBar,
-      // переименование запускается через двойной клик в PromptsSection.
-      // В TabsBar нет кнопки переименования, поэтому этот тест
-      // проверяет, что логика переименования существует.
-      // Реальное переименование в TabsBar происходит через двойной клик,
-      // но в текущей реализации его нет — переименование только в сайдбаре.
+  describe("Переименование вкладки", () => {
+    it("двойной клик открывает поле, Enter сохраняет имя", async () => {
+      setProject([makeFile({ id: "f1", name: "main" })]);
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+      render(TabsBar);
+
+      await fireEvent.dblClick(
+        await screen.findByRole("tab", { name: "Вкладка main" }),
+      );
+      const input = screen.getByRole("textbox", {
+        name: "Новое имя файла main",
+      });
+      await fireEvent.input(input, { target: { value: "renamed" } });
+      await fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(renamePromptFile).toHaveBeenCalledWith("f1", "renamed");
+    });
+
+    it("Escape отменяет переименование", async () => {
+      setProject([makeFile({ id: "f1", name: "main" })]);
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+      render(TabsBar);
+
+      const tab = await screen.findByRole("tab", { name: "Вкладка main" });
+      await fireEvent.keyDown(tab, { key: "F2" });
+      const input = screen.getByRole("textbox", {
+        name: "Новое имя файла main",
+      });
+      await fireEvent.keyDown(input, { key: "Escape" });
+
+      expect(
+        screen.queryByRole("textbox", { name: "Новое имя файла main" }),
+      ).toBeNull();
+      expect(renamePromptFile).not.toHaveBeenCalled();
     });
   });
 });

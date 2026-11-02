@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { notifyUndo } from "$lib/notify";
   import { dropzone } from "$lib/actions/dropzone";
 
   import {
@@ -30,7 +31,7 @@
   import { processFile } from "../../utils/files";
   import {
     addAttachmentsToProject,
-    removeAttachmentFromProject,
+    removeAttachmentWithUndo,
     removeAttachmentsFromProject,
   } from "../../utils/projectActions";
 
@@ -112,7 +113,9 @@
     errorMessage = null;
 
     try {
-      await removeAttachmentFromProject(id);
+      const name = $attachedFiles.find((f) => f.id === id)?.name ?? "файл";
+      const undo = await removeAttachmentWithUndo(id);
+      if (undo) notifyUndo(`Вложение «${name}» удалено`, undo);
     } catch (error) {
       console.error("Failed to remove attachment:", error);
       errorMessage = getErrorMessage(error, "Не удалось удалить файл.");
@@ -271,7 +274,9 @@
           <p class="text-xs font-medium text-[var(--text-tertiary)]">
             Нет вложений
           </p>
-          <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-dim)]">
+          <p
+            class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]"
+          >
             Загрузите файлы или перетащите их сюда
           </p>
           <button

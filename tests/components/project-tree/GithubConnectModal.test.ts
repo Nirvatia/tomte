@@ -1,11 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 
 import GithubConnectModal from "../../../src/components/project-tree/GithubConnectModal.svelte";
@@ -84,9 +79,7 @@ describe("GithubConnectModal", () => {
     it("показывает заголовок", async () => {
       render(GithubConnectModal, { props: { isOpen: true } });
 
-      expect(
-        await screen.findByText("Подключить GitHub"),
-      ).toBeInTheDocument();
+      expect(await screen.findByText("Подключить GitHub")).toBeInTheDocument();
     });
   });
 
@@ -288,9 +281,7 @@ describe("GithubConnectModal", () => {
     });
 
     it("показывает ошибку при сбое загрузки", async () => {
-      vi.mocked(fetchGithubTree).mockRejectedValue(
-        new Error("Network error"),
-      );
+      vi.mocked(fetchGithubTree).mockRejectedValue(new Error("Network error"));
 
       render(GithubConnectModal, { props: { isOpen: true } });
 
@@ -302,9 +293,7 @@ describe("GithubConnectModal", () => {
 
       await fireEvent.click(screen.getByRole("button", { name: "Подключить" }));
 
-      expect(
-        await screen.findByText("Network error"),
-      ).toBeInTheDocument();
+      expect(await screen.findByText("Network error")).toBeInTheDocument();
     });
 
     it("показывает состояние загрузки", async () => {

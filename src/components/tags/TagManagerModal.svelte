@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { notifyUndo } from "$lib/notify";
   import {
     Pencil,
     Plus,
@@ -23,6 +24,7 @@
     addTag,
     loadTags,
     removeTags,
+    removeTagWithUndo,
     sortTags,
     toggleFavorite,
     updateTag,
@@ -183,19 +185,18 @@
     bumpTagsVersion();
   }
 
-  async function handleDeleteOne(tag: Tag) {
-    const confirmed = await requestConfirm({
-      title: "Удалить тег?",
-      message: `Тег «${tag.name}» будет удалён.\nЭто действие нельзя отменить.`,
-      confirmText: "Удалить",
-      cancelText: "Отмена",
-      danger: true,
-    });
-    if (!confirmed) return;
-    removeTags(new Set([tag.id]));
+  // Один тег удаляется сразу, с отменой в уведомлении (решение этапа 5).
+  function handleDeleteOne(tag: Tag) {
+    const undo = removeTagWithUndo(tag.id);
     selectedIds = new Set([...selectedIds].filter((id) => id !== tag.id));
     refresh();
     bumpTagsVersion();
+    if (!undo) return;
+    notifyUndo(`Тег «${tag.name}» удалён`, () => {
+      undo();
+      refresh();
+      bumpTagsVersion();
+    });
   }
 
   function handleToggleFavorite(tag: Tag) {
@@ -303,8 +304,7 @@
               placeholder="Введите полный текст инструкции, который будет вставляться в промпт..."
               rows="8"
               class="w-full resize-none rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
-              maxlength="5000"
-            ></textarea>
+              maxlength="5000"></textarea>
             <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
               Этот текст будет вставлен в редактор при клике на тег (макс. 5000
               символов)

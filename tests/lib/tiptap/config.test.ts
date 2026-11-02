@@ -17,9 +17,7 @@ describe("buildExtensions", () => {
 
   it("содержит StarterKit с нужными уровнями заголовков", () => {
     const extensions = buildExtensions();
-    const starterKit = extensions.find(
-      (ext: any) => ext.name === "starterKit",
-    );
+    const starterKit = extensions.find((ext: any) => ext.name === "starterKit");
     expect(starterKit).toBeDefined();
   });
 

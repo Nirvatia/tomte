@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { get } from "svelte/store";
 
 import {
@@ -10,6 +10,9 @@ import {
   attachedFiles,
   totalFilesCount,
   selectedFilesCount,
+  projectTreeNodes,
+  projectTreeRootName,
+  projectTreeString,
 } from "../../src/stores";
 import type { Project } from "../../src/types";
 
@@ -19,11 +22,29 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     id: "p1",
     name: "Test",
     files: [
-      { id: "f1", name: "main.md", content: "hello", createdAt: now, updatedAt: now },
-      { id: "f2", name: "second.md", content: "world", createdAt: now, updatedAt: now },
+      {
+        id: "f1",
+        name: "main.md",
+        content: "hello",
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: "f2",
+        name: "second.md",
+        content: "world",
+        createdAt: now,
+        updatedAt: now,
+      },
     ],
     attachments: [
-      { id: "a1", name: "img.png", size: 100, type: "image", dataUrl: "data:..." },
+      {
+        id: "a1",
+        name: "img.png",
+        size: 100,
+        type: "image",
+        dataUrl: "data:...",
+      },
       { id: "a2", name: "doc.txt", size: 50, type: "text", content: "text" },
     ],
     totalSize: 1000,
@@ -113,5 +134,57 @@ describe("stores/index derived stores", () => {
       selectedFileIds.set(new Set(["a1", "a2"]));
       expect(get(selectedFilesCount)).toBe(2);
     });
+  });
+});
+describe("производные сторы проекта", () => {
+  const tree = {
+    rootName: "repo",
+    nodes: [
+      { name: "a.ts", path: "a.ts", type: "file" as const, children: [] },
+    ],
+    fileCount: 1,
+  };
+  const baseProject = {
+    id: "p",
+    name: "P",
+    files: [],
+    attachments: [],
+    totalSize: 0,
+    createdAt: "",
+    updatedAt: "",
+    projectTreeSource: tree,
+  };
+
+  it("дерево выводится из активного проекта", () => {
+    activeProject.set(baseProject);
+    expect(get(projectTreeRootName)).toBe("repo");
+    expect(get(projectTreeNodes)).toBe(tree.nodes);
+    expect(get(projectTreeString)).toBe("repo/\na.ts\n");
+
+    activeProject.set(null);
+    expect(get(projectTreeNodes)).toEqual([]);
+    expect(get(projectTreeString)).toBe("");
+  });
+
+  it("не оповещает подписчиков дерева и вложений, если менялся только текст", () => {
+    activeProject.set(baseProject);
+    const treeCalls = vi.fn();
+    const attachmentCalls = vi.fn();
+    const unsubTree = projectTreeNodes.subscribe(treeCalls);
+    const unsubAttachments = attachedFiles.subscribe(attachmentCalls);
+
+    // Так выглядит автосохранение: новый объект проекта, дерево и вложения те же.
+    activeProject.set({ ...baseProject, updatedAt: "later" });
+    activeProject.set({ ...baseProject, updatedAt: "even later" });
+
+    expect(treeCalls).toHaveBeenCalledTimes(1);
+    expect(attachmentCalls).toHaveBeenCalledTimes(1);
+
+    activeProject.set({ ...baseProject, attachments: [] });
+    expect(attachmentCalls).toHaveBeenCalledTimes(2);
+
+    unsubTree();
+    unsubAttachments();
+    activeProject.set(null);
   });
 });

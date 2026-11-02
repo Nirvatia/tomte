@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { notifyUndo } from "$lib/notify";
   import {
     CircleAlert,
     FolderOpen,
@@ -29,7 +30,7 @@
   import {
     addAttachmentsToProject,
     pruneSelectedFileIds,
-    removeAttachmentFromProject,
+    removeAttachmentWithUndo,
     removeSelectedAttachmentsFromProject,
   } from "../../utils/projectActions";
 
@@ -110,7 +111,9 @@
     errorMessage = null;
 
     try {
-      await removeAttachmentFromProject(id);
+      const name = $attachedFiles.find((f) => f.id === id)?.name ?? "файл";
+      const undo = await removeAttachmentWithUndo(id);
+      if (undo) notifyUndo(`Вложение «${name}» удалено`, undo);
       if (previewFile?.id === id) {
         previewFile = null;
       }

@@ -3,6 +3,7 @@ import type { AttachedFile, ExportFormat } from "../../types";
 const LIMITS = {
   pdf: { maxFiles: 20, maxChars: 300000 },
   docx: { maxFiles: 20, maxChars: 300000 },
+  "docx-gost": { maxFiles: 20, maxChars: 300000 },
   png: { maxFiles: 10, maxChars: 150000 },
 };
 

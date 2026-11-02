@@ -13,12 +13,17 @@ import CharacterCount from "@tiptap/extension-character-count";
 import type { Extensions } from "@tiptap/core";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { FontSize } from "./extensions/FontSize";
+import { ProjectTreeBlock } from "./extensions/ProjectTreeBlock";
 
 export function buildExtensions(): Extensions {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
-      // History включён по умолчанию — даёт Undo/Redo
+      // History включён по умолчанию — даёт Undo/Redo.
+      // StarterKit 3 сам включает link и underline; отключаем их,
+      // потому что ниже они подключены со своими настройками.
+      link: false,
+      underline: false,
     }),
     Underline,
     TextStyle,
@@ -48,5 +53,6 @@ export function buildExtensions(): Extensions {
     TableCell,
     TableHeader,
     CharacterCount,
+    ProjectTreeBlock,
   ];
 }

@@ -2,7 +2,13 @@
   import { onDestroy } from "svelte";
   import { get } from "svelte/store";
   import type { Editor } from "@tiptap/core";
-  import { CircleCheck, FileText, Save, Upload } from "@lucide/svelte";
+  import {
+    CircleCheck,
+    FileText,
+    Save,
+    TriangleAlert,
+    Upload,
+  } from "@lucide/svelte";
 
   import TiptapEditor from "./TiptapEditor.svelte";
   import PreviewModal from "../preview/PreviewModal.svelte";
@@ -16,12 +22,17 @@
     activeProject,
     editorHtml,
     pendingSaveController,
-    projectSaveError,
   } from "../../stores";
 
-  import { createFlushableAsync } from "../../utils";
-  import { processFile } from "../../utils/files";
-  import { saveProject } from "../../utils/projectDb";
+  import { createFlushableAsync, getErrorMessage } from "../../utils";
+  import { notifyError } from "$lib/notify";
+  import type { Project } from "../../types";
+  import { getPlaceholder, processFile } from "../../utils/files";
+  import {
+    estimatePromptFileSize,
+    saveProject,
+    SAVE_META,
+  } from "../../utils/projectDb";
   import { addAttachmentsToProject } from "../../utils/projectActions";
 
   interface Props {
@@ -34,8 +45,12 @@
   let currentHtml = $state("");
   let dropZoneActive = $state(false);
   let editorInstance: Editor | null = $state(null);
-  let saveStatus = $state<"idle" | "saving" | "saved" | "error">("idle");
-  let saveStatusTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * dirty — есть изменения, автосохранение через 800 мс; saving — пишем в базу;
+   * saved — всё в базе; error — запись не удалась, данные пока только в памяти.
+   */
+  let saveStatus = $state<"saved" | "dirty" | "saving" | "error">("saved");
+  let saveErrorMessage = $state("");
 
   let loadedFileId: string | null = $state(null);
   let pendingSave: { fileId: string; content: string } | null = $state(null);
@@ -48,7 +63,7 @@
       }
       currentHtml = file.content;
       loadedFileId = file.id;
-      charCount = 0;
+      // charCount обновит TiptapEditor через onContentLoaded после загрузки текста.
     } else if (!file && loadedFileId !== null) {
       if (pendingSave) {
         void debouncedSaveToProject.flush();
@@ -59,14 +74,29 @@
     }
   });
 
-  function markSaved() {
-    if (saveStatusTimer) {
-      clearTimeout(saveStatusTimer);
+  /** Пишет метаданные проекта (промпты) и обновляет статус. */
+  async function persist(project: Project) {
+    const wasError = saveStatus === "error";
+    saveStatus = "saving";
+    try {
+      // Пишем только метаданные и промпты: вложения и дерево не трогаем.
+      await saveProject(project, SAVE_META);
+      // Если пока писали, текст снова поменялся, статус остаётся «не сохранено».
+      saveStatus = pendingSave ? "dirty" : "saved";
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      saveStatus = "error";
+      saveErrorMessage = getErrorMessage(error, "Не удалось сохранить проект");
+      // Одно уведомление на серию ошибок, а не на каждое нажатие клавиши.
+      if (!wasError) {
+        notifyError(`Текст не сохранён: ${saveErrorMessage}`, retrySave);
+      }
     }
-    saveStatus = "saved";
-    saveStatusTimer = setTimeout(() => {
-      saveStatus = "idle";
-    }, 2000);
+  }
+
+  function retrySave() {
+    const project = get(activeProject);
+    if (project) void persist(project);
   }
 
   async function savePendingNow() {
@@ -76,35 +106,28 @@
 
     pendingSave = null;
 
-    const updatedFiles = project.files.map((f) =>
-      f.id === saveData.fileId
-        ? {
-            ...f,
-            content: saveData.content,
-            updatedAt: new Date().toISOString(),
-          }
-        : f,
-    );
+    const target = project.files.find((f) => f.id === saveData.fileId);
+    if (!target) return;
 
+    const now = new Date().toISOString();
+    const updatedFile = {
+      ...target,
+      content: saveData.content,
+      updatedAt: now,
+    };
     const updatedProject = {
       ...project,
-      files: updatedFiles,
-      updatedAt: new Date().toISOString(),
+      files: project.files.map((f) => (f.id === target.id ? updatedFile : f)),
+      updatedAt: now,
+      // Пересчитываем размер по разнице, а не по всему проекту.
+      totalSize:
+        project.totalSize -
+        estimatePromptFileSize(target) +
+        estimatePromptFileSize(updatedFile),
     };
 
     activeProject.set(updatedProject);
-
-    try {
-      saveStatus = "saving";
-      await saveProject(updatedProject);
-      markSaved();
-    } catch (error) {
-      console.error("Failed to save project:", error);
-      saveStatus = "error";
-      projectSaveError.set(
-        error instanceof Error ? error.message : "Не удалось сохранить проект",
-      );
-    }
+    await persist(updatedProject);
   }
 
   const debouncedSaveToProject = createFlushableAsync(savePendingNow, 800);
@@ -119,14 +142,15 @@
   });
 
   onDestroy(() => {
-    if (saveStatusTimer) {
-      clearTimeout(saveStatusTimer);
-    }
     void debouncedSaveToProject.flush();
   });
 
-  function handleBeforeUnload() {
+  function handleBeforeUnload(event: BeforeUnloadEvent) {
     void debouncedSaveToProject.flush();
+    // Дождаться асинхронной записи браузер не даст, поэтому предупреждаем.
+    if (saveStatus !== "saved") {
+      event.preventDefault();
+    }
   }
 
   $effect(() => {
@@ -153,6 +177,7 @@
     }
 
     pendingSave = { fileId, content: data.html };
+    if (saveStatus !== "error") saveStatus = "dirty";
     debouncedSaveToProject();
   }
 
@@ -169,38 +194,40 @@
         await addAttachmentsToProject([attachedFile]);
       } catch (error) {
         console.error("Error processing dropped file:", error);
+        notifyError(
+          `«${file.name}»: ${getErrorMessage(error, "не удалось добавить")}`,
+        );
       }
     }
   }
 
-  async function handlePaste(event: ClipboardEvent) {
-    const items = event.clipboardData?.items;
-    if (!items) return;
-
-    const imageFiles: File[] = [];
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.type.indexOf("image") !== -1) {
-        const file = item.getAsFile();
-        if (file) imageFiles.push(file);
-      }
-    }
-
-    if (imageFiles.length > 0) {
-      event.preventDefault();
-      for (const file of imageFiles) {
-        try {
-          const attachedFile = await processFile(file);
-          await addAttachmentsToProject([attachedFile]);
-        } catch (error) {
-          console.error("Error processing pasted image:", error);
+  /**
+   * Вставленные картинки становятся вложениями, а на место курсора встаёт
+   * плейсхолдер [IMAGE_n: имя], как при клике по вложению в панели.
+   */
+  async function handlePasteImages(files: File[]) {
+    for (const file of files) {
+      try {
+        const attached = await processFile(file);
+        await addAttachmentsToProject([attached]);
+        const all = get(activeProject)?.attachments ?? [];
+        const added = all.find((f) => f.id === attached.id);
+        if (added && editorInstance) {
+          editorInstance
+            .chain()
+            .focus()
+            .insertContent(getPlaceholder(added, all) + " ")
+            .run();
         }
+      } catch (error) {
+        console.error("Error processing pasted image:", error);
+        notifyError(getErrorMessage(error, "Не удалось вставить картинку"));
       }
     }
   }
 </script>
 
-<svelte:window onpaste={handlePaste} onbeforeunload={handleBeforeUnload} />
+<svelte:window onbeforeunload={handleBeforeUnload} />
 
 {#if $activeFile}
   <div class="editor-canvas flex h-full flex-col overflow-hidden p-3">
@@ -217,6 +244,8 @@
           content={currentHtml}
           onReady={handleReady}
           onUpdate={handleUpdate}
+          onContentLoaded={(count) => (charCount = count)}
+          onPasteImages={handlePasteImages}
         />
       </div>
 
@@ -237,22 +266,38 @@
     <div
       class="mt-3 flex shrink-0 items-center justify-between font-mono text-xs text-[var(--text-tertiary)]"
     >
-      <span class="flex items-center gap-1.5">
+      <span
+        class="flex items-center gap-1.5"
+        role="status"
+        aria-label="Статус сохранения"
+      >
         {#if saveStatus === "saving"}
           <Save size={13} class="animate-pulse text-[var(--warning)]" />
-          <span class="text-[var(--accent-hover)]">Сохранение...</span>
+          <span class="text-[var(--accent-hover)]">Сохранение…</span>
+        {:else if saveStatus === "error"}
+          <TriangleAlert size={13} class="text-[var(--error)]" />
+          <span class="text-[var(--error)]" title={saveErrorMessage}>
+            Не сохранено: {saveErrorMessage}
+          </span>
+          <button
+            type="button"
+            onclick={retrySave}
+            class="ml-1 rounded px-1.5 py-0.5 text-[var(--text-secondary)] underline hover:text-[var(--text-primary)]"
+          >
+            Повторить
+          </button>
         {:else if saveStatus === "saved"}
           <CircleCheck size={13} class="text-[var(--success)]" />
           <span class="text-[var(--success)]">Сохранено</span>
         {:else}
-          <span
-            class="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--success)] shadow-[0_0_7px_rgba(52,211,153,0.8)]"
-          ></span>
-          <span>Автосохранение включено</span>
+          <span class="h-1.5 w-1.5 rounded-full bg-[var(--warning)]"></span>
+          <span title="Сохранится автоматически через секунду"
+            >Не сохранено</span
+          >
         {/if}
       </span>
       <span class="flex items-center gap-3">
-        <span class="text-[var(--text-dim)]">{$activeFile.name}</span>
+        <span class="text-[var(--text-tertiary)]">{$activeFile.name}</span>
         <span>{charCount} символов</span>
       </span>
     </div>

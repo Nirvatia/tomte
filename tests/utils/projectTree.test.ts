@@ -8,6 +8,7 @@ import {
   readDirectoryViaInput,
   hasFileSystemAccess,
   getSelectedTreeFilesAsAttachments,
+  filterTree,
   type TreeNode,
 } from "../../src/utils/projectTree";
 import { fetchGithubFileContent } from "../../src/utils/github";
@@ -78,9 +79,7 @@ describe("projectTree", () => {
         },
       ];
 
-      expect(treeToText(nodes)).toBe(
-        "src\n└── index.ts\nREADME.md\n",
-      );
+      expect(treeToText(nodes)).toBe("src\n└── index.ts\nREADME.md\n");
     });
   });
 
@@ -238,9 +237,7 @@ describe("projectTree", () => {
         },
       ];
 
-      const result = await getSelectedTreeFilesAsAttachments(nodes, [
-        "a.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(nodes, ["a.txt"]);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
@@ -269,9 +266,10 @@ describe("projectTree", () => {
         },
       };
 
-      const result = await getSelectedTreeFilesAsAttachments([node], [
-        "gh.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(
+        [node],
+        ["gh.txt"],
+      );
 
       expect(fetchGithubFileContent).toHaveBeenCalledWith(node);
       expect(result).toHaveLength(1);
@@ -287,9 +285,10 @@ describe("projectTree", () => {
         children: [],
       };
 
-      const result = await getSelectedTreeFilesAsAttachments([node], [
-        "empty.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(
+        [node],
+        ["empty.txt"],
+      );
 
       expect(result).toEqual([]);
     });
@@ -307,11 +306,78 @@ describe("projectTree", () => {
         fileRef: badFileHandle as any,
       };
 
-      const result = await getSelectedTreeFilesAsAttachments([node], [
-        "bad.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(
+        [node],
+        ["bad.txt"],
+      );
 
       expect(result).toEqual([]);
     });
+  });
+});
+
+describe("filterTree", () => {
+  const tree: TreeNode[] = [
+    {
+      name: "src",
+      path: "src",
+      type: "directory",
+      children: [
+        {
+          name: "Button.svelte",
+          path: "src/Button.svelte",
+          type: "file",
+          children: [],
+        },
+        {
+          name: "utils",
+          path: "src/utils",
+          type: "directory",
+          children: [
+            {
+              name: "date.ts",
+              path: "src/utils/date.ts",
+              type: "file",
+              children: [],
+            },
+            {
+              name: "money.ts",
+              path: "src/utils/money.ts",
+              type: "file",
+              children: [],
+            },
+          ],
+        },
+      ],
+    },
+    { name: "README.md", path: "README.md", type: "file", children: [] },
+  ];
+
+  it("пустой запрос возвращает дерево как есть", () => {
+    expect(filterTree(tree, "  ").nodes).toBe(tree);
+  });
+
+  it("оставляет совпавшие файлы вместе с их папками, регистр не важен", () => {
+    const { nodes, matches } = filterTree(tree, "DATE");
+    expect(matches).toBe(1);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0].children[0].name).toBe("utils");
+    expect(nodes[0].children[0].children.map((n) => n.name)).toEqual([
+      "date.ts",
+    ]);
+  });
+
+  it("совпадение по имени папки показывает её целиком", () => {
+    const { nodes, matches } = filterTree(tree, "utils");
+    expect(matches).toBe(2);
+    expect(nodes[0].children[0].children).toHaveLength(2);
+  });
+
+  it("ищет и по пути", () => {
+    expect(filterTree(tree, "src/button").matches).toBe(1);
+  });
+
+  it("ничего не нашлось", () => {
+    expect(filterTree(tree, "zzz")).toEqual({ nodes: [], matches: 0 });
   });
 });

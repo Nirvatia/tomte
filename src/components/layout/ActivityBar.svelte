@@ -1,6 +1,10 @@
 <script lang="ts">
   import { FolderKanban, Tag, Map } from "@lucide/svelte";
-  import { isProjectManagerOpen, isTagManagerOpen, isCodeMapOpen } from "../../stores";
+  import {
+    isProjectManagerOpen,
+    isTagManagerOpen,
+    isCodeMapOpen,
+  } from "../../stores";
 </script>
 
 <div

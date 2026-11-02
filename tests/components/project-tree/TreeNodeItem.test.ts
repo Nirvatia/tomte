@@ -1,18 +1,11 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { get } from "svelte/store";
 import TreeNodeItem from "../../../src/components/project-tree/TreeNodeItem.svelte";
-import {
-  selectedProjectFiles,
-  previewFileFromTree,
-} from "../../../src/stores";
+import type { TreeNode } from "../../../src/utils/projectTree";
+import { selectedProjectFiles, previewFileFromTree } from "../../../src/stores";
 import { requestAlert } from "../../../src/stores/confirm";
 import { fetchGithubFileContent } from "../../../src/utils/github";
 
@@ -41,14 +34,14 @@ function makeEditorMock() {
   };
 }
 
-const fileNode = {
+const fileNode: TreeNode = {
   name: "file.txt",
   path: "src/file.txt",
   type: "file",
   children: [],
 };
 
-const directoryNode = {
+const directoryNode: TreeNode = {
   name: "src",
   path: "src",
   type: "directory",
@@ -283,7 +276,7 @@ describe("TreeNodeItem", () => {
     it("показывает ошибку, если файл не удалось прочитать", async () => {
       const badFileHandle = {
         getFile: vi.fn().mockRejectedValue(new Error("read error")),
-      };
+      } as unknown as FileSystemFileHandle;
 
       render(TreeNodeItem, {
         props: {

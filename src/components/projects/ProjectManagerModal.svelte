@@ -14,13 +14,14 @@
     X,
   } from "@lucide/svelte";
 
-  import type { Project } from "../../types";
-
   import { activeProject, isProjectManagerOpen } from "../../stores";
   import { requestAlert, requestConfirm } from "../../stores/confirm";
 
   import { formatFileSize, getErrorMessage, pluralize } from "../../utils";
-  import { calculateProjectSize, loadAllProjects } from "../../utils/projectDb";
+  import {
+    loadProjectSummaries,
+    type ProjectSummary,
+  } from "../../utils/projectDb";
   import {
     createNewProject,
     deleteProjectById,
@@ -29,7 +30,7 @@
     switchProject,
   } from "../../utils/projectActions";
 
-  let projects = $state<Project[]>([]);
+  let projects = $state<ProjectSummary[]>([]);
   let isLoading = $state(false);
   let searchQuery = $state("");
   let renamingProjectId = $state<string | null>(null);
@@ -58,10 +59,7 @@
     isLoading = true;
     errorMessage = null;
     try {
-      const all = await loadAllProjects();
-      projects = [...all]
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-        .map((p) => ({ ...p, totalSize: calculateProjectSize(p) }));
+      projects = await loadProjectSummaries();
     } catch (error) {
       console.error("Failed to load projects:", error);
       projects = [];
@@ -175,7 +173,7 @@
     }
   }
 
-  function startRename(project: Project, event: MouseEvent) {
+  function startRename(project: ProjectSummary, event: MouseEvent) {
     event.stopPropagation();
     if (actionInProgress) return;
     errorMessage = null;
@@ -212,7 +210,7 @@
     renameValue = "";
   }
 
-  async function handleDelete(project: Project, event: MouseEvent) {
+  async function handleDelete(project: ProjectSummary, event: MouseEvent) {
     event.stopPropagation();
     if (actionInProgress) return;
     if (projects.length <= 1) return;
@@ -245,7 +243,7 @@
     }
   }
 
-  async function handleDuplicate(project: Project, event: MouseEvent) {
+  async function handleDuplicate(project: ProjectSummary, event: MouseEvent) {
     event.stopPropagation();
     if (actionInProgress) return;
     actionInProgress = true;
@@ -493,9 +491,9 @@
                 >
                   <span class="flex items-center gap-1">
                     <FileText size={12} />
-                    {project.files.length}
+                    {project.fileCount}
                     {pluralize(
-                      project.files.length,
+                      project.fileCount,
                       "промпт",
                       "промпта",
                       "промптов",
@@ -503,15 +501,15 @@
                   </span>
                   <span class="flex items-center gap-1">
                     <Paperclip size={12} />
-                    {project.attachments.length}
+                    {project.attachmentCount}
                     {pluralize(
-                      project.attachments.length,
+                      project.attachmentCount,
                       "вложение",
                       "вложения",
                       "вложений",
                     )}
                   </span>
-                  {#if project.projectTreeSource}
+                  {#if project.hasTree}
                     <span class="flex items-center gap-1">
                       <FolderTree size={12} />
                       дерево
@@ -525,42 +523,42 @@
                 </div>
 
                 {#if renamingProjectId !== project.id}
-                <div
-                  class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                >
-                  <button
-                    type="button"
-                    onclick={(event) => startRename(project, event)}
-                    disabled={actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                    title="Переименовать"
-                    aria-label="Переименовать проект {project.name}"
+                  <div
+                    class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                   >
-                    <Pencil size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={(event) => handleDuplicate(project, event)}
-                    disabled={actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                    title="Дублировать"
-                    aria-label="Дублировать проект {project.name}"
-                  >
-                    <Copy size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={(event) => handleDelete(project, event)}
-                    disabled={projects.length <= 1 || actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
-                    title={projects.length <= 1
-                      ? "Нельзя удалить последний проект"
-                      : "Удалить"}
-                    aria-label="Удалить проект {project.name}"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onclick={(event) => startRename(project, event)}
+                      disabled={actionInProgress}
+                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                      title="Переименовать"
+                      aria-label="Переименовать проект {project.name}"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onclick={(event) => handleDuplicate(project, event)}
+                      disabled={actionInProgress}
+                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                      title="Дублировать"
+                      aria-label="Дублировать проект {project.name}"
+                    >
+                      <Copy size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onclick={(event) => handleDelete(project, event)}
+                      disabled={projects.length <= 1 || actionInProgress}
+                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
+                      title={projects.length <= 1
+                        ? "Нельзя удалить последний проект"
+                        : "Удалить"}
+                      aria-label="Удалить проект {project.name}"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 {/if}
               </div>
             {/each}

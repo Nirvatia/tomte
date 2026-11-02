@@ -24,11 +24,16 @@
     node: TreeNode;
     depth?: number;
     editor?: Editor | null;
+    /** Раскрыть папку независимо от того, что выбрал пользователь (при поиске). */
+    forceOpen?: boolean;
   }
 
-  let { node, depth = 0, editor = null }: Props = $props();
+  let { node, depth = 0, editor = null, forceOpen = false }: Props = $props();
 
-  let isOpen = $state(node.type === "directory");
+  // Читается только для папок (все проверки идут через node.type), поэтому просто true:
+  // папки по умолчанию раскрыты.
+  let userOpen = $state(true);
+  const isOpen = $derived(forceOpen || userOpen);
   let isPreviewLoading = $state(false);
 
   function getAllFilePaths(n: TreeNode): string[] {
@@ -140,7 +145,7 @@
   function toggle(event: Event) {
     event.stopPropagation();
     if (node.type === "directory") {
-      isOpen = !isOpen;
+      userOpen = !userOpen;
     }
   }
 </script>
@@ -200,7 +205,7 @@
     <button
       type="button"
       onclick={handleInsertLink}
-      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:opacity-100"
+      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:opacity-100 group-focus-within:opacity-100"
       title="Вставить ссылку на файл"
       aria-label="Вставить ссылку на файл {node.name}"
     >
@@ -211,7 +216,7 @@
       type="button"
       onclick={handlePreview}
       disabled={isPreviewLoading}
-      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] group-hover:opacity-100 disabled:pointer-events-none"
+      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] group-hover:opacity-100 group-focus-within:opacity-100 disabled:pointer-events-none"
       title="Просмотреть содержимое"
       aria-label="Просмотреть содержимое {node.name}"
     >
@@ -227,7 +232,7 @@
 {#if node.type === "directory" && isOpen && node.children.length > 0}
   <div class="ml-4 border-l border-[var(--border)]">
     {#each node.children as child (child.path)}
-      <TreeNodeItem node={child} depth={depth + 1} {editor} />
+      <TreeNodeItem node={child} depth={depth + 1} {editor} {forceOpen} />
     {/each}
   </div>
 {/if}

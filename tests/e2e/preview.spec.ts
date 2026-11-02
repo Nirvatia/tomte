@@ -33,9 +33,7 @@ test.describe("Предпросмотр", () => {
     ).toContainText("Тестовый контент для предпросмотра");
 
     // Закрываем предпросмотр
-    await page
-      .getByRole("button", { name: "Закрыть предпросмотр" })
-      .click();
+    await page.getByRole("button", { name: "Закрыть предпросмотр" }).click();
 
     await expect(
       page.getByRole("dialog", { name: "Предпросмотр промпта" }),

@@ -28,15 +28,16 @@ test.describe("Редактор", () => {
       name: "Файлы промптов",
     });
 
-    await expect(tablist).toBeVisible({ timeout: 15_000 });
+    // Ждём загрузки проекта: tablist виден сразу после SSR,
+    // но кнопки оживают только после гидрации и загрузки проекта.
+    await expect(
+      tablist.getByRole("tab", { name: "Вкладка main" }),
+    ).toBeVisible({ timeout: 15_000 });
 
     const createButton = tablist.getByRole("button", {
       name: "Создать новый файл промпта",
     });
     await createButton.click();
-
-    // Даём Svelte время обновить DOM
-    await page.waitForTimeout(500);
 
     const nameInput = page.locator('input[placeholder="Имя файла..."]');
     await expect(nameInput).toBeVisible({ timeout: 10_000 });

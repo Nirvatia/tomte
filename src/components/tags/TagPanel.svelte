@@ -4,18 +4,11 @@
   import type { Editor } from "@tiptap/core";
   import type { Tag } from "../../types";
 
-  import { isTagManagerOpen, tagsVersion } from "../../stores";
-  import { requestConfirm } from "../../stores/confirm";
+  import { tagsVersion } from "../../stores";
 
   import TagCreateModal from "./TagCreateModal.svelte";
 
-  import {
-    addTag,
-    loadTags,
-    removeTag,
-    sortTags,
-    updateTag,
-  } from "../../utils/tags";
+  import { addTag, loadTags, sortTags, updateTag } from "../../utils/tags";
 
   interface Props {
     editor?: Editor | null;
@@ -31,8 +24,9 @@
     tags = loadTags();
   }
 
+  // Перечитываем теги при каждой смене версии (теги лежат в localStorage).
   $effect(() => {
-    $tagsVersion;
+    void $tagsVersion;
     refreshTags();
   });
 
@@ -45,23 +39,6 @@
       currentText.length > 0 && !currentText.endsWith("\n") ? "\n" : "";
     const textToInsert = prefix + tag.value + "\n";
     editor.chain().focus().insertContent(textToInsert).run();
-  }
-
-  async function handleDelete(event: MouseEvent, id: string) {
-    event.stopPropagation();
-    const tag = tags.find((t) => t.id === id);
-    if (!tag) return;
-    const confirmed = await requestConfirm({
-      title: "Удалить тег?",
-      message: `Тег «${tag.name}» будет удалён.\nЭто действие нельзя отменить.`,
-      confirmText: "Удалить",
-      cancelText: "Отмена",
-      danger: true,
-    });
-    if (!confirmed) return;
-    removeTag(id);
-    refreshTags();
-    tagsVersion.update((v) => v + 1);
   }
 
   function handleCreate(name: string, value: string) {

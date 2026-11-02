@@ -19,7 +19,9 @@ describe("validateExportLimits", () => {
     });
 
     it("пропускает любой объём текста", () => {
-      expect(() => validateExportLimits("md", makeFiles(1, 10_000_000))).not.toThrow();
+      expect(() =>
+        validateExportLimits("md", makeFiles(1, 10_000_000)),
+      ).not.toThrow();
     });
   });
 
@@ -29,12 +31,16 @@ describe("validateExportLimits", () => {
     });
 
     it("бросает ошибку при превышении количества файлов", () => {
-      expect(() => validateExportLimits("pdf", makeFiles(21))).toThrow("Слишком много файлов");
+      expect(() => validateExportLimits("pdf", makeFiles(21))).toThrow(
+        "Слишком много файлов",
+      );
       expect(() => validateExportLimits("pdf", makeFiles(21))).toThrow("PDF");
     });
 
     it("бросает ошибку при превышении объёма текста", () => {
-      expect(() => validateExportLimits("pdf", makeFiles(1, 400_000))).toThrow("Слишком большой объём");
+      expect(() => validateExportLimits("pdf", makeFiles(1, 400_000))).toThrow(
+        "Слишком большой объём",
+      );
     });
 
     it("подсказывает использовать Markdown", () => {
@@ -53,7 +59,9 @@ describe("validateExportLimits", () => {
     });
 
     it("бросает ошибку при превышении количества файлов", () => {
-      expect(() => validateExportLimits("docx", makeFiles(21))).toThrow("Слишком много файлов");
+      expect(() => validateExportLimits("docx", makeFiles(21))).toThrow(
+        "Слишком много файлов",
+      );
     });
   });
 
@@ -63,11 +71,15 @@ describe("validateExportLimits", () => {
     });
 
     it("бросает ошибку при превышении количества файлов", () => {
-      expect(() => validateExportLimits("png", makeFiles(11))).toThrow("Слишком много файлов");
+      expect(() => validateExportLimits("png", makeFiles(11))).toThrow(
+        "Слишком много файлов",
+      );
     });
 
     it("бросает ошибку при превышении объёма текста", () => {
-      expect(() => validateExportLimits("png", makeFiles(1, 200_000))).toThrow("Слишком большой объём");
+      expect(() => validateExportLimits("png", makeFiles(1, 200_000))).toThrow(
+        "Слишком большой объём",
+      );
     });
   });
 

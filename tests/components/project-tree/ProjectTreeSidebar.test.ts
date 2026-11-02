@@ -1,19 +1,13 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-} from "@testing-library/svelte";
+import { render, screen } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { tick } from "svelte";
-import { get } from "svelte/store";
 import ProjectTreeSidebar from "../../../src/components/project-tree/ProjectTreeSidebar.svelte";
 import {
   activeProject,
   isProjectTreeOpen,
   previewFileFromTree,
-  projectTreeNodes,
 } from "../../../src/stores";
 
 vi.mock("$app/environment", () => ({
@@ -72,25 +66,20 @@ vi.mock("../../../src/utils/projectTree", () => ({
   getTreeGithubConfig: vi.fn(() => undefined),
 }));
 
-vi.mock(
-  "../../../src/components/attachments/FileItem.svelte",
-  async () => {
-    const { default: FileItemMock } = await import(
-      "../../mocks/FileItem.mock.svelte"
-    );
+vi.mock("../../../src/components/attachments/FileItem.svelte", async () => {
+  const { default: FileItemMock } =
+    await import("../../mocks/FileItem.mock.svelte");
 
-    return {
-      default: FileItemMock,
-    };
-  },
-);
+  return {
+    default: FileItemMock,
+  };
+});
 
 vi.mock(
   "../../../src/components/attachments/FilePreviewModal.svelte",
   async () => {
-    const { default: FilePreviewModalMock } = await import(
-      "../../mocks/FilePreviewModal.mock.svelte"
-    );
+    const { default: FilePreviewModalMock } =
+      await import("../../mocks/FilePreviewModal.mock.svelte");
 
     return {
       default: FilePreviewModalMock,
@@ -101,9 +90,8 @@ vi.mock(
 vi.mock(
   "../../../src/components/project-tree/GithubConnectModal.svelte",
   async () => {
-    const { default: GithubConnectModalMock } = await import(
-      "../../mocks/GithubConnectModal.mock.svelte"
-    );
+    const { default: GithubConnectModalMock } =
+      await import("../../mocks/GithubConnectModal.mock.svelte");
 
     return {
       default: GithubConnectModalMock,
@@ -116,7 +104,6 @@ describe("ProjectTreeSidebar", () => {
     localStorage.clear();
 
     activeProject.set(null);
-    projectTreeNodes.set([]);
     previewFileFromTree.set(null);
     isProjectTreeOpen.set(true);
 

@@ -8,12 +8,8 @@ import {
   previewFileId,
   selectedFileIds,
   selectedProjectFiles,
-  projectTreeNodes,
-  projectTreeRootName,
-  projectTreeString,
   previewFileFromTree,
   editorHtml,
-  fileName,
   pendingSaveController,
 } from "../../src/stores";
 
@@ -21,6 +17,7 @@ import {
   createPromptFile,
   renamePromptFile,
   deletePromptFile,
+  deletePromptFiles,
   activatePromptFile,
   previewPromptFile,
   pinPromptFile,
@@ -28,10 +25,21 @@ import {
   addAttachmentsToProject,
   removeAttachmentFromProject,
   removeSelectedAttachmentsFromProject,
+  duplicateProjectById,
+  deletePromptFileWithUndo,
+  removeAttachmentWithUndo,
+  duplicatePromptFile,
+  closeOtherTabs,
+  activateAdjacentTab,
+  movePromptFile,
+  movePromptFileBy,
+  moveTab,
+  moveTabBy,
 } from "../../src/utils/projectActions";
 
 import {
   saveProject,
+  loadProject,
   checkProjectSize,
   calculateProjectSize,
 } from "../../src/utils/projectDb";
@@ -115,12 +123,8 @@ function resetStores(): void {
   previewFileId.set(null);
   selectedFileIds.set(new Set());
   selectedProjectFiles.set([]);
-  projectTreeNodes.set([]);
-  projectTreeRootName.set("");
-  projectTreeString.set("");
   previewFileFromTree.set(null);
   editorHtml.set("");
-  fileName.set("prompt");
   pendingSaveController.set(null);
 }
 
@@ -282,6 +286,56 @@ describe("projectActions", () => {
     });
   });
 
+  describe("deletePromptFiles", () => {
+    it("удаляет несколько файлов одним сохранением и переключает на соседнюю вкладку", async () => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+            promptFile("f4", "four"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2", "f3"]);
+      activeFileId.set("f2");
+
+      const result = await deletePromptFiles(["f2", "f3"]);
+
+      expect(result).toBe(true);
+      expect(saveProject).toHaveBeenCalledTimes(1);
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual(["f1", "f4"]);
+      expect(get(openFileIds)).toEqual(["f1"]);
+      expect(get(activeFileId)).toBe("f1");
+    });
+
+    it("при удалении всех файлов создаёт пустой main", async () => {
+      activeProject.set(
+        makeProject({
+          files: [promptFile("f1", "one"), promptFile("f2", "two")],
+        }),
+      );
+      openFileIds.set(["f1", "f2"]);
+      activeFileId.set("f1");
+
+      await deletePromptFiles(["f1", "f2"]);
+
+      const files = get(activeProject)!.files;
+      expect(files).toHaveLength(1);
+      expect(files[0].name).toBe("main");
+      expect(get(activeFileId)).toBe(files[0].id);
+      expect(get(openFileIds)).toEqual([files[0].id]);
+    });
+
+    it("ничего не делает, если таких файлов нет", async () => {
+      activeProject.set(makeProject());
+
+      expect(await deletePromptFiles(["missing"])).toBe(false);
+      expect(saveProject).not.toHaveBeenCalled();
+    });
+  });
+
   describe("activatePromptFile", () => {
     it("делает файл активным", async () => {
       activeProject.set(
@@ -339,6 +393,40 @@ describe("projectActions", () => {
 
       expect(get(previewFileId)).toBeNull();
       expect(get(activeFileId)).toBe("f2");
+    });
+
+    it("при быстрых кликах побеждает последний, даже если его flush закончился раньше", async () => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one.md"),
+            promptFile("f2", "two.md"),
+            promptFile("f3", "three.md"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+
+      // Первый flush медленный (идёт сохранение), второй мгновенный.
+      let releaseSlowFlush!: () => void;
+      const slowFlush = new Promise<void>((resolve) => {
+        releaseSlowFlush = resolve;
+      });
+      const flush = vi
+        .fn<() => Promise<void>>()
+        .mockReturnValueOnce(slowFlush)
+        .mockResolvedValue(undefined);
+      pendingSaveController.set({ flush });
+
+      const firstClick = previewPromptFile("f2");
+      const secondClick = previewPromptFile("f3");
+      await secondClick;
+      releaseSlowFlush();
+      await firstClick;
+
+      expect(get(activeFileId)).toBe("f3");
+      expect(get(previewFileId)).toBe("f3");
     });
   });
 
@@ -479,6 +567,44 @@ describe("projectActions", () => {
     });
   });
 
+  describe("что именно пишется в базу", () => {
+    it("добавление вложений пишет только новые вложения", async () => {
+      activeProject.set(
+        makeProject({ attachments: [attachment({ id: "old" })] }),
+      );
+      const added = attachment({ id: "new" });
+
+      await addAttachmentsToProject([added]);
+
+      expect(saveProject).toHaveBeenCalledWith(expect.anything(), {
+        attachments: { put: [added] },
+      });
+    });
+
+    it("удаление вложения удаляет только его", async () => {
+      activeProject.set(
+        makeProject({ attachments: [attachment({ id: "a1" })] }),
+      );
+
+      await removeAttachmentFromProject("a1");
+
+      expect(saveProject).toHaveBeenCalledWith(expect.anything(), {
+        attachments: { delete: new Set(["a1"]) },
+      });
+    });
+
+    it("операции с промптами не трогают вложения и дерево", async () => {
+      activeProject.set(makeProject());
+
+      await createPromptFile("new.md");
+      await renamePromptFile("file-1", "renamed.md");
+
+      for (const call of vi.mocked(saveProject).mock.calls) {
+        expect(call[1]).toEqual({});
+      }
+    });
+  });
+
   describe("removeAttachmentFromProject", () => {
     it("удаляет вложение и убирает его из выбранных", async () => {
       activeProject.set(
@@ -546,6 +672,259 @@ describe("projectActions", () => {
 
       expect(deletedCount).toBe(0);
       expect(saveProject).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("duplicateProjectById", () => {
+    const github = {
+      owner: "me",
+      repo: "repo",
+      branch: "main",
+      token: "ghp_secret",
+    };
+
+    function savedCopy(): Project {
+      return vi.mocked(saveProject).mock.calls.at(-1)![0] as Project;
+    }
+
+    it("без согласия копирует настройки GitHub без токена", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(false);
+      activeProject.set(makeProject({ githubConfig: github }));
+
+      await duplicateProjectById("project-1");
+
+      expect(requestConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Скопировать GitHub-токен?" }),
+      );
+      expect(savedCopy().githubConfig).toEqual({
+        owner: "me",
+        repo: "repo",
+        branch: "main",
+      });
+      expect(savedCopy().id).not.toBe("project-1");
+    });
+
+    it("с согласием копирует токен", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(true);
+      activeProject.set(makeProject({ githubConfig: github }));
+
+      await duplicateProjectById("project-1");
+
+      expect(savedCopy().githubConfig?.token).toBe("ghp_secret");
+    });
+
+    it("без токена ничего не спрашивает", async () => {
+      activeProject.set(
+        makeProject({
+          githubConfig: { owner: "me", repo: "repo", branch: "main" },
+        }),
+      );
+
+      await duplicateProjectById("project-1");
+
+      expect(requestConfirm).not.toHaveBeenCalled();
+      expect(savedCopy().name).toBe("Test Project (копия)");
+    });
+  });
+
+  describe("удаление с отменой", () => {
+    it("отмена возвращает файл на место, во вкладки и делает активным", async () => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2", "f3"]);
+      activeFileId.set("f2");
+
+      const undo = await deletePromptFileWithUndo("f2");
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual(["f1", "f3"]);
+
+      await undo!();
+
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual([
+        "f1",
+        "f2",
+        "f3",
+      ]);
+      expect(get(openFileIds)).toEqual(["f1", "f2", "f3"]);
+      expect(get(activeFileId)).toBe("f2");
+    });
+
+    it("отмена удаления последнего файла убирает созданный пустой main", async () => {
+      activeProject.set(
+        makeProject({ files: [promptFile("f1", "only", "<p>текст</p>")] }),
+      );
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+
+      const undo = await deletePromptFileWithUndo("f1");
+      expect(get(activeProject)!.files[0].name).toBe("main");
+
+      await undo!();
+
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual(["f1"]);
+      expect(get(activeFileId)).toBe("f1");
+    });
+
+    it("возвращает null, если файла нет", async () => {
+      activeProject.set(makeProject());
+      expect(await deletePromptFileWithUndo("missing")).toBeNull();
+    });
+
+    it("отмена возвращает вложение на место и восстанавливает выбор", async () => {
+      const a = attachment({ id: "a" });
+      const b = attachment({ id: "b" });
+      const c = attachment({ id: "c" });
+      activeProject.set(makeProject({ attachments: [a, b, c] }));
+      selectedFileIds.set(new Set(["b"]));
+
+      const undo = await removeAttachmentWithUndo("b");
+      expect(get(selectedFileIds).has("b")).toBe(false);
+
+      await undo!();
+
+      expect(get(activeProject)!.attachments.map((f) => f.id)).toEqual([
+        "a",
+        "b",
+        "c",
+      ]);
+      expect(get(selectedFileIds).has("b")).toBe(true);
+      expect(saveProject).toHaveBeenLastCalledWith(expect.anything(), {
+        attachments: { put: [b] },
+      });
+    });
+
+    it("отмена после смены проекта восстанавливает файл в исходный проект через базу", async () => {
+      const original = makeProject({
+        id: "p-old",
+        files: [promptFile("f1", "one"), promptFile("f2", "two")],
+      });
+      activeProject.set(original);
+      const undo = await deletePromptFileWithUndo("f2");
+      const afterDelete = get(activeProject)!;
+
+      // Пользователь переключился на другой проект.
+      activeProject.set(makeProject({ id: "p-new" }));
+      vi.mocked(loadProject).mockResolvedValue(afterDelete);
+
+      await undo!();
+
+      const saved = vi.mocked(saveProject).mock.calls.at(-1)![0] as Project;
+      expect(saved.id).toBe("p-old");
+      expect(saved.files.map((f) => f.id)).toEqual(["f1", "f2"]);
+      expect(get(activeProject)!.id).toBe("p-new");
+    });
+  });
+
+  describe("действия контекстного меню и вкладок", () => {
+    beforeEach(() => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one", "<p>1</p>"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2"]);
+      activeFileId.set("f1");
+    });
+
+    it("дублирует файл рядом с оригиналом и открывает копию справа", async () => {
+      const id = await duplicatePromptFile("f1");
+
+      const files = get(activeProject)!.files;
+      expect(files.map((f) => f.name)).toEqual([
+        "one",
+        "one (копия)",
+        "two",
+        "three",
+      ]);
+      expect(files[1].content).toBe("<p>1</p>");
+      expect(get(openFileIds)).toEqual(["f1", id, "f2"]);
+      expect(get(activeFileId)).toBe(id);
+    });
+
+    it("закрывает остальные вкладки", async () => {
+      previewFileId.set("f3");
+      await closeOtherTabs("f2");
+
+      expect(get(openFileIds)).toEqual(["f2"]);
+      expect(get(previewFileId)).toBeNull();
+      expect(get(activeFileId)).toBe("f2");
+    });
+
+    it("переключает вкладки по кругу, включая вкладку предпросмотра", async () => {
+      previewFileId.set("f3");
+
+      await activateAdjacentTab(1);
+      expect(get(activeFileId)).toBe("f2");
+      await activateAdjacentTab(1);
+      expect(get(activeFileId)).toBe("f3");
+      await activateAdjacentTab(1);
+      expect(get(activeFileId)).toBe("f1");
+      await activateAdjacentTab(-1);
+      expect(get(activeFileId)).toBe("f3");
+    });
+  });
+
+  describe("перестановка", () => {
+    beforeEach(() => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2"]);
+      activeFileId.set("f1");
+    });
+
+    it("порядок файлов в панели сохраняется в проект и не трогает вкладки", async () => {
+      await movePromptFile("f3", "f1", "before");
+
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual([
+        "f3",
+        "f1",
+        "f2",
+      ]);
+      expect(saveProject).toHaveBeenCalledTimes(1);
+      expect(get(openFileIds)).toEqual(["f1", "f2"]);
+    });
+
+    it("Alt+стрелка двигает файл на одну позицию; у края — ничего", async () => {
+      await movePromptFileBy("f1", 1);
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual([
+        "f2",
+        "f1",
+        "f3",
+      ]);
+
+      vi.mocked(saveProject).mockClear();
+      await movePromptFileBy("f2", -1);
+      expect(saveProject).not.toHaveBeenCalled();
+    });
+
+    it("вкладки переставляются без записи в базу; вкладка предпросмотра закрепляется", async () => {
+      previewFileId.set("f3");
+
+      moveTab("f3", "f1", "before");
+
+      expect(get(openFileIds)).toEqual(["f3", "f1", "f2"]);
+      expect(get(previewFileId)).toBeNull();
+      expect(saveProject).not.toHaveBeenCalled();
+
+      moveTabBy("f3", 1);
+      expect(get(openFileIds)).toEqual(["f1", "f3", "f2"]);
     });
   });
 });

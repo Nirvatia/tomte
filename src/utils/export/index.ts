@@ -1,4 +1,4 @@
-import type { AttachedFile, ExportFormat } from "../../types";
+import type { ExportFile, ExportFormat } from "../../types";
 
 import { exportToDOCX } from "./docx";
 import { exportToMD } from "./md";
@@ -13,7 +13,7 @@ export interface ExportOptions {
 export async function exportFile(
   format: ExportFormat,
   editorHtml: string,
-  files: AttachedFile[],
+  files: ExportFile[],
   fileName: string,
   options: ExportOptions = {},
 ): Promise<void> {
@@ -29,6 +29,9 @@ export async function exportFile(
         break;
       case "docx":
         await exportToDOCX(editorHtml, files, fileName);
+        break;
+      case "docx-gost":
+        await exportToDOCX(editorHtml, files, fileName, "gost");
         break;
       case "png":
         await exportToPNG(editorHtml, files, fileName);

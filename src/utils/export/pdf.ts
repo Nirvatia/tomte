@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import { domToPng } from "modern-screenshot";
 
-import type { AttachedFile } from "../../types";
+import type { ExportFile } from "../../types";
 
 import { sanitizeFileName } from "../index";
 import { buildPreviewHtml } from "../preview";
@@ -15,7 +15,7 @@ import type { ExportOptions } from "./index";
 
 export async function exportToPDF(
   editorHtml: string,
-  files: AttachedFile[],
+  files: ExportFile[],
   fileName: string,
   options: ExportOptions = {},
 ): Promise<void> {

@@ -1,6 +1,10 @@
 import type { AttachedFile } from "../types";
 
-import { fetchGithubFileContent, type GithubRepoConfig } from "./github";
+import {
+  fetchGithubFileContent,
+  type GithubRef,
+  type GithubRepoConfig,
+} from "./github";
 
 export interface TreeNode {
   name: string;
@@ -8,8 +12,12 @@ export interface TreeNode {
   type: "file" | "directory";
   children: TreeNode[];
   fileRef?: File | FileSystemFileHandle;
-  githubRef?: { owner: string; repo: string; branch: string; token?: string };
+  githubRef?: GithubRef;
 }
+
+// Текстовое представление дерева живёт в отдельном модуле без зависимостей,
+// чтобы его могли использовать сторы (без циклического импорта).
+export { treeToText, buildTreeString } from "./treeText";
 
 export interface TreeStats {
   totalFiles: number;
@@ -45,7 +53,7 @@ export async function readDirectoryRecursive(
 ): Promise<TreeNode[]> {
   const nodes: TreeNode[] = [];
 
-  for await (const entry of (dirHandle as any).values()) {
+  for await (const entry of dirHandle.values()) {
     if (ignore.includes(entry.name)) continue;
     if (entry.name.startsWith(".") && entry.kind === "directory") continue;
 
@@ -65,7 +73,7 @@ export async function readDirectoryRecursive(
         path: entryPath,
         type: "file",
         children: [],
-        fileRef: entry as FileSystemFileHandle,
+        fileRef: entry,
       });
     }
   }
@@ -76,29 +84,6 @@ export async function readDirectoryRecursive(
   });
 
   return nodes;
-}
-
-export function treeToText(
-  nodes: TreeNode[],
-  prefix = "",
-  isLast = true,
-  isRoot = true,
-): string {
-  let result = "";
-  nodes.forEach((node, index) => {
-    const isLastItem = index === nodes.length - 1;
-    const connector = isRoot ? "" : isLastItem ? "└── " : "├── ";
-    const childPrefix = isRoot ? "" : prefix + (isLastItem ? "    " : "│   ");
-    result += prefix + connector + node.name + "\n";
-    if (node.type === "directory" && node.children.length > 0) {
-      result += treeToText(node.children, childPrefix, isLastItem, false);
-    }
-  });
-  return result;
-}
-
-export function buildTreeString(rootName: string, nodes: TreeNode[]): string {
-  return `${rootName}/\n` + treeToText(nodes, "", true, true);
 }
 
 export function calculateStats(nodes: TreeNode[]): TreeStats {
@@ -133,13 +118,13 @@ export async function readDirectoryViaInput(
   const fileArray = Array.from(files);
   if (fileArray.length === 0) return { nodes: [], rootName: "root" };
 
-  const rootName = (
-    (fileArray[0] as any).webkitRelativePath || fileArray[0].name
-  ).split("/")[0];
+  const rootName = (fileArray[0].webkitRelativePath || fileArray[0].name).split(
+    "/",
+  )[0];
   root.name = rootName;
 
   for (const file of fileArray) {
-    const relativePath = (file as any).webkitRelativePath || file.name;
+    const relativePath = file.webkitRelativePath || file.name;
     const parts = relativePath.split("/").slice(1);
     const shouldIgnore = parts.some((part: string) => {
       if (ignore.includes(part)) return true;
@@ -264,11 +249,60 @@ export function getTreeGithubConfig(
   nodes: TreeNode[],
 ): GithubRepoConfig | undefined {
   for (const node of nodes) {
-    if (node.githubRef) return node.githubRef;
+    if (node.githubRef) {
+      const { owner, repo, branch } = node.githubRef;
+      return { owner, repo, branch };
+    }
     if (node.children.length > 0) {
       const found = getTreeGithubConfig(node.children);
       if (found) return found;
     }
   }
   return undefined;
+}
+
+/**
+ * Фильтр дерева для поиска: файл подходит по имени или пути, папка — по имени
+ * (тогда показывается целиком). Родительские папки совпавших файлов остаются,
+ * чтобы было видно, где файл лежит. Регистр не важен.
+ */
+export function filterTree(
+  nodes: TreeNode[],
+  query: string,
+): { nodes: TreeNode[]; matches: number } {
+  const q = query.trim().toLowerCase();
+  if (!q) return { nodes, matches: 0 };
+  let matches = 0;
+
+  const countFiles = (items: TreeNode[]): number =>
+    items.reduce(
+      (sum, n) => sum + (n.type === "file" ? 1 : countFiles(n.children)),
+      0,
+    );
+
+  function walk(items: TreeNode[]): TreeNode[] {
+    const result: TreeNode[] = [];
+    for (const node of items) {
+      if (node.type === "file") {
+        if (
+          node.name.toLowerCase().includes(q) ||
+          node.path.toLowerCase().includes(q)
+        ) {
+          matches += 1;
+          result.push(node);
+        }
+        continue;
+      }
+      if (node.name.toLowerCase().includes(q)) {
+        matches += countFiles(node.children);
+        result.push(node);
+        continue;
+      }
+      const children = walk(node.children);
+      if (children.length > 0) result.push({ ...node, children });
+    }
+    return result;
+  }
+
+  return { nodes: walk(nodes), matches };
 }

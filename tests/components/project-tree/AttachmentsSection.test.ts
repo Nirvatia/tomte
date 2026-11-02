@@ -1,11 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { get } from "svelte/store";
 import AttachmentsSection from "../../../src/components/project-tree/AttachmentsSection.svelte";
@@ -18,7 +13,7 @@ import { requestConfirm } from "../../../src/stores/confirm";
 import { processFile } from "../../../src/utils/files";
 import {
   addAttachmentsToProject,
-  removeAttachmentFromProject,
+  removeAttachmentWithUndo,
   removeAttachmentsFromProject,
 } from "../../../src/utils/projectActions";
 
@@ -42,29 +37,24 @@ vi.mock("../../../src/utils/index", () => ({
 
 vi.mock("../../../src/utils/projectActions", () => ({
   addAttachmentsToProject: vi.fn(),
-  removeAttachmentFromProject: vi.fn(),
+  removeAttachmentWithUndo: vi.fn(),
   removeAttachmentsFromProject: vi.fn(),
 }));
 
-vi.mock(
-  "../../../src/components/attachments/FileItem.svelte",
-  async () => {
-    const { default: FileItemMock } = await import(
-      "../../mocks/FileItem.mock.svelte"
-    );
+vi.mock("../../../src/components/attachments/FileItem.svelte", async () => {
+  const { default: FileItemMock } =
+    await import("../../mocks/FileItem.mock.svelte");
 
-    return {
-      default: FileItemMock,
-    };
-  },
-);
+  return {
+    default: FileItemMock,
+  };
+});
 
 vi.mock(
   "../../../src/components/attachments/FilePreviewModal.svelte",
   async () => {
-    const { default: FilePreviewModalMock } = await import(
-      "../../mocks/FilePreviewModal.mock.svelte"
-    );
+    const { default: FilePreviewModalMock } =
+      await import("../../mocks/FilePreviewModal.mock.svelte");
 
     return {
       default: FilePreviewModalMock,
@@ -156,7 +146,7 @@ describe("AttachmentsSection", () => {
       await fireEvent.click(removeButton);
 
       await waitFor(() => {
-        expect(removeAttachmentFromProject).toHaveBeenCalledWith("1");
+        expect(removeAttachmentWithUndo).toHaveBeenCalledWith("1");
       });
     });
 

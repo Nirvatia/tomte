@@ -1,15 +1,28 @@
-export type ExportFormat = "md" | "pdf" | "docx" | "png";
+/** docx-gost: DOCX с оформлением по ГОСТ 7.32-2017. */
+export type ExportFormat = "md" | "pdf" | "docx" | "docx-gost" | "png";
 
 export interface AttachedFile {
   id: string;
   name: string;
   size: number;
-  type: "text" | "image";
+  /** binary: файл без содержимого (PDF, архив и т.п.), хранится только имя и размер. */
+  type: "text" | "image" | "binary";
   content?: string;
   dataUrl?: string;
   ext?: string;
   width?: number;
   height?: number;
+}
+
+/**
+ * Файл, уходящий в превью или экспорт.
+ * label: метка плейсхолдера из редактора («IMAGE_2», «FILE_1»), посчитанная
+ * по всем вложениям проекта, а не по отобранным. null — плейсхолдера нет
+ * (например, файл из дерева проекта): файл подписывается только именем.
+ * undefined — посчитать по списку, в котором файл передан.
+ */
+export interface ExportFile extends AttachedFile {
+  label?: string | null;
 }
 
 export interface Tag {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import "../app.css";
+  import { Toaster } from "svelte-sonner";
   import ConfirmModal from "../components/ui/ConfirmModal.svelte";
 
   let { children } = $props();
@@ -25,3 +26,11 @@
 </div>
 
 <ConfirmModal />
+<!-- offset: над строкой состояния (28px), иначе уведомления на неё наезжают -->
+<Toaster
+  position="bottom-right"
+  theme="dark"
+  richColors
+  closeButton
+  offset="44px"
+/>

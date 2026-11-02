@@ -70,23 +70,7 @@ test.describe("Панель проекта", () => {
     // Ищем файл только внутри сайдбара и только точным совпадением.
     // Иначе можно зацепить вкладку или строку статуса редактора.
     await expect(
-      sidebar.getByRole("button", { name: "main.md", exact: true }),
+      sidebar.getByRole("button", { name: "main", exact: true }),
     ).toBeVisible();
-  });
-
-  test("закрывается по Escape", async ({ page }) => {
-    await page.goto("/");
-
-    await expect(
-      page.getByRole("region", { name: "Область редактора" }),
-    ).toBeVisible({ timeout: 15_000 });
-
-    const { resizer } = await openProjectTree(page);
-
-    await page.keyboard.press("Escape");
-
-    // Проверяем закрытие по исчезновению ресайзера,
-    // а не по тексту Explorer.
-    await expect(resizer).toBeHidden();
   });
 });

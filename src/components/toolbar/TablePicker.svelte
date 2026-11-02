@@ -107,8 +107,8 @@
         class="grid gap-1"
         style="grid-template-columns: repeat({GRID_SIZE}, 1fr);"
       >
-        {#each Array(GRID_SIZE) as _, row}
-          {#each Array(GRID_SIZE) as _, col}
+        {#each Array(GRID_SIZE) as _, row (row)}
+          {#each Array(GRID_SIZE) as _, col (col)}
             <button
               type="button"
               onmouseenter={() => handleCellHover(row, col)}

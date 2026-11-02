@@ -1,22 +1,16 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { tick } from "svelte";
 import { get } from "svelte/store";
 import ProjectTreeSection from "../../../src/components/project-tree/ProjectTreeSection.svelte";
 import {
   activeProject,
-  projectTreeNodes,
-  projectTreeRootName,
   projectTreeString,
   selectedProjectFiles,
 } from "../../../src/stores";
+import { setActiveTree } from "../../helpers/project";
 import {
   clearGithubConfig,
   restoreGithubTree,
@@ -26,7 +20,6 @@ import {
   calculateStats,
   hasFileSystemAccess,
   readDirectoryRecursive,
-  readDirectoryViaInput,
 } from "../../../src/utils/projectTree";
 
 vi.mock("$app/environment", () => ({
@@ -52,7 +45,11 @@ vi.mock("../../../src/utils/projectActions", () => ({
   setProjectTreeSource: vi.fn(),
 }));
 
-vi.mock("../../../src/utils/projectTree", () => ({
+vi.mock("../../../src/utils/projectTree", async (importOriginal) => ({
+  // filterTree настоящий: поиск проверяем вместе с компонентом.
+  filterTree: (
+    await importOriginal<typeof import("../../../src/utils/projectTree")>()
+  ).filterTree,
   calculateStats: vi.fn(),
   hasFileSystemAccess: vi.fn(),
   readDirectoryRecursive: vi.fn(),
@@ -61,26 +58,16 @@ vi.mock("../../../src/utils/projectTree", () => ({
 
 function makeEditorMock() {
   const run = vi.fn();
-  const insertContent = vi.fn(() => ({ run }));
-  const setCodeBlock = vi.fn(() => ({ insertContent }));
-  const focus = vi.fn(() => ({ insertContent, setCodeBlock }));
+  const insertProjectTree = vi.fn(() => ({ run }));
+  const focus = vi.fn(() => ({ insertProjectTree }));
   const chain = vi.fn(() => ({ focus }));
 
-  return {
-    chain,
-    focus,
-    setCodeBlock,
-    insertContent,
-    run,
-  };
+  return { chain, focus, insertProjectTree, run };
 }
 
 describe("ProjectTreeSection", () => {
   beforeEach(() => {
     activeProject.set(null);
-    projectTreeNodes.set([]);
-    projectTreeRootName.set("");
-    projectTreeString.set("");
     selectedProjectFiles.set([]);
 
     vi.clearAllMocks();
@@ -105,23 +92,22 @@ describe("ProjectTreeSection", () => {
       expect(screen.getByText("Project")).toBeInTheDocument();
       expect(screen.getByText("Дерево не создано")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          "Откройте папку или подключите GitHub-репозиторий",
-        ),
+        screen.getByText("Откройте папку или подключите GitHub-репозиторий"),
       ).toBeInTheDocument();
     });
 
     it("показывает корень и файлы дерева", () => {
-      projectTreeNodes.set([
-        {
-          name: "file.txt",
-          path: "file.txt",
-          type: "file",
-          children: [],
-        },
-      ] as any);
-
-      projectTreeRootName.set("my-project");
+      setActiveTree(
+        [
+          {
+            name: "file.txt",
+            path: "file.txt",
+            type: "file",
+            children: [],
+          },
+        ] as any,
+        "my-project",
+      );
 
       vi.mocked(calculateStats).mockReturnValue({
         totalFiles: 1,
@@ -139,7 +125,7 @@ describe("ProjectTreeSection", () => {
 
   describe("Выбор всех файлов", () => {
     it("выбирает и снимает выбор всех файлов", async () => {
-      projectTreeNodes.set([
+      setActiveTree([
         {
           name: "src",
           path: "src",
@@ -175,10 +161,7 @@ describe("ProjectTreeSection", () => {
 
       await fireEvent.click(selectAllCheckbox);
 
-      expect(get(selectedProjectFiles).sort()).toEqual([
-        "b.md",
-        "src/a.ts",
-      ]);
+      expect(get(selectedProjectFiles).sort()).toEqual(["b.md", "src/a.ts"]);
 
       await fireEvent.click(selectAllCheckbox);
 
@@ -195,7 +178,7 @@ describe("ProjectTreeSection", () => {
         configurable: true,
       });
 
-      projectTreeString.set("project tree");
+      setActiveTree([], "project");
 
       render(ProjectTreeSection);
 
@@ -205,15 +188,15 @@ describe("ProjectTreeSection", () => {
 
       await fireEvent.click(copyButton);
 
-      expect(writeText).toHaveBeenCalledWith("project tree");
+      expect(writeText).toHaveBeenCalledWith(get(projectTreeString));
     });
   });
 
   describe("Вставка дерева в редактор", () => {
-    it("вставляет дерево в редактор как code block", async () => {
+    it("вставляет дерево в редактор отдельным блоком", async () => {
       const editor = makeEditorMock();
 
-      projectTreeString.set("project tree");
+      setActiveTree([], "project");
 
       render(ProjectTreeSection, {
         props: {
@@ -229,8 +212,9 @@ describe("ProjectTreeSection", () => {
 
       expect(editor.chain).toHaveBeenCalled();
       expect(editor.focus).toHaveBeenCalled();
-      expect(editor.setCodeBlock).toHaveBeenCalled();
-      expect(editor.insertContent).toHaveBeenCalledWith("project tree");
+      expect(editor.insertProjectTree).toHaveBeenCalledWith(
+        get(projectTreeString),
+      );
       expect(editor.run).toHaveBeenCalled();
     });
   });
@@ -347,6 +331,72 @@ describe("ProjectTreeSection", () => {
       await waitFor(() => {
         expect(clearGithubConfig).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe("Поиск по дереву", () => {
+    const nodes = [
+      {
+        name: "src",
+        path: "src",
+        type: "directory",
+        children: [
+          { name: "api.ts", path: "src/api.ts", type: "file", children: [] },
+          { name: "main.ts", path: "src/main.ts", type: "file", children: [] },
+        ],
+      },
+      { name: "README.md", path: "README.md", type: "file", children: [] },
+    ];
+
+    it("показывает только совпадения и их папки", async () => {
+      setActiveTree(nodes as any);
+      render(ProjectTreeSection);
+
+      await fireEvent.input(
+        screen.getByRole("searchbox", { name: "Найти в дереве проекта" }),
+        {
+          target: { value: "api" },
+        },
+      );
+
+      expect(screen.getByText("api.ts")).toBeInTheDocument();
+      expect(screen.queryByText("main.ts")).toBeNull();
+      expect(screen.queryByText("README.md")).toBeNull();
+      expect(screen.getByText("Найдено: 1 файл")).toBeInTheDocument();
+    });
+
+    it("«выбрать все» при поиске выбирает только найденное", async () => {
+      setActiveTree(nodes as any);
+      render(ProjectTreeSection);
+
+      await fireEvent.input(
+        screen.getByRole("searchbox", { name: "Найти в дереве проекта" }),
+        {
+          target: { value: ".ts" },
+        },
+      );
+      await fireEvent.click(
+        screen.getByRole("checkbox", { name: "Выбрать все файлы дерева" }),
+      );
+
+      expect(get(selectedProjectFiles).sort()).toEqual([
+        "src/api.ts",
+        "src/main.ts",
+      ]);
+    });
+
+    it("Escape очищает поиск", async () => {
+      setActiveTree(nodes as any);
+      render(ProjectTreeSection);
+      const search = screen.getByRole("searchbox", {
+        name: "Найти в дереве проекта",
+      });
+
+      await fireEvent.input(search, { target: { value: "zzz" } });
+      expect(screen.getByText("Ничего не найдено")).toBeInTheDocument();
+      await fireEvent.keyDown(search, { key: "Escape" });
+
+      expect(screen.getByText("README.md")).toBeInTheDocument();
     });
   });
 });

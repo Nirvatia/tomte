@@ -47,7 +47,9 @@ describe("Checkbox", () => {
       const polyline = container.querySelector("polyline");
 
       expect(polyline).toBeInTheDocument();
-      expect(polyline?.getAttribute("points")).toBe("3.5 8.5 6.5 11.5 12.5 4.5");
+      expect(polyline?.getAttribute("points")).toBe(
+        "3.5 8.5 6.5 11.5 12.5 4.5",
+      );
     });
 
     it("отображает SVG-линию когда indeterminate=true", () => {

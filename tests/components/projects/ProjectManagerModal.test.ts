@@ -7,10 +7,7 @@ import { get } from "svelte/store";
 import ProjectManagerModal from "../../../src/components/projects/ProjectManagerModal.svelte";
 import { activeProject, isProjectManagerOpen } from "../../../src/stores";
 import { requestConfirm, requestAlert } from "../../../src/stores/confirm";
-import {
-  loadAllProjects,
-  calculateProjectSize,
-} from "../../../src/utils/projectDb";
+import { loadProjectSummaries } from "../../../src/utils/projectDb";
 import {
   createNewProject,
   deleteProjectById,
@@ -37,8 +34,7 @@ vi.mock("../../../src/utils", () => ({
 }));
 
 vi.mock("../../../src/utils/projectDb", () => ({
-  loadAllProjects: vi.fn(),
-  calculateProjectSize: vi.fn(),
+  loadProjectSummaries: vi.fn(),
 }));
 
 vi.mock("../../../src/utils/projectActions", () => ({
@@ -49,14 +45,14 @@ vi.mock("../../../src/utils/projectActions", () => ({
   switchProject: vi.fn(),
 }));
 
+/** Возвращает ProjectSummary: модалка работает только с ним. */
 function makeProject(overrides: Record<string, any> = {}) {
   return {
     id: overrides.id ?? `project-${Math.random().toString(36).slice(2)}`,
     name: overrides.name ?? "Test Project",
-    files: overrides.files ?? [],
-    attachments: overrides.attachments ?? [],
-    projectTreeSource: overrides.projectTreeSource,
-    githubConfig: overrides.githubConfig,
+    fileCount: (overrides.files ?? []).length,
+    attachmentCount: (overrides.attachments ?? []).length,
+    hasTree: Boolean(overrides.projectTreeSource),
     createdAt: overrides.createdAt ?? new Date().toISOString(),
     updatedAt: overrides.updatedAt ?? new Date().toISOString(),
     totalSize: overrides.totalSize ?? 0,
@@ -64,14 +60,14 @@ function makeProject(overrides: Record<string, any> = {}) {
 }
 
 async function renderOpen(projects: any[] = []) {
-  vi.mocked(loadAllProjects).mockResolvedValue(projects);
+  vi.mocked(loadProjectSummaries).mockResolvedValue(projects);
 
   isProjectManagerOpen.set(true);
 
   const result = render(ProjectManagerModal);
 
   await waitFor(() => {
-    expect(loadAllProjects).toHaveBeenCalled();
+    expect(loadProjectSummaries).toHaveBeenCalled();
   });
 
   return result;
@@ -84,8 +80,7 @@ describe("ProjectManagerModal", () => {
 
     vi.clearAllMocks();
 
-    vi.mocked(calculateProjectSize).mockReturnValue(1024);
-    vi.mocked(loadAllProjects).mockResolvedValue([]);
+    vi.mocked(loadProjectSummaries).mockResolvedValue([]);
 
     vi.mocked(requestConfirm).mockResolvedValue(false);
     vi.mocked(requestAlert).mockResolvedValue(undefined as any);
@@ -121,7 +116,7 @@ describe("ProjectManagerModal", () => {
     it("показывает состояние загрузки", async () => {
       let resolveLoad: ((projects: any[]) => void) | undefined;
 
-      vi.mocked(loadAllProjects).mockImplementation(
+      vi.mocked(loadProjectSummaries).mockImplementation(
         () =>
           new Promise((resolve) => {
             resolveLoad = resolve;
@@ -142,7 +137,7 @@ describe("ProjectManagerModal", () => {
     });
 
     it("показывает ошибку, если не удалось загрузить проекты", async () => {
-      vi.mocked(loadAllProjects).mockRejectedValue(new Error("db fail"));
+      vi.mocked(loadProjectSummaries).mockRejectedValue(new Error("db fail"));
 
       isProjectManagerOpen.set(true);
 
@@ -153,7 +148,8 @@ describe("ProjectManagerModal", () => {
       ).toBeInTheDocument();
     });
 
-    it("сортирует проекты по убыванию updatedAt", async () => {
+    // Сортировку делает loadProjectSummaries; модалка сохраняет её порядок.
+    it("показывает проекты в порядке, который вернула база", async () => {
       const older = makeProject({
         id: "old",
         name: "Old Project",
@@ -166,7 +162,7 @@ describe("ProjectManagerModal", () => {
         updatedAt: "2024-02-01T00:00:00.000Z",
       });
 
-      await renderOpen([older, newer]);
+      await renderOpen([newer, older]);
 
       await waitFor(() => {
         const rows = screen.getAllByRole("button", {
@@ -403,7 +399,7 @@ describe("ProjectManagerModal", () => {
       });
 
       await waitFor(() => {
-        expect(loadAllProjects).toHaveBeenCalledTimes(2);
+        expect(loadProjectSummaries).toHaveBeenCalledTimes(2);
       });
 
       await waitFor(() => {
@@ -686,7 +682,7 @@ describe("ProjectManagerModal", () => {
       });
 
       await waitFor(() => {
-        expect(loadAllProjects).toHaveBeenCalledTimes(2);
+        expect(loadProjectSummaries).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -794,7 +790,7 @@ describe("ProjectManagerModal", () => {
       });
 
       await waitFor(() => {
-        expect(loadAllProjects).toHaveBeenCalledTimes(2);
+        expect(loadProjectSummaries).toHaveBeenCalledTimes(2);
       });
     });
 

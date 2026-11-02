@@ -1,0 +1,3 @@
+# Массовое форматирование Prettier: git blame его пропускает
+# (git config blame.ignoreRevsFile .git-blame-ignore-revs)
+4cd0b6cf4c70b7227f31b395f4cdb4dbf5fda153

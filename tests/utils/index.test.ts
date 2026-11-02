@@ -30,8 +30,8 @@ describe("formatFileSize", () => {
 
 describe("sanitizeFileName", () => {
   it("убирает запрещённые символы", () => {
-    expect(sanitizeFileName('file<name>.md')).toBe("filename.md");
-    expect(sanitizeFileName('file:name.md')).toBe("filename.md");
+    expect(sanitizeFileName("file<name>.md")).toBe("filename.md");
+    expect(sanitizeFileName("file:name.md")).toBe("filename.md");
     expect(sanitizeFileName('file"name.md')).toBe("filename.md");
     expect(sanitizeFileName("file|name.md")).toBe("filename.md");
     expect(sanitizeFileName("file?name.md")).toBe("filename.md");
@@ -234,5 +234,66 @@ describe("createFlushableAsync", () => {
     expect(fn).toHaveBeenCalledOnce();
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
+  });
+
+  // Правки, сделанные во время идущего сохранения, не должны теряться.
+  function deferredFn() {
+    const resolvers: Array<() => void> = [];
+    const fn = vi.fn(
+      () => new Promise<void>((resolve) => resolvers.push(resolve)),
+    );
+    return { fn, resolveNext: () => resolvers.shift()?.() };
+  }
+
+  it("flush во время сохранения дожидается его и сохраняет новые правки", async () => {
+    const { fn, resolveNext } = deferredFn();
+    const schedule = createFlushableAsync(fn, 800);
+
+    schedule();
+    const first = schedule.flush();
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    schedule(); // правка во время сохранения
+    const second = schedule.flush();
+
+    resolveNext();
+    await first;
+    await vi.waitFor(() => expect(fn).toHaveBeenCalledTimes(2));
+    resolveNext();
+    await second;
+
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("таймер, сработавший во время сохранения, не теряет правки", async () => {
+    const { fn, resolveNext } = deferredFn();
+    const schedule = createFlushableAsync(fn, 800);
+
+    schedule();
+    await vi.advanceTimersByTimeAsync(800);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    schedule(); // правка во время сохранения
+    await vi.advanceTimersByTimeAsync(800); // таймер срабатывает, пока первое ещё идёт
+
+    resolveNext();
+    await vi.waitFor(() => expect(fn).toHaveBeenCalledTimes(2));
+    resolveNext();
+    await schedule.flush();
+
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("параллельные flush не запускают сохранение дважды", async () => {
+    const { fn, resolveNext } = deferredFn();
+    const schedule = createFlushableAsync(fn, 800);
+
+    schedule();
+    const a = schedule.flush();
+    const b = schedule.flush();
+    resolveNext();
+    await Promise.all([a, b]);
+
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });

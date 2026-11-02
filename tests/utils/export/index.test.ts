@@ -52,12 +52,27 @@ describe("exportFile", () => {
   it("передаёт options в exportToPDF", async () => {
     const options = { openInNewTab: true };
     await exportFile("pdf", "<p>text</p>", files, "test", options);
-    expect(exportToPDF).toHaveBeenCalledWith("<p>text</p>", files, "test", options);
+    expect(exportToPDF).toHaveBeenCalledWith(
+      "<p>text</p>",
+      files,
+      "test",
+      options,
+    );
   });
 
   it("вызывает exportToDOCX для формата docx", async () => {
     await exportFile("docx", "<p>text</p>", files, "test");
     expect(exportToDOCX).toHaveBeenCalledWith("<p>text</p>", files, "test");
+  });
+
+  it("вызывает exportToDOCX с пресетом ГОСТ для docx-gost", async () => {
+    await exportFile("docx-gost", "<p>text</p>", files, "test");
+    expect(exportToDOCX).toHaveBeenCalledWith(
+      "<p>text</p>",
+      files,
+      "test",
+      "gost",
+    );
   });
 
   it("вызывает exportToPNG для формата png", async () => {

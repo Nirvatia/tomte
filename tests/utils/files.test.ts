@@ -6,6 +6,7 @@ import {
   getPlaceholderIndex,
   getPlaceholder,
   processFile,
+  imageFilesFromClipboard,
   TEXT_EXTENSIONS,
 } from "../../src/utils/files";
 
@@ -118,7 +119,9 @@ describe("processFile", () => {
   });
 
   it("обрабатывает текстовый файл", async () => {
-    const file = new File(["hello world"], "test.md", { type: "text/markdown" });
+    const file = new File(["hello world"], "test.md", {
+      type: "text/markdown",
+    });
     const result = await processFile(file);
 
     expect(result.name).toBe("test.md");
@@ -137,115 +140,139 @@ describe("processFile", () => {
     expect(result.ext).toBe("makefile");
   });
 
-  it("обрабатывает изображение", async () => {
-    const mockDataUrl = "data:image/png;base64,iVBORw0KGgo=";
+  describe("изображения", () => {
+    // happy-dom не декодирует картинки: подставляем decode и размеры.
+    function stubImageDecoding(result: "ok" | "fail") {
+      vi.spyOn(HTMLImageElement.prototype, "decode").mockImplementation(() =>
+        result === "ok"
+          ? Promise.resolve()
+          : Promise.reject(new Error("bad image")),
+      );
+      vi.spyOn(
+        HTMLImageElement.prototype,
+        "naturalWidth",
+        "get",
+      ).mockReturnValue(800);
+      vi.spyOn(
+        HTMLImageElement.prototype,
+        "naturalHeight",
+        "get",
+      ).mockReturnValue(600);
+    }
 
-    const mockFileReaderInstance = {
-      readAsDataURL: vi.fn(),
-      onload: null as any,
-      onerror: null as any,
-      result: mockDataUrl,
-    };
+    it("читает картинку как data URL и запоминает размеры", async () => {
+      stubImageDecoding("ok");
+      const file = new File([new Uint8Array([1, 2, 3])], "photo.png", {
+        type: "image/png",
+      });
 
-    // ИСПРАВЛЕНО: обычная function вместо стрелочной — работает с `new`
-    vi.stubGlobal(
-      "FileReader",
-      vi.fn(function (this: any) {
-        Object.assign(this, mockFileReaderInstance);
-        mockFileReaderInstance.readAsDataURL = this.readAsDataURL;
-        mockFileReaderInstance.onload = null;
-        mockFileReaderInstance.onerror = null;
-        // Переназначаем ссылки, чтобы тест мог дёргать onload/onerror
-        const self = this;
-        Object.defineProperty(mockFileReaderInstance, "onload", {
-          get: () => self.onload,
-          set: (v) => { self.onload = v; },
-        });
-        Object.defineProperty(mockFileReaderInstance, "onerror", {
-          get: () => self.onerror,
-          set: (v) => { self.onerror = v; },
-        });
-      }),
-    );
+      const result = await processFile(file);
 
-    const mockImgInstance = {
-      onload: null as any,
-      onerror: null as any,
-      naturalWidth: 800,
-      naturalHeight: 600,
-      src: "",
-    };
+      expect(result).toMatchObject({
+        type: "image",
+        width: 800,
+        height: 600,
+        ext: "png",
+      });
+      expect(result.dataUrl).toMatch(/^data:image\/png;base64,/);
+    });
 
-    vi.stubGlobal(
-      "Image",
-      vi.fn(function (this: any) {
-        Object.assign(this, mockImgInstance);
-        const self = this;
-        Object.defineProperty(mockImgInstance, "onload", {
-          get: () => self.onload,
-          set: (v) => { self.onload = v; },
-        });
-        Object.defineProperty(mockImgInstance, "onerror", {
-          get: () => self.onerror,
-          set: (v) => { self.onerror = v; },
-        });
-        Object.defineProperty(mockImgInstance, "src", {
-          get: () => self.src,
-          set: (v) => { self.src = v; },
-        });
-      }),
-    );
+    it("распознаёт картинку по расширению, если MIME пустой", async () => {
+      stubImageDecoding("ok");
+      const file = new File([new Uint8Array([1])], "icon.webp", { type: "" });
 
-    const file = new File([new ArrayBuffer(100)], "photo.png", { type: "image/png" });
-    const promise = processFile(file);
+      expect((await processFile(file)).type).toBe("image");
+    });
 
-    // Ждём микрозадачу, чтобы processFile успел создать FileReader и назначить onload
-    await new Promise((r) => setTimeout(r, 0));
+    it("битую картинку сохраняет как файл без содержимого, а не теряет", async () => {
+      stubImageDecoding("fail");
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      const file = new File([new Uint8Array([1])], "broken.png", {
+        type: "image/png",
+      });
 
-    mockFileReaderInstance.onload!({ target: { result: mockDataUrl } } as any);
+      const result = await processFile(file);
 
-    await new Promise((r) => setTimeout(r, 0));
-
-    mockImgInstance.onload!();
-
-    const result = await promise;
-
-    expect(result.type).toBe("image");
-    expect(result.dataUrl).toBe(mockDataUrl);
-    expect(result.width).toBe(800);
-    expect(result.height).toBe(600);
+      expect(result).toMatchObject({
+        type: "binary",
+        name: "broken.png",
+        size: 1,
+      });
+      expect(result.dataUrl).toBeUndefined();
+    });
   });
 
-  it("отклоняет промис при ошибке FileReader", async () => {
-    const mockFileReaderInstance = {
-      readAsDataURL: vi.fn(),
-      onload: null as any,
-      onerror: null as any,
+  it("PDF и прочие бинарные файлы сохраняет как метаданные", async () => {
+    const file = new File([new Uint8Array(10)], "doc.pdf", {
+      type: "application/pdf",
+    });
+
+    const result = await processFile(file);
+
+    expect(result).toMatchObject({
+      type: "binary",
+      name: "doc.pdf",
+      size: 10,
+      ext: "pdf",
+    });
+    expect(result.content).toBeUndefined();
+    expect(result.dataUrl).toBeUndefined();
+  });
+});
+
+describe("нумерация плейсхолдеров", () => {
+  it("бинарные и текстовые файлы делят одну нумерацию [FILE_n]", () => {
+    const text = makeFile("a.txt");
+    const pdf: AttachedFile = {
+      id: "pdf",
+      name: "b.pdf",
+      size: 1,
+      type: "binary",
     };
+    const image = makeFile("c.png", "image");
+    const all = [text, image, pdf];
 
-    vi.stubGlobal(
-      "FileReader",
-      vi.fn(function (this: any) {
-        Object.assign(this, mockFileReaderInstance);
-        const self = this;
-        Object.defineProperty(mockFileReaderInstance, "onload", {
-          get: () => self.onload,
-          set: (v) => { self.onload = v; },
-        });
-        Object.defineProperty(mockFileReaderInstance, "onerror", {
-          get: () => self.onerror,
-          set: (v) => { self.onerror = v; },
-        });
-      }),
+    expect(getPlaceholder(text, all)).toBe("[FILE_1: a.txt]");
+    expect(getPlaceholder(pdf, all)).toBe("[FILE_2: b.pdf]");
+    expect(getPlaceholder(image, all)).toBe("[IMAGE_1: c.png]");
+  });
+});
+
+describe("imageFilesFromClipboard", () => {
+  function clipboard(
+    items: Array<{ kind: string; type: string; file?: File }>,
+  ) {
+    return {
+      items: items.map((item) => ({
+        kind: item.kind,
+        type: item.type,
+        getAsFile: () => item.file ?? null,
+      })),
+    } as unknown as DataTransfer;
+  }
+
+  it("берёт только файлы-картинки", () => {
+    const png = new File(["x"], "shot.png", { type: "image/png" });
+    const files = imageFilesFromClipboard(
+      clipboard([
+        { kind: "string", type: "text/html" },
+        { kind: "file", type: "image/png", file: png },
+        {
+          kind: "file",
+          type: "application/pdf",
+          file: new File(["y"], "a.pdf"),
+        },
+      ]),
     );
+    expect(files).toEqual([png]);
+  });
 
-    const file = new File([new ArrayBuffer(100)], "photo.png", { type: "image/png" });
-    const promise = processFile(file);
-
-    await new Promise((r) => setTimeout(r, 0));
-
-    mockFileReaderInstance.onerror!(new Error("read error"));
-
-    await expect(promise).rejects.toThrow("read error");
+  it("пустой буфер и текст без картинок дают пустой список", () => {
+    expect(imageFilesFromClipboard(null)).toEqual([]);
+    expect(
+      imageFilesFromClipboard(
+        clipboard([{ kind: "string", type: "text/plain" }]),
+      ),
+    ).toEqual([]);
   });
 });

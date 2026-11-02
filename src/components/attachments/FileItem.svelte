@@ -40,7 +40,7 @@
   const hasContent = $derived(
     file.type === "image"
       ? Boolean(file.dataUrl)
-      : typeof file.content === "string",
+      : file.type === "text" && typeof file.content === "string",
   );
 
   function handleCheckboxClick(event: Event) {
@@ -118,7 +118,7 @@
   </div>
 
   <div
-    class="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+    class="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
   >
     <button
       type="button"

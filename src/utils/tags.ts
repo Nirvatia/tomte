@@ -76,6 +76,22 @@ export function removeTag(id: string): void {
   saveTags(tags);
 }
 
+/** Удаляет тег и возвращает функцию, которая вернёт его на прежнее место. */
+export function removeTagWithUndo(id: string): (() => void) | null {
+  const tags = loadTags();
+  const index = tags.findIndex((t) => t.id === id);
+  if (index < 0) return null;
+  const [tag] = tags.splice(index, 1);
+  saveTags(tags);
+
+  return () => {
+    const current = loadTags();
+    if (current.some((t) => t.id === tag.id)) return;
+    current.splice(Math.min(index, current.length), 0, tag);
+    saveTags(current);
+  };
+}
+
 export function removeTags(ids: Set<string>): void {
   const tags = loadTags().filter((t) => !ids.has(t.id));
   saveTags(tags);

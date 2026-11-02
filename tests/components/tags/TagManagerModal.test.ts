@@ -7,10 +7,12 @@ import { get } from "svelte/store";
 import TagManagerModal from "../../../src/components/tags/TagManagerModal.svelte";
 import { isTagManagerOpen, tagsVersion } from "../../../src/stores";
 import { requestConfirm } from "../../../src/stores/confirm";
+import { notifyUndo } from "$lib/notify";
 import {
   addTag,
   loadTags,
   removeTags,
+  removeTagWithUndo,
   sortTags,
   toggleFavorite,
   updateTag,
@@ -23,7 +25,12 @@ vi.mock("../../../src/stores/confirm", () => ({
 }));
 
 vi.mock("../../../src/utils", () => ({
-  pluralize: vi.fn((n: number, one: string, few: string, many: string) => one),
+  pluralize: vi.fn((_n: number, one: string) => one),
+}));
+
+vi.mock("$lib/notify", () => ({
+  notifyUndo: vi.fn(),
+  notifyError: vi.fn(),
 }));
 
 vi.mock("../../../src/utils/tags", () => ({
@@ -31,6 +38,7 @@ vi.mock("../../../src/utils/tags", () => ({
   addTag: vi.fn(),
   updateTag: vi.fn(),
   removeTags: vi.fn(),
+  removeTagWithUndo: vi.fn(),
   sortTags: vi.fn((tags: Tag[]) => tags),
   toggleFavorite: vi.fn(),
 }));
@@ -338,34 +346,31 @@ describe("TagManagerModal", () => {
       expect(removeTags).not.toHaveBeenCalled();
     });
 
-    it("удаляет один тег по кнопке удаления", async () => {
-      vi.mocked(requestConfirm).mockResolvedValue(true);
-
+    // Решение этапа 5: один тег удаляется сразу, отмена — в уведомлении.
+    it("удаляет один тег без вопроса и предлагает отмену", async () => {
+      const undo = vi.fn();
+      vi.mocked(removeTagWithUndo).mockReturnValue(undo);
       const tag = makeTag({ id: "single", name: "Single Tag" });
       vi.mocked(loadTags).mockReturnValue([tag]);
 
       isTagManagerOpen.set(true);
       render(TagManagerModal);
-
       await screen.findByText("Single Tag");
 
-      const deleteButton = screen.getByRole("button", {
-        name: "Удалить тег Single Tag",
-      });
-      await fireEvent.click(deleteButton);
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Удалить тег Single Tag" }),
+      );
 
-      await waitFor(() => {
-        expect(requestConfirm).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: "Удалить тег?",
-            danger: true,
-          }),
-        );
-      });
+      expect(removeTagWithUndo).toHaveBeenCalledWith("single");
+      expect(requestConfirm).not.toHaveBeenCalled();
+      expect(notifyUndo).toHaveBeenCalledWith(
+        "Тег «Single Tag» удалён",
+        expect.any(Function),
+      );
 
-      await waitFor(() => {
-        expect(removeTags).toHaveBeenCalledWith(new Set(["single"]));
-      });
+      // Отмена возвращает тег.
+      vi.mocked(notifyUndo).mock.calls[0][1]();
+      expect(undo).toHaveBeenCalled();
     });
   });
 
@@ -604,27 +609,27 @@ describe("TagManagerModal", () => {
   });
 
   describe("Закрытие модалки", () => {
-it("закрывается кнопкой крестика", async () => {
-  isTagManagerOpen.set(true);
-  render(TagManagerModal);
+    it("закрывается кнопкой крестика", async () => {
+      isTagManagerOpen.set(true);
+      render(TagManagerModal);
 
-  await screen.findByText("Нет тегов");
+      await screen.findByText("Нет тегов");
 
-  // Находим все элементы с ролью "кнопка" и именем "Закрыть менеджер тегов".
-  // Сюда попадают и фон (div с role="button"), и сам крестик (<button>).
-  const closeElements = screen.getAllByRole("button", {
-    name: "Закрыть менеджер тегов",
-  });
+      // Находим все элементы с ролью "кнопка" и именем "Закрыть менеджер тегов".
+      // Сюда попадают и фон (div с role="button"), и сам крестик (<button>).
+      const closeElements = screen.getAllByRole("button", {
+        name: "Закрыть менеджер тегов",
+      });
 
-  // Нам нужен именно настоящий <button>, а не фон-обертка.
-  const closeButton = closeElements.find((el) => el.tagName === "BUTTON");
+      // Нам нужен именно настоящий <button>, а не фон-обертка.
+      const closeButton = closeElements.find((el) => el.tagName === "BUTTON");
 
-  await fireEvent.click(closeButton!);
+      await fireEvent.click(closeButton!);
 
-  await waitFor(() => {
-    expect(get(isTagManagerOpen)).toBe(false);
-  });
-});
+      await waitFor(() => {
+        expect(get(isTagManagerOpen)).toBe(false);
+      });
+    });
 
     it("закрывается по клику на фон", async () => {
       isTagManagerOpen.set(true);

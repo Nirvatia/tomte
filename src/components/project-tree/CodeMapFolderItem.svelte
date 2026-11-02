@@ -27,7 +27,10 @@
     <button
       type="button"
       onclick={handleSelect}
-      class="flex w-full items-center gap-2 rounded px-2 py-1 text-[13px] transition-colors {node.path === selectedPath ? 'bg-[var(--accent-dim)] text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
+      class="flex w-full items-center gap-2 rounded px-2 py-1 text-[13px] transition-colors {node.path ===
+      selectedPath
+        ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
+        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
     >
       <span
         role="button"
@@ -48,13 +51,9 @@
 
     {#if isOpen && node.children.length > 0}
       <div class="ml-4 border-l border-[var(--border)] pl-2">
-        {#each node.children as child}
+        {#each node.children as child (child.path)}
           {#if child.type === "directory"}
-            <CodeMapFolderItem
-              node={child}
-              {selectedPath}
-              {onSelect}
-            />
+            <CodeMapFolderItem node={child} {selectedPath} {onSelect} />
           {/if}
         {/each}
       </div>

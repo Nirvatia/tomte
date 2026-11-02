@@ -34,7 +34,6 @@
   import {
     isPreviewOpen,
     isExtractorOpen,
-    fileName,
     exportFormat,
     isProjectTreeOpen,
   } from "../../stores";
@@ -140,7 +139,6 @@
     editor?.commands.clearContent();
     await clearAttachmentsFromProject();
     await clearProjectTreeSource();
-    fileName.set("prompt");
     exportFormat.set("pdf");
   }
 
@@ -153,7 +151,7 @@
   }
 
   function btnClass(active: boolean): string {
-    return `${TOOLBAR_BTN_BASE} ${active ? TOOLBAR_BTN_ACTIVE : ""}`;
+    return `${TOOLBAR_BTN_BASE} ${active ? TOOLBAR_BTN_ACTIVE : TOOLBAR_BTN_IDLE}`;
   }
 
   function run(cmd: () => void) {
@@ -181,7 +179,7 @@
   }
 
   function handleApplyTestData() {
-    applyTestData(editor, (name) => fileName.set(name));
+    applyTestData(editor);
   }
 
   function addRowBefore() {
@@ -221,9 +219,15 @@
     editor.chain().focus().deleteTable().run();
   }
 
+  // Цвета состояний не смешиваем в одной строке классов: из двух text-[...]
+  // Tailwind применяет тот, что позже в CSS, а не в атрибуте. Из-за этого
+  // активная кнопка раньше получала светлую иконку на бирюзовом (1.3:1).
   const TOOLBAR_BTN_BASE =
-    "w-8 h-8 flex items-center justify-center rounded-[5px] text-[var(--text-secondary)] transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed";
-  const TOOLBAR_BTN_ACTIVE = "bg-[var(--accent)] text-[var(--bg-darkest)]";
+    "w-8 h-8 flex items-center justify-center rounded-[5px] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed";
+  const TOOLBAR_BTN_IDLE =
+    "text-[var(--text-secondary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]";
+  const TOOLBAR_BTN_ACTIVE =
+    "bg-[var(--accent)] text-[var(--bg-darkest)] hover:bg-[var(--accent-hover)]";
   const ACTION_BTN_BASE =
     "flex items-center gap-2 px-3.5 py-[7px] rounded-[5px] border border-[var(--border)] text-[var(--text-secondary)] text-[13px] font-medium transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] hover:border-[var(--border-light)]";
   const MENU_ITEM_BASE =
@@ -232,7 +236,9 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4">
+<div
+  class="flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
+>
   <button
     type="button"
     onclick={toggleProjectTree}
@@ -250,7 +256,7 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().undo().run())}
       disabled={!toolbarState.canUndo}
-      class={TOOLBAR_BTN_BASE}
+      class={btnClass(false)}
       aria-label="Отменить"
       title="Отменить (Ctrl+Z)"
     >
@@ -260,7 +266,7 @@
       type="button"
       onclick={() => run(() => editor?.chain().focus().redo().run())}
       disabled={!toolbarState.canRedo}
-      class={TOOLBAR_BTN_BASE}
+      class={btnClass(false)}
       aria-label="Повторить"
       title="Повторить (Ctrl+Y)"
     >
@@ -271,7 +277,8 @@
   <div class="flex items-center gap-0.5">
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
       class={btnClass(isBlockActive("h1"))}
       aria-label="Заголовок 1"
       title="Заголовок 1"
@@ -280,7 +287,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
       class={btnClass(isBlockActive("h2"))}
       aria-label="Заголовок 2"
       title="Заголовок 2"
@@ -353,7 +361,8 @@
   <div class="flex items-center gap-0.5">
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleBulletList().run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleBulletList().run())}
       class={btnClass(isBlockActive("bulletList"))}
       aria-label="Маркированный список"
       title="Маркированный список"
@@ -362,7 +371,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleOrderedList().run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleOrderedList().run())}
       class={btnClass(isBlockActive("orderedList"))}
       aria-label="Нумерованный список"
       title="Нумерованный список"
@@ -371,8 +381,9 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().liftListItem("listItem").run())}
-      class={TOOLBAR_BTN_BASE}
+      onclick={() =>
+        run(() => editor?.chain().focus().liftListItem("listItem").run())}
+      class={btnClass(false)}
       aria-label="Уменьшить отступ"
       title="Уменьшить отступ"
     >
@@ -380,8 +391,9 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().sinkListItem("listItem").run())}
-      class={TOOLBAR_BTN_BASE}
+      onclick={() =>
+        run(() => editor?.chain().focus().sinkListItem("listItem").run())}
+      class={btnClass(false)}
       aria-label="Увеличить отступ"
       title="Увеличить отступ"
     >
@@ -389,7 +401,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleBlockquote().run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleBlockquote().run())}
       class={btnClass(isBlockActive("blockquote"))}
       aria-label="Цитата"
       title="Цитата"
@@ -401,13 +414,15 @@
   {#if toolbarState.isInsideTable}
     <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
     <div class="flex animate-fade-in items-center gap-0.5">
-      <div class="select-none px-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--warning)]">
+      <div
+        class="select-none px-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--warning)]"
+      >
         Таблица
       </div>
       <button
         type="button"
         onclick={addRowBefore}
-        class={TOOLBAR_BTN_BASE}
+        class={btnClass(false)}
         aria-label="Добавить строку выше"
         title="Добавить строку выше"
       >
@@ -416,7 +431,7 @@
       <button
         type="button"
         onclick={addRowAfter}
-        class={TOOLBAR_BTN_BASE}
+        class={btnClass(false)}
         aria-label="Добавить строку ниже"
         title="Добавить строку ниже"
       >
@@ -425,7 +440,7 @@
       <button
         type="button"
         onclick={addColumnBefore}
-        class={TOOLBAR_BTN_BASE}
+        class={btnClass(false)}
         aria-label="Добавить столбец слева"
         title="Добавить столбец слева"
       >
@@ -434,7 +449,7 @@
       <button
         type="button"
         onclick={addColumnAfter}
-        class={TOOLBAR_BTN_BASE}
+        class={btnClass(false)}
         aria-label="Добавить столбец справа"
         title="Добавить столбец справа"
       >
@@ -443,7 +458,7 @@
       <button
         type="button"
         onclick={deleteRow}
-        class={TOOLBAR_BTN_BASE}
+        class={btnClass(false)}
         aria-label="Удалить строку"
         title="Удалить строку"
       >
@@ -452,7 +467,7 @@
       <button
         type="button"
         onclick={deleteColumn}
-        class={TOOLBAR_BTN_BASE}
+        class={btnClass(false)}
         aria-label="Удалить столбец"
         title="Удалить столбец"
       >
@@ -474,7 +489,7 @@
     <button
       type="button"
       onclick={handleCopy}
-      class={TOOLBAR_BTN_BASE}
+      class={btnClass(false)}
       aria-label="Копировать текст"
       title="Копировать текст"
     >
@@ -505,7 +520,9 @@
       <button
         type="button"
         onclick={toggleToolsMenu}
-        class="{ACTION_BTN_BASE} {isToolsMenuOpen ? 'border-[var(--accent)] text-[var(--accent)]' : ''}"
+        class="{ACTION_BTN_BASE} {isToolsMenuOpen
+          ? 'border-[var(--accent)] text-[var(--accent)]'
+          : ''}"
         aria-haspopup="menu"
         aria-expanded={isToolsMenuOpen}
         aria-label="Открыть меню инструментов"

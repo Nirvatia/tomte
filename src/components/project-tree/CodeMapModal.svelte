@@ -1,7 +1,8 @@
 <script lang="ts">
   import { X, Copy, Check, Folder, LoaderCircle } from "@lucide/svelte";
   import { projectTreeNodes, projectTreeRootName } from "../../stores";
-  import { generateCodeMap } from "../../utils/codeMap";
+  import { generateCodeMap, type CodeMapResult } from "../../utils/codeMap";
+  import { pluralize } from "../../utils";
   import type { TreeNode } from "../../utils/projectTree";
   import CodeMapFolderItem from "./CodeMapFolderItem.svelte";
 
@@ -13,6 +14,8 @@
 
   let selectedNode = $state<TreeNode | null>(null);
   let generatedMap = $state("");
+  let report = $state<CodeMapResult | null>(null);
+  let generateError = $state<string | null>(null);
   let copied = $state(false);
   let isGenerating = $state(false);
 
@@ -29,6 +32,8 @@
         selectedNode = null;
       }
       generatedMap = "";
+      report = null;
+      generateError = null;
       copied = false;
     }
   });
@@ -36,6 +41,8 @@
   function handleSelect(node: TreeNode) {
     selectedNode = node;
     generatedMap = "";
+    report = null;
+    generateError = null;
     copied = false;
   }
 
@@ -43,11 +50,15 @@
     if (!selectedNode) return;
     isGenerating = true;
     try {
-      generatedMap = await generateCodeMap(selectedNode);
+      report = await generateCodeMap(selectedNode);
+      generatedMap = report.text;
+      generateError = null;
       copied = false;
     } catch (err) {
       console.error(err);
-      generatedMap = "Error generating code map";
+      report = null;
+      generatedMap = "";
+      generateError = "Не удалось построить карту кода";
     } finally {
       isGenerating = false;
     }
@@ -67,20 +78,36 @@
   function handleBackdropClick(event: MouseEvent) {
     if (event.target === event.currentTarget) onClose();
   }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (!isOpen || event.key !== "Escape") return;
+    // Останавливаем всплытие, чтобы обработчик на window не закрыл модалку второй раз.
+    event.stopPropagation();
+    onClose();
+  }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 {#if isOpen}
   <div
     class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
+    onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     aria-label="Генератор карты кода"
     tabindex="-1"
   >
-    <div class="flex h-[80vh] w-full max-w-5xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-[var(--shadow-lg)]">
-      <div class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4">
-        <h3 class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">
+    <div
+      class="flex h-[80vh] w-full max-w-5xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-[var(--shadow-lg)]"
+    >
+      <div
+        class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4"
+      >
+        <h3
+          class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
+        >
           <Folder size={20} class="text-[var(--accent)]" />
           Генератор карты кода (Tree-sitter)
         </h3>
@@ -96,7 +123,9 @@
 
       <div class="flex flex-1 overflow-hidden">
         <div class="flex w-1/3 flex-col border-r border-[var(--border)]">
-          <div class="border-b border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+          <div
+            class="border-b border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          >
             Выберите папку
           </div>
           <div class="flex-1 overflow-y-auto p-2">
@@ -105,7 +134,7 @@
                 Дерево проекта пусто.
               </div>
             {:else}
-              {#each $projectTreeNodes as node}
+              {#each $projectTreeNodes as node (node.path)}
                 {#if node.type === "directory"}
                   <CodeMapFolderItem
                     {node}
@@ -119,8 +148,12 @@
         </div>
 
         <div class="flex w-2/3 flex-col bg-[var(--bg-darkest)]">
-          <div class="flex items-center justify-between border-b border-[var(--border)] px-4 py-2">
-            <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+          <div
+            class="flex items-center justify-between border-b border-[var(--border)] px-4 py-2"
+          >
+            <span
+              class="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+            >
               {selectedNode ? `Карта для: ${selectedNode.name}` : "Результат"}
             </span>
             <div class="flex gap-2">
@@ -141,7 +174,9 @@
                 <button
                   type="button"
                   onclick={handleCopy}
-                  class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors {copied ? 'text-[var(--success)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
+                  class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors {copied
+                    ? 'text-[var(--success)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
                 >
                   {#if copied}
                     <Check size={14} />
@@ -155,11 +190,54 @@
             </div>
           </div>
           <div class="flex-1 overflow-y-auto p-4">
+            {#if report && (report.noContent.length > 0 || report.failed.length > 0)}
+              <div
+                class="mb-3 rounded border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]"
+                role="status"
+              >
+                {#if report.noContent.length > 0}
+                  <p>
+                    Пропущено {report.noContent.length}
+                    {pluralize(
+                      report.noContent.length,
+                      "файл",
+                      "файла",
+                      "файлов",
+                    )}: дерево сохранено без содержимого (проект не влез в
+                    лимит). Откройте папку заново, чтобы прочитать файлы.
+                  </p>
+                {/if}
+                {#if report.failed.length > 0}
+                  <p class="mt-1">
+                    Не удалось разобрать: {report.failed
+                      .slice(0, 5)
+                      .join(", ")}{report.failed.length > 5
+                      ? ` и ещё ${report.failed.length - 5}`
+                      : ""}.
+                  </p>
+                {/if}
+              </div>
+            {/if}
+            {#if generateError}
+              <p class="text-sm text-[var(--error)]" role="alert">
+                {generateError}
+              </p>
+            {:else if report && !generatedMap}
+              <p class="text-sm text-[var(--text-tertiary)]">
+                В выбранной папке нет поддерживаемых файлов с функциями или
+                классами.
+              </p>
+            {/if}
             {#if generatedMap}
-              <pre class="font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap">{generatedMap}</pre>
-            {:else}
-              <div class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]">
-                {selectedNode ? "Нажмите 'Сгенерировать'" : "Выберите папку слева"}
+              <pre
+                class="font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap">{generatedMap}</pre>
+            {:else if !report && !generateError}
+              <div
+                class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]"
+              >
+                {selectedNode
+                  ? "Нажмите 'Сгенерировать'"
+                  : "Выберите папку слева"}
               </div>
             {/if}
           </div>

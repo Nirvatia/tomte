@@ -1,4 +1,4 @@
-import type { AttachedFile } from "../types";
+import type { AttachedFile, ExportFile } from "../types";
 import { generateId } from "./index";
 
 export const TEXT_EXTENSIONS = [
@@ -38,14 +38,16 @@ export function getPlaceholderPrefix(file: AttachedFile): string {
   return file.type === "image" ? "IMAGE" : "FILE";
 }
 
+/** Номер среди вложений с тем же префиксом: [IMAGE_n] и [FILE_n] нумеруются отдельно. */
 export function getPlaceholderIndex(
   file: AttachedFile,
   allFiles: AttachedFile[],
 ): number {
+  const prefix = getPlaceholderPrefix(file);
   let index = 1;
   for (const f of allFiles) {
     if (f.id === file.id) return index;
-    if (f.type === file.type) index++;
+    if (getPlaceholderPrefix(f) === prefix) index++;
   }
   return index;
 }
@@ -59,54 +61,117 @@ export function getPlaceholder(
   return `[${prefix}_${index}: ${file.name}]`;
 }
 
+/** Метка плейсхолдера без имени: «IMAGE_2», «FILE_1». */
+export function getPlaceholderLabel(
+  file: AttachedFile,
+  allFiles: AttachedFile[],
+): string {
+  return `${getPlaceholderPrefix(file)}_${getPlaceholderIndex(file, allFiles)}`;
+}
+
+/** Проставляет отобранным вложениям метки, посчитанные по всем вложениям проекта. */
+export function labelAttachments(
+  selected: AttachedFile[],
+  allAttachments: AttachedFile[],
+): ExportFile[] {
+  return selected.map((file) => ({
+    ...file,
+    label: getPlaceholderLabel(file, allAttachments),
+  }));
+}
+
+/** Метка файла в превью/экспорте (см. ExportFile.label). */
+export function resolveExportLabel(
+  file: ExportFile,
+  files: ExportFile[],
+): string | null {
+  if (file.label !== undefined) return file.label;
+  return getPlaceholderLabel(
+    file,
+    files.filter((f) => f.label === undefined),
+  );
+}
+
+const IMAGE_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "webp",
+  "bmp",
+  "svg",
+  "avif",
+  "ico",
+];
+
+function getExtension(name: string): string {
+  // Без точки всё имя считается расширением: Makefile -> "makefile".
+  return name.includes(".")
+    ? name.split(".").pop()?.toLowerCase() || ""
+    : name.toLowerCase();
+}
+
+function isImageFile(file: File, ext: string): boolean {
+  return (
+    file.type.startsWith("image/") ||
+    (!file.type && IMAGE_EXTENSIONS.includes(ext))
+  );
+}
+
+export function readAsDataUrl(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Не удалось прочитать файл"));
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function measureImage(
+  src: string,
+): Promise<{ width: number; height: number }> {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  return { width: img.naturalWidth, height: img.naturalHeight };
+}
+
+/**
+ * Превращает File во вложение:
+ *  - текст (по расширению или MIME text/*) — с содержимым;
+ *  - картинка — data URL и размеры;
+ *  - всё остальное (PDF, архивы, битые картинки) — только метаданные.
+ */
 export async function processFile(file: File): Promise<AttachedFile> {
-  const id = generateId();
+  const ext = getExtension(file.name);
+  const base = { id: generateId(), name: file.name, size: file.size, ext };
 
-  // Если в имени файла нет точки, считаем всё имя расширением (в нижнем регистре).
-  // Это необходимо для корректной обработки файлов вроде Makefile (ожидание теста: "makefile").
-  const ext = file.name.includes(".")
-    ? file.name.split(".").pop()?.toLowerCase() || ""
-    : file.name.toLowerCase();
-
-  // Проверяем не только по расширению, но и по MIME-типу.
-  // Это спасает от зависания в ветке Image для файлов без расширения, но с type="text/plain".
-  const isText = isTextFile(file.name) || file.type.startsWith("text/");
-
-  if (isText) {
-    const content = await file.text();
-    return {
-      id,
-      name: file.name,
-      size: file.size,
-      type: "text",
-      content,
-      ext,
-    };
-  } else {
-    // Возвращаемся к стандартным FileReader и Image, чтобы тестовые моки
-    // (которые перехватывают new Image() и new FileReader()) работали корректно.
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        const img = new Image();
-        img.onload = () => {
-          resolve({
-            id,
-            name: file.name,
-            size: file.size,
-            type: "image",
-            dataUrl,
-            ext,
-            width: img.naturalWidth,
-            height: img.naturalHeight,
-          });
-        };
-        img.onerror = reject;
-        img.src = dataUrl;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  if (isTextFile(file.name) || file.type.startsWith("text/")) {
+    return { ...base, type: "text", content: await file.text() };
   }
+
+  if (isImageFile(file, ext)) {
+    try {
+      const dataUrl = await readAsDataUrl(file);
+      const { width, height } = await measureImage(dataUrl);
+      return { ...base, type: "image", dataUrl, width, height };
+    } catch (error) {
+      console.warn(`Не удалось прочитать изображение ${file.name}:`, error);
+    }
+  }
+
+  return { ...base, type: "binary" };
+}
+
+/** Картинки из буфера обмена (вставка скриншота и т.п.). */
+export function imageFilesFromClipboard(data: DataTransfer | null): File[] {
+  if (!data) return [];
+  const files: File[] = [];
+  for (const item of Array.from(data.items ?? [])) {
+    if (item.kind !== "file" || !item.type.startsWith("image/")) continue;
+    const file = item.getAsFile();
+    if (file) files.push(file);
+  }
+  return files;
 }

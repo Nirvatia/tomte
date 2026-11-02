@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { downloadBlob } from "../../utils/export/common";
   import {
     Archive,
     Download,
@@ -84,14 +85,7 @@
 
   function handleDownloadAll() {
     const blob = createZipBlob(extractedFiles);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "extracted_files.zip";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, "extracted_files.zip");
   }
 
   async function handleAddToAttachments() {
@@ -198,8 +192,7 @@
             bind:value={markdownInput}
             placeholder="Вставьте сюда весь текст ответа LLM с code blocks..."
             class="min-h-0 w-full flex-1 resize-none rounded-lg border border-[var(--border)] bg-[var(--bg-darkest)] px-4 py-3 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
-            aria-label="Ответ LLM в формате Markdown"
-          ></textarea>
+            aria-label="Ответ LLM в формате Markdown"></textarea>
         </div>
       </div>
 
@@ -291,7 +284,7 @@
                     {/if}
                   </div>
                   <div
-                    class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+                    class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                   >
                     {#if editingIndex === index}
                       <button

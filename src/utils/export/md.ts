@@ -1,8 +1,9 @@
-// @ts-ignore
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
-import type { AttachedFile } from "../../types";
+import type { ExportFile } from "../../types";
 import { sanitizeFileName } from "../index";
+import { resolveExportLabel } from "../files";
+import { downloadBlob } from "./common";
 
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -15,7 +16,8 @@ const turndownService = new TurndownService({
 turndownService.use(gfm);
 
 turndownService.addRule("strikethrough", {
-  filter: ["del", "s", "strike"],
+  // <strike> устарел и не входит в HTMLElementTagNameMap, поэтому фильтр функцией.
+  filter: (node) => ["DEL", "S", "STRIKE"].includes(node.nodeName),
   replacement: (content) => `~~${content}~~`,
 });
 
@@ -119,14 +121,17 @@ function tightenLists(markdown: string): string {
   return result.join("\n");
 }
 
+/** HTML редактора → Markdown (GFM, плотные списки). */
+export function htmlToMarkdown(html: string): string {
+  return tightenLists(turndownService.turndown(prepareHtmlForMarkdown(html)));
+}
+
 export async function exportToMD(
   editorHtml: string,
-  files: AttachedFile[],
+  files: ExportFile[],
   fileName: string,
 ): Promise<void> {
-  const preparedHtml = prepareHtmlForMarkdown(editorHtml);
-  let markdown = turndownService.turndown(preparedHtml);
-  markdown = tightenLists(markdown);
+  let markdown = htmlToMarkdown(editorHtml);
 
   const filesToExport = files.filter((f) => f.content);
   if (filesToExport.length > 0) {
@@ -159,18 +164,12 @@ export async function exportToMD(
         "zsh",
       ];
       const lang = supportedLangs.includes(ext) ? ext : "";
-      markdown += `### 📄 \`${file.name}\`\n\n`;
+      const label = resolveExportLabel(file, files);
+      markdown += `### 📄 ${label ? `${label}: ` : ""}\`${file.name}\`\n\n`;
       markdown += `\`\`\`${lang}\n${file.content}\n\`\`\`\n\n`;
     }
   }
 
   const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${sanitizeFileName(fileName)}.md`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadBlob(blob, `${sanitizeFileName(fileName)}.md`);
 }
