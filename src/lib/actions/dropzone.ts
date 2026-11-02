@@ -1,7 +1,13 @@
+/** Перетаскивают файлы с диска, а не, например, вкладку внутри приложения. */
+function hasFiles(event: DragEvent): boolean {
+  return Array.from(event.dataTransfer?.types ?? []).includes("Files");
+}
+
 export function dropzone(node: HTMLElement, onDrop: (files: File[]) => void) {
   let isDragging = false;
 
   function handleDragOver(event: DragEvent) {
+    if (!hasFiles(event)) return;
     event.preventDefault();
     event.stopPropagation();
     if (!isDragging) {
@@ -31,6 +37,7 @@ export function dropzone(node: HTMLElement, onDrop: (files: File[]) => void) {
   }
 
   function handleDrop(event: DragEvent) {
+    if (!hasFiles(event)) return;
     event.preventDefault();
     event.stopPropagation();
     isDragging = false;

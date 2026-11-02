@@ -16,6 +16,7 @@
   import { notifyError, notifyUndo } from "$lib/notify";
   import { promptFileMenu } from "$lib/promptFileMenu";
   import { openContextMenu } from "../../stores/contextMenu";
+  import { reorderable } from "$lib/actions/reorder";
   import { requestConfirm } from "../../stores/confirm";
   import {
     activeFileId,
@@ -30,6 +31,8 @@
     deletePromptFileWithUndo,
     deletePromptFiles,
     flushPendingEditorSave,
+    movePromptFile,
+    movePromptFileBy,
     pinPromptFile,
     previewPromptFile,
     renamePromptFile,
@@ -289,6 +292,13 @@
     <div class="py-1">
       {#each $promptFiles as file (file.id)}
         <div
+          use:reorderable={{
+            id: file.id,
+            group: "prompts",
+            axis: "y",
+            onDrop: (dragged, target, place) =>
+              void movePromptFile(dragged, target, place),
+          }}
           class="group flex items-center gap-2 border-l-2 border-transparent py-[5px] pr-4 pl-[28px] text-[13px] transition-all hover:bg-[var(--bg-light)] {$activeFileId ===
           file.id
             ? 'border-l-[var(--accent)] bg-[var(--accent-dim)] font-medium text-[var(--accent)]'
@@ -325,6 +335,17 @@
                 if (event.key === "F2") {
                   event.preventDefault();
                   handleStartRename(file.id, file.name);
+                } else if (
+                  event.altKey &&
+                  (event.key === "ArrowUp" || event.key === "ArrowDown")
+                ) {
+                  // Без мыши: Alt+↑/↓ двигает файл в списке.
+                  event.preventDefault();
+                  const button = event.currentTarget;
+                  void movePromptFileBy(
+                    file.id,
+                    event.key === "ArrowDown" ? 1 : -1,
+                  ).then(() => button.focus());
                 }
               }}
               oncontextmenu={(event) =>

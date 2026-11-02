@@ -35,13 +35,14 @@
   } from "../../utils/projectActions";
   import {
     calculateStats,
+    filterTree,
     hasFileSystemAccess,
     readDirectoryRecursive,
     readDirectoryViaInput,
   } from "../../utils/projectTree";
 
   import { SECTION_TOOL_BTN } from "./constants";
-  import { getErrorMessage } from "../../utils";
+  import { getErrorMessage, pluralize } from "../../utils";
 
   interface Props {
     editor?: Editor | null;
@@ -69,17 +70,28 @@
     $projectTreeNodes.length === 0 ? null : calculateStats($projectTreeNodes),
   );
 
+  // Поиск по дереву (5.6). Пока он активен, «выбрать все» действует на найденное.
+  let treeQuery = $state("");
+  const filtered = $derived(
+    treeQuery.trim() ? filterTree($projectTreeNodes, treeQuery) : null,
+  );
+  const visibleNodes = $derived(filtered?.nodes ?? $projectTreeNodes);
+  const visiblePaths = $derived(getAllFilePaths(visibleNodes));
+
   const totalFiles = $derived(stats?.totalFiles ?? 0);
   const selectedCount = $derived($selectedProjectFiles.length);
+  const selectedVisible = $derived(
+    visiblePaths.filter((p) => $selectedProjectFiles.includes(p)).length,
+  );
   const isAllSelected = $derived(
-    totalFiles > 0 && selectedCount === totalFiles,
+    visiblePaths.length > 0 && selectedVisible === visiblePaths.length,
   );
   const isPartialSelected = $derived(
-    totalFiles > 0 && selectedCount > 0 && selectedCount < totalFiles,
+    selectedVisible > 0 && selectedVisible < visiblePaths.length,
   );
 
   function toggleSelectAll() {
-    if (selectedCount > 0) {
+    if (selectedVisible > 0) {
       deselectAll();
     } else {
       selectAll();
@@ -102,11 +114,16 @@
   }
 
   function selectAll() {
-    selectedProjectFiles.set(getAllFilePaths($projectTreeNodes));
+    selectedProjectFiles.update((current) => [
+      ...new Set([...current, ...visiblePaths]),
+    ]);
   }
 
   function deselectAll() {
-    selectedProjectFiles.set([]);
+    const visible = new Set(visiblePaths);
+    selectedProjectFiles.update((current) =>
+      current.filter((path) => !visible.has(path)),
+    );
   }
 
   async function handlePickDirectory() {
@@ -349,9 +366,31 @@
       >
         {$projectTreeRootName}
       </div>
+      <div class="border-b border-[var(--border)] px-3 py-1.5">
+        <input
+          type="search"
+          bind:value={treeQuery}
+          onkeydown={(event) => {
+            if (event.key === "Escape" && treeQuery) {
+              event.stopPropagation();
+              treeQuery = "";
+            }
+          }}
+          placeholder="Найти в дереве…"
+          aria-label="Найти в дереве проекта"
+          class="w-full rounded border border-[var(--border)] bg-[var(--bg-darkest)] px-2 py-1 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)] focus:outline-none"
+        />
+        {#if filtered}
+          <p class="mt-1 text-[11px] text-[var(--text-tertiary)]" role="status">
+            {filtered.matches > 0
+              ? `Найдено: ${filtered.matches} ${pluralize(filtered.matches, "файл", "файла", "файлов")}`
+              : "Ничего не найдено"}
+          </p>
+        {/if}
+      </div>
       <div class="py-1">
-        {#each $projectTreeNodes as node (node.path)}
-          <TreeNodeItem {node} depth={0} {editor} />
+        {#each visibleNodes as node (node.path)}
+          <TreeNodeItem {node} depth={0} {editor} forceOpen={!!filtered} />
         {/each}
       </div>
     {/if}

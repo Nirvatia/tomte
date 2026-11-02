@@ -12,8 +12,11 @@
     activatePromptFile,
     closePromptFileTab,
     createPromptFile,
+    moveTab,
+    moveTabBy,
     renamePromptFile,
   } from "../../utils/projectActions";
+  import { reorderable } from "$lib/actions/reorder";
   import { openContextMenu } from "../../stores/contextMenu";
   import { promptFileMenu } from "$lib/promptFileMenu";
 
@@ -112,6 +115,16 @@
     } else if (event.key === "F2") {
       event.preventDefault();
       startRename(file);
+    } else if (
+      event.altKey &&
+      (event.key === "ArrowLeft" || event.key === "ArrowRight")
+    ) {
+      // Без мыши: Alt+←/→ двигает вкладку.
+      event.preventDefault();
+      moveTabBy(file.id, event.key === "ArrowRight" ? 1 : -1);
+      queueMicrotask(() =>
+        (event.currentTarget as HTMLElement | null)?.focus(),
+      );
     }
   }
 
@@ -149,6 +162,12 @@
       style={isActive
         ? "border-top: 2px solid var(--accent); margin-top: -1px;"
         : ""}
+      use:reorderable={{
+        id: file.id,
+        group: "tabs",
+        axis: "x",
+        onDrop: moveTab,
+      }}
       role="tab"
       aria-selected={isActive}
       aria-label="Вкладка {file.name}{isPreviewTab(file.id)

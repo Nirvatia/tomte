@@ -38,6 +38,7 @@ import {
 import { calculateStats, getTreeGithubConfig } from "./projectTree";
 import { fetchGithubTree, resolveGithubToken } from "./github";
 import { rememberLastProject } from "./lastProject";
+import { moveId, type DropPlace } from "../lib/actions/reorder";
 
 // ════════════════════════════════════════════
 // Общие помощники
@@ -444,6 +445,64 @@ export async function closeOtherTabs(fileId: string): Promise<void> {
   openFileIds.set([fileId]);
   previewFileId.set(null);
   activeFileId.set(fileId);
+}
+
+/**
+ * Переносит файл промпта в панели. Порядок хранится в проекте
+ * (и задаёт порядок файлов в ZIP), вкладки не трогает.
+ */
+export async function movePromptFile(
+  draggedId: string,
+  targetId: string,
+  place: DropPlace,
+): Promise<void> {
+  await updateProject((project) => {
+    const ids = moveId(
+      project.files.map((f) => f.id),
+      draggedId,
+      targetId,
+      place,
+    );
+    if (ids.every((id, i) => id === project.files[i]?.id)) {
+      return null;
+    }
+    const byId = new Map(project.files.map((f) => [f.id, f]));
+    return { ...project, files: ids.map((id) => byId.get(id)!) };
+  });
+}
+
+/** Сдвигает файл в панели на одну позицию (Alt+↑/↓). */
+export async function movePromptFileBy(
+  fileId: string,
+  step: 1 | -1,
+): Promise<void> {
+  const files = get(activeProject)?.files ?? [];
+  const index = files.findIndex((f) => f.id === fileId);
+  const target = files[index + step];
+  if (index < 0 || !target) return;
+  await movePromptFile(fileId, target.id, step === 1 ? "after" : "before");
+}
+
+/**
+ * Переносит вкладку. Порядок вкладок — только для текущей сессии.
+ * Перетащенная вкладка предпросмотра закрепляется, как в VS Code.
+ */
+export function moveTab(
+  draggedId: string,
+  targetId: string,
+  place: DropPlace,
+): void {
+  const next = moveId(getVisibleTabIds(), draggedId, targetId, place);
+  openFileIds.set(next);
+  if (next.includes(get(previewFileId) ?? "")) previewFileId.set(null);
+}
+
+/** Сдвигает вкладку на одну позицию (Alt+←/→). */
+export function moveTabBy(fileId: string, step: 1 | -1): void {
+  const tabs = getVisibleTabIds();
+  const target = tabs[tabs.indexOf(fileId) + step];
+  if (!tabs.includes(fileId) || !target) return;
+  moveTab(fileId, target, step === 1 ? "after" : "before");
 }
 
 /** Вкладки в том порядке, в каком их видно: закреплённые, затем предпросмотр. */

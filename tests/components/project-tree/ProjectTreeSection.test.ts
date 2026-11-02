@@ -45,7 +45,11 @@ vi.mock("../../../src/utils/projectActions", () => ({
   setProjectTreeSource: vi.fn(),
 }));
 
-vi.mock("../../../src/utils/projectTree", () => ({
+vi.mock("../../../src/utils/projectTree", async (importOriginal) => ({
+  // filterTree настоящий: поиск проверяем вместе с компонентом.
+  filterTree: (
+    await importOriginal<typeof import("../../../src/utils/projectTree")>()
+  ).filterTree,
   calculateStats: vi.fn(),
   hasFileSystemAccess: vi.fn(),
   readDirectoryRecursive: vi.fn(),
@@ -327,6 +331,72 @@ describe("ProjectTreeSection", () => {
       await waitFor(() => {
         expect(clearGithubConfig).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe("Поиск по дереву", () => {
+    const nodes = [
+      {
+        name: "src",
+        path: "src",
+        type: "directory",
+        children: [
+          { name: "api.ts", path: "src/api.ts", type: "file", children: [] },
+          { name: "main.ts", path: "src/main.ts", type: "file", children: [] },
+        ],
+      },
+      { name: "README.md", path: "README.md", type: "file", children: [] },
+    ];
+
+    it("показывает только совпадения и их папки", async () => {
+      setActiveTree(nodes as any);
+      render(ProjectTreeSection);
+
+      await fireEvent.input(
+        screen.getByRole("searchbox", { name: "Найти в дереве проекта" }),
+        {
+          target: { value: "api" },
+        },
+      );
+
+      expect(screen.getByText("api.ts")).toBeInTheDocument();
+      expect(screen.queryByText("main.ts")).toBeNull();
+      expect(screen.queryByText("README.md")).toBeNull();
+      expect(screen.getByText("Найдено: 1 файл")).toBeInTheDocument();
+    });
+
+    it("«выбрать все» при поиске выбирает только найденное", async () => {
+      setActiveTree(nodes as any);
+      render(ProjectTreeSection);
+
+      await fireEvent.input(
+        screen.getByRole("searchbox", { name: "Найти в дереве проекта" }),
+        {
+          target: { value: ".ts" },
+        },
+      );
+      await fireEvent.click(
+        screen.getByRole("checkbox", { name: "Выбрать все файлы дерева" }),
+      );
+
+      expect(get(selectedProjectFiles).sort()).toEqual([
+        "src/api.ts",
+        "src/main.ts",
+      ]);
+    });
+
+    it("Escape очищает поиск", async () => {
+      setActiveTree(nodes as any);
+      render(ProjectTreeSection);
+      const search = screen.getByRole("searchbox", {
+        name: "Найти в дереве проекта",
+      });
+
+      await fireEvent.input(search, { target: { value: "zzz" } });
+      expect(screen.getByText("Ничего не найдено")).toBeInTheDocument();
+      await fireEvent.keyDown(search, { key: "Escape" });
+
+      expect(screen.getByText("README.md")).toBeInTheDocument();
     });
   });
 });

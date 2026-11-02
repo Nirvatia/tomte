@@ -654,3 +654,20 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
+
+/* Перестановка перетаскиванием: линия там, куда встанет элемент. */
+[data-drop="before"] {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+[data-drop="after"] {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+[role="tab"][data-drop="before"] {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+[role="tab"][data-drop="after"] {
+  box-shadow: inset -2px 0 0 var(--accent);
+}
+[data-dragging="true"] {
+  opacity: 0.5;
+}

@@ -143,7 +143,8 @@ export function matchesHotkey(
 /** Подпись сочетания для шпаргалки и подсказок: «Ctrl+Alt+N» или «⌘⌥N». */
 export function formatHotkey(keys: string, isMac = isMacPlatform()): string {
   const spec = parse(keys);
-  if (!codeFor(spec.key)) return spec.key;
+  // Не буква и не цифра («?», «Shift+F10», «Alt+↑ / Alt+↓») — показываем как записано.
+  if (!codeFor(spec.key)) return keys;
   if (isMac) {
     return [
       spec.ctrl ? "⌃" : "",

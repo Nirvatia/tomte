@@ -260,3 +260,49 @@ export function getTreeGithubConfig(
   }
   return undefined;
 }
+
+/**
+ * Фильтр дерева для поиска: файл подходит по имени или пути, папка — по имени
+ * (тогда показывается целиком). Родительские папки совпавших файлов остаются,
+ * чтобы было видно, где файл лежит. Регистр не важен.
+ */
+export function filterTree(
+  nodes: TreeNode[],
+  query: string,
+): { nodes: TreeNode[]; matches: number } {
+  const q = query.trim().toLowerCase();
+  if (!q) return { nodes, matches: 0 };
+  let matches = 0;
+
+  const countFiles = (items: TreeNode[]): number =>
+    items.reduce(
+      (sum, n) => sum + (n.type === "file" ? 1 : countFiles(n.children)),
+      0,
+    );
+
+  function walk(items: TreeNode[]): TreeNode[] {
+    const result: TreeNode[] = [];
+    for (const node of items) {
+      if (node.type === "file") {
+        if (
+          node.name.toLowerCase().includes(q) ||
+          node.path.toLowerCase().includes(q)
+        ) {
+          matches += 1;
+          result.push(node);
+        }
+        continue;
+      }
+      if (node.name.toLowerCase().includes(q)) {
+        matches += countFiles(node.children);
+        result.push(node);
+        continue;
+      }
+      const children = walk(node.children);
+      if (children.length > 0) result.push({ ...node, children });
+    }
+    return result;
+  }
+
+  return { nodes: walk(nodes), matches };
+}

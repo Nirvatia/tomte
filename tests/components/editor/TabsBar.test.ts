@@ -23,6 +23,8 @@ vi.mock("../../../src/utils/projectActions", () => ({
   closePromptFileTab: vi.fn(),
   createPromptFile: vi.fn(),
   renamePromptFile: vi.fn(),
+  moveTab: vi.fn(),
+  moveTabBy: vi.fn(),
 }));
 
 function makeFile(overrides: Partial<PromptFile> = {}): PromptFile {

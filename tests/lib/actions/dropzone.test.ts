@@ -15,11 +15,17 @@ function createNode() {
   return node;
 }
 
+/** По умолчанию — перетаскивание файлов с диска (types содержит "Files"). */
 function makeEvent(type: string, props: Record<string, unknown> = {}) {
   const event = new Event(type, {
     bubbles: true,
     cancelable: true,
   });
+  const dataTransfer = {
+    types: ["Files"],
+    ...((props.dataTransfer as object | undefined) ?? {}),
+  };
+  props = { ...props, dataTransfer };
 
   for (const [key, value] of Object.entries(props)) {
     Object.defineProperty(event, key, {
@@ -174,5 +180,20 @@ describe("dropzone", () => {
     for (const className of DRAG_CLASSES) {
       expect(node.classList.contains(className)).toBe(false);
     }
+  });
+
+  it("не реагирует на перетаскивание внутри приложения (вкладки, файлы промптов)", () => {
+    const node = createNode();
+    const onDrop = vi.fn();
+    dropzone(node, onDrop);
+
+    const internal = {
+      dataTransfer: { types: ["application/x-tomte-tabs"], files: [] },
+    };
+    node.dispatchEvent(makeEvent("dragover", internal));
+    node.dispatchEvent(makeEvent("drop", internal));
+
+    expect(node.classList.contains("ring-2")).toBe(false);
+    expect(onDrop).not.toHaveBeenCalled();
   });
 });

@@ -17,6 +17,14 @@
     { keys: "Mod+Shift+R", description: "Выровнять вправо" },
   ];
 
+  /** Клавиши на файле в панели или на вкладке (с фокусом на элементе). */
+  const LIST_KEYS = [
+    { keys: "F2", description: "Переименовать" },
+    { keys: "Shift+F10", description: "Меню действий" },
+    { keys: "Alt+↑ / Alt+↓", description: "Переставить файл в панели" },
+    { keys: "Alt+← / Alt+→", description: "Переставить вкладку" },
+  ];
+
   const close = () => isShortcutsOpen.set(false);
 </script>
 
@@ -38,7 +46,7 @@
       </button>
     </div>
     <div class="grid gap-5 px-5 py-4 text-[13px] sm:grid-cols-2">
-      {#each [{ title: "Приложение", items: HOTKEYS }, { title: "Редактор", items: EDITOR_KEYS }] as group (group.title)}
+      {#each [{ title: "Приложение", items: HOTKEYS }, { title: "Редактор", items: EDITOR_KEYS }, { title: "Файлы и вкладки", items: LIST_KEYS }] as group (group.title)}
         <section>
           <h3
             class="mb-2 text-[11px] font-semibold tracking-wide text-[var(--text-tertiary)] uppercase"

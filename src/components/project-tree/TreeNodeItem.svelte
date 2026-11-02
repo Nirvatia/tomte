@@ -24,13 +24,16 @@
     node: TreeNode;
     depth?: number;
     editor?: Editor | null;
+    /** Раскрыть папку независимо от того, что выбрал пользователь (при поиске). */
+    forceOpen?: boolean;
   }
 
-  let { node, depth = 0, editor = null }: Props = $props();
+  let { node, depth = 0, editor = null, forceOpen = false }: Props = $props();
 
   // Читается только для папок (все проверки идут через node.type), поэтому просто true:
   // папки по умолчанию раскрыты.
-  let isOpen = $state(true);
+  let userOpen = $state(true);
+  const isOpen = $derived(forceOpen || userOpen);
   let isPreviewLoading = $state(false);
 
   function getAllFilePaths(n: TreeNode): string[] {
@@ -142,7 +145,7 @@
   function toggle(event: Event) {
     event.stopPropagation();
     if (node.type === "directory") {
-      isOpen = !isOpen;
+      userOpen = !userOpen;
     }
   }
 </script>
@@ -229,7 +232,7 @@
 {#if node.type === "directory" && isOpen && node.children.length > 0}
   <div class="ml-4 border-l border-[var(--border)]">
     {#each node.children as child (child.path)}
-      <TreeNodeItem node={child} depth={depth + 1} {editor} />
+      <TreeNodeItem node={child} depth={depth + 1} {editor} {forceOpen} />
     {/each}
   </div>
 {/if}

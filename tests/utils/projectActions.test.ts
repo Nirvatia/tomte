@@ -31,6 +31,10 @@ import {
   duplicatePromptFile,
   closeOtherTabs,
   activateAdjacentTab,
+  movePromptFile,
+  movePromptFileBy,
+  moveTab,
+  moveTabBy,
 } from "../../src/utils/projectActions";
 
 import {
@@ -867,6 +871,60 @@ describe("projectActions", () => {
       expect(get(activeFileId)).toBe("f1");
       await activateAdjacentTab(-1);
       expect(get(activeFileId)).toBe("f3");
+    });
+  });
+
+  describe("перестановка", () => {
+    beforeEach(() => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2"]);
+      activeFileId.set("f1");
+    });
+
+    it("порядок файлов в панели сохраняется в проект и не трогает вкладки", async () => {
+      await movePromptFile("f3", "f1", "before");
+
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual([
+        "f3",
+        "f1",
+        "f2",
+      ]);
+      expect(saveProject).toHaveBeenCalledTimes(1);
+      expect(get(openFileIds)).toEqual(["f1", "f2"]);
+    });
+
+    it("Alt+стрелка двигает файл на одну позицию; у края — ничего", async () => {
+      await movePromptFileBy("f1", 1);
+      expect(get(activeProject)!.files.map((f) => f.id)).toEqual([
+        "f2",
+        "f1",
+        "f3",
+      ]);
+
+      vi.mocked(saveProject).mockClear();
+      await movePromptFileBy("f2", -1);
+      expect(saveProject).not.toHaveBeenCalled();
+    });
+
+    it("вкладки переставляются без записи в базу; вкладка предпросмотра закрепляется", async () => {
+      previewFileId.set("f3");
+
+      moveTab("f3", "f1", "before");
+
+      expect(get(openFileIds)).toEqual(["f3", "f1", "f2"]);
+      expect(get(previewFileId)).toBeNull();
+      expect(saveProject).not.toHaveBeenCalled();
+
+      moveTabBy("f3", 1);
+      expect(get(openFileIds)).toEqual(["f1", "f3", "f2"]);
     });
   });
 });
