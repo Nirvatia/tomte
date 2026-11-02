@@ -4,7 +4,8 @@ export interface AttachedFile {
   id: string;
   name: string;
   size: number;
-  type: "text" | "image";
+  /** binary: файл без содержимого (PDF, архив и т.п.), хранится только имя и размер. */
+  type: "text" | "image" | "binary";
   content?: string;
   dataUrl?: string;
   ext?: string;

@@ -78,7 +78,11 @@ function handleBackdropKeydown(event: KeyboardEvent) {
               {file.name}
             </h2>
             <p class="mt-0.5 font-mono text-xs text-[var(--text-tertiary)]">
-              {file.type === "image" ? "Изображение" : "Текстовый файл"} ·
+              {file.type === "image"
+                ? "Изображение"
+                : file.type === "binary"
+                  ? "Файл"
+                  : "Текстовый файл"} ·
               {file.size.toLocaleString()} байт
             </p>
           </div>
@@ -114,9 +118,14 @@ function handleBackdropKeydown(event: KeyboardEvent) {
             <p
               class="mx-auto mt-2 max-w-md text-xs leading-relaxed text-[var(--text-tertiary)]"
             >
-              Файл сохранён только как метаданные, либо содержимое не было
-              загружено. Такое может произойти, если проект превысил лимит
-              хранилища.
+              {#if file.type === "binary"}
+                Это не текст и не изображение, поэтому сохранены только имя и
+                размер. В экспорт содержимое не попадёт.
+              {:else}
+                Файл сохранён только как метаданные, либо содержимое не было
+                загружено. Такое может произойти, если проект превысил лимит
+                хранилища.
+              {/if}
             </p>
           </div>
         {/if}

@@ -8,6 +8,7 @@
     Trash2,
   } from "@lucide/svelte";
 
+  import { autofocus } from "$lib/actions/autofocus";
   import { requestConfirm } from "../../stores/confirm";
   import {
     activeFileId,
@@ -30,7 +31,6 @@
   let newFileName = $state("");
   let isCreatingFile = $state(false);
   let actionInProgress = $state(false);
-  let newFileInput = $state<HTMLInputElement | null>(null);
 
   function suggestNewFileName(): string {
     const names = new Set($promptFiles.map((f) => f.name.toLowerCase()));
@@ -48,7 +48,6 @@
     if (actionInProgress || isCreatingFile) return;
     isCreatingFile = true;
     newFileName = suggestNewFileName();
-    setTimeout(() => newFileInput?.focus(), 50);
   }
 
   async function saveNewFile() {
@@ -189,7 +188,7 @@
                 }
               }}
               class="flex-1 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-0.5 text-[13px] text-[var(--text-primary)] focus:outline-none"
-              autofocus
+              use:autofocus
             />
           {:else}
             <button
@@ -239,7 +238,7 @@
         >
           <FileText size={14} class="shrink-0 text-[var(--accent)]" />
           <input
-            bind:this={newFileInput}
+            use:autofocus
             type="text"
             bind:value={newFileName}
             onblur={saveNewFile}

@@ -1,4 +1,3 @@
-// @ts-ignore
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import type { AttachedFile } from "../../types";
@@ -15,7 +14,8 @@ const turndownService = new TurndownService({
 turndownService.use(gfm);
 
 turndownService.addRule("strikethrough", {
-  filter: ["del", "s", "strike"],
+  // <strike> устарел и не входит в HTMLElementTagNameMap, поэтому фильтр функцией.
+  filter: (node) => ["DEL", "S", "STRIKE"].includes(node.nodeName),
   replacement: (content) => `~~${content}~~`,
 });
 

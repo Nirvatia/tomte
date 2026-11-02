@@ -43,10 +43,10 @@ export function estimateHtmlTokens(html: string): number {
 
 /**
  * Оценка токенов вложения.
- * Изображения исключены из расчёта (0).
+ * Изображения и бинарные файлы исключены из расчёта (0): их текст в промпт не идёт.
  */
 export function estimateAttachmentTokens(file: AttachedFile): number {
-  if (file.type === "image") return 0;
+  if (file.type === "image" || file.type === "binary") return 0;
   if (typeof file.content === "string") {
     return estimateTokens(file.content);
   }

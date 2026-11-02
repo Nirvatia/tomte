@@ -9,6 +9,7 @@ import {
 import "@testing-library/jest-dom/vitest";
 import { get } from "svelte/store";
 import TreeNodeItem from "../../../src/components/project-tree/TreeNodeItem.svelte";
+import type { TreeNode } from "../../../src/utils/projectTree";
 import {
   selectedProjectFiles,
   previewFileFromTree,
@@ -41,14 +42,14 @@ function makeEditorMock() {
   };
 }
 
-const fileNode = {
+const fileNode: TreeNode = {
   name: "file.txt",
   path: "src/file.txt",
   type: "file",
   children: [],
 };
 
-const directoryNode = {
+const directoryNode: TreeNode = {
   name: "src",
   path: "src",
   type: "directory",
@@ -283,7 +284,7 @@ describe("TreeNodeItem", () => {
     it("показывает ошибку, если файл не удалось прочитать", async () => {
       const badFileHandle = {
         getFile: vi.fn().mockRejectedValue(new Error("read error")),
-      };
+      } as unknown as FileSystemFileHandle;
 
       render(TreeNodeItem, {
         props: {

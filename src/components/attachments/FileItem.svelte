@@ -40,7 +40,7 @@
   const hasContent = $derived(
     file.type === "image"
       ? Boolean(file.dataUrl)
-      : typeof file.content === "string",
+      : file.type === "text" && typeof file.content === "string",
   );
 
   function handleCheckboxClick(event: Event) {

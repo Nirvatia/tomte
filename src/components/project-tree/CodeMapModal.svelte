@@ -67,12 +67,22 @@
   function handleBackdropClick(event: MouseEvent) {
     if (event.target === event.currentTarget) onClose();
   }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (!isOpen || event.key !== "Escape") return;
+    // Останавливаем всплытие, чтобы обработчик на window не закрыл модалку второй раз.
+    event.stopPropagation();
+    onClose();
+  }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 {#if isOpen}
   <div
     class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
+    onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     aria-label="Генератор карты кода"

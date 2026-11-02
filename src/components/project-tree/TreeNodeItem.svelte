@@ -28,7 +28,9 @@
 
   let { node, depth = 0, editor = null }: Props = $props();
 
-  let isOpen = $state(node.type === "directory");
+  // Читается только для папок (все проверки идут через node.type), поэтому просто true:
+  // папки по умолчанию раскрыты.
+  let isOpen = $state(true);
   let isPreviewLoading = $state(false);
 
   function getAllFilePaths(n: TreeNode): string[] {
