@@ -49,9 +49,10 @@ export function createFlushableAsync(
       clearTimeout(timeout);
       timeout = null;
     }
-    if (running) {
+    // Если сохранение уже идёт, ждём его и проверяем dirty заново:
+    // правки, сделанные за это время, тоже должны попасть в базу.
+    while (running) {
       await running;
-      return;
     }
     if (!dirty) return;
 
