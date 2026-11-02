@@ -13,7 +13,6 @@ import {
   activeProject,
   isProjectTreeOpen,
   previewFileFromTree,
-  projectTreeNodes,
 } from "../../../src/stores";
 
 vi.mock("$app/environment", () => ({
@@ -116,7 +115,6 @@ describe("ProjectTreeSidebar", () => {
     localStorage.clear();
 
     activeProject.set(null);
-    projectTreeNodes.set([]);
     previewFileFromTree.set(null);
     isProjectTreeOpen.set(true);
 

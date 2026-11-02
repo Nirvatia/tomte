@@ -34,7 +34,6 @@
   import {
     isPreviewOpen,
     isExtractorOpen,
-    fileName,
     exportFormat,
     isProjectTreeOpen,
   } from "../../stores";
@@ -140,7 +139,6 @@
     editor?.commands.clearContent();
     await clearAttachmentsFromProject();
     await clearProjectTreeSource();
-    fileName.set("prompt");
     exportFormat.set("pdf");
   }
 
@@ -181,7 +179,7 @@
   }
 
   function handleApplyTestData() {
-    applyTestData(editor, (name) => fileName.set(name));
+    applyTestData(editor);
   }
 
   function addRowBefore() {

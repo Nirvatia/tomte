@@ -12,11 +12,10 @@ import { get } from "svelte/store";
 import ProjectTreeSection from "../../../src/components/project-tree/ProjectTreeSection.svelte";
 import {
   activeProject,
-  projectTreeNodes,
-  projectTreeRootName,
   projectTreeString,
   selectedProjectFiles,
 } from "../../../src/stores";
+import { setActiveTree } from "../../helpers/project";
 import {
   clearGithubConfig,
   restoreGithubTree,
@@ -78,9 +77,6 @@ function makeEditorMock() {
 describe("ProjectTreeSection", () => {
   beforeEach(() => {
     activeProject.set(null);
-    projectTreeNodes.set([]);
-    projectTreeRootName.set("");
-    projectTreeString.set("");
     selectedProjectFiles.set([]);
 
     vi.clearAllMocks();
@@ -112,16 +108,14 @@ describe("ProjectTreeSection", () => {
     });
 
     it("показывает корень и файлы дерева", () => {
-      projectTreeNodes.set([
+      setActiveTree([
         {
           name: "file.txt",
           path: "file.txt",
           type: "file",
           children: [],
         },
-      ] as any);
-
-      projectTreeRootName.set("my-project");
+      ] as any, "my-project");
 
       vi.mocked(calculateStats).mockReturnValue({
         totalFiles: 1,
@@ -139,7 +133,7 @@ describe("ProjectTreeSection", () => {
 
   describe("Выбор всех файлов", () => {
     it("выбирает и снимает выбор всех файлов", async () => {
-      projectTreeNodes.set([
+      setActiveTree([
         {
           name: "src",
           path: "src",
@@ -195,7 +189,7 @@ describe("ProjectTreeSection", () => {
         configurable: true,
       });
 
-      projectTreeString.set("project tree");
+      setActiveTree([], "project");
 
       render(ProjectTreeSection);
 
@@ -205,7 +199,7 @@ describe("ProjectTreeSection", () => {
 
       await fireEvent.click(copyButton);
 
-      expect(writeText).toHaveBeenCalledWith("project tree");
+      expect(writeText).toHaveBeenCalledWith(get(projectTreeString));
     });
   });
 
@@ -213,7 +207,7 @@ describe("ProjectTreeSection", () => {
     it("вставляет дерево в редактор как code block", async () => {
       const editor = makeEditorMock();
 
-      projectTreeString.set("project tree");
+      setActiveTree([], "project");
 
       render(ProjectTreeSection, {
         props: {
@@ -230,7 +224,7 @@ describe("ProjectTreeSection", () => {
       expect(editor.chain).toHaveBeenCalled();
       expect(editor.focus).toHaveBeenCalled();
       expect(editor.setCodeBlock).toHaveBeenCalled();
-      expect(editor.insertContent).toHaveBeenCalledWith("project tree");
+      expect(editor.insertContent).toHaveBeenCalledWith(get(projectTreeString));
       expect(editor.run).toHaveBeenCalled();
     });
   });

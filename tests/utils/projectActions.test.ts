@@ -8,12 +8,8 @@ import {
   previewFileId,
   selectedFileIds,
   selectedProjectFiles,
-  projectTreeNodes,
-  projectTreeRootName,
-  projectTreeString,
   previewFileFromTree,
   editorHtml,
-  fileName,
   pendingSaveController,
 } from "../../src/stores";
 
@@ -115,12 +111,8 @@ function resetStores(): void {
   previewFileId.set(null);
   selectedFileIds.set(new Set());
   selectedProjectFiles.set([]);
-  projectTreeNodes.set([]);
-  projectTreeRootName.set("");
-  projectTreeString.set("");
   previewFileFromTree.set(null);
   editorHtml.set("");
-  fileName.set("prompt");
   pendingSaveController.set(null);
 }
 
@@ -531,7 +523,7 @@ describe("projectActions", () => {
       await removeAttachmentFromProject("a1");
 
       expect(saveProject).toHaveBeenCalledWith(expect.anything(), {
-        attachments: { delete: ["a1"] },
+        attachments: { delete: new Set(["a1"]) },
       });
     });
 

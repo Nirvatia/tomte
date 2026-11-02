@@ -2,7 +2,13 @@
   import { onDestroy } from "svelte";
   import { get } from "svelte/store";
   import type { Editor } from "@tiptap/core";
-  import { CircleCheck, FileText, Save, Upload } from "@lucide/svelte";
+  import {
+    CircleCheck,
+    FileText,
+    Save,
+    TriangleAlert,
+    Upload,
+  } from "@lucide/svelte";
 
   import TiptapEditor from "./TiptapEditor.svelte";
   import PreviewModal from "../preview/PreviewModal.svelte";
@@ -16,7 +22,6 @@
     activeProject,
     editorHtml,
     pendingSaveController,
-    projectSaveError,
   } from "../../stores";
 
   import { createFlushableAsync } from "../../utils";
@@ -39,6 +44,7 @@
   let dropZoneActive = $state(false);
   let editorInstance: Editor | null = $state(null);
   let saveStatus = $state<"idle" | "saving" | "saved" | "error">("idle");
+  let saveErrorMessage = $state("");
   let saveStatusTimer: ReturnType<typeof setTimeout> | null = null;
 
   let loadedFileId: string | null = $state(null);
@@ -106,9 +112,8 @@
     } catch (error) {
       console.error("Failed to save project:", error);
       saveStatus = "error";
-      projectSaveError.set(
-        error instanceof Error ? error.message : "Не удалось сохранить проект",
-      );
+      saveErrorMessage =
+        error instanceof Error ? error.message : "Не удалось сохранить проект";
     }
   }
 
@@ -246,6 +251,11 @@
         {#if saveStatus === "saving"}
           <Save size={13} class="animate-pulse text-[var(--warning)]" />
           <span class="text-[var(--accent-hover)]">Сохранение...</span>
+        {:else if saveStatus === "error"}
+          <TriangleAlert size={13} class="text-[var(--error)]" />
+          <span class="text-[var(--error)]" role="alert" title={saveErrorMessage}>
+            Не сохранено: {saveErrorMessage}
+          </span>
         {:else if saveStatus === "saved"}
           <CircleCheck size={13} class="text-[var(--success)]" />
           <span class="text-[var(--success)]">Сохранено</span>

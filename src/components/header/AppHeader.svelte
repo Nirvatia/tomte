@@ -20,7 +20,6 @@
     attachedFiles,
     editorHtml,
     exportFormat,
-    fileName,
     projectTreeNodes,
     selectedFileIds,
     selectedProjectFiles,
@@ -91,7 +90,7 @@
         );
       }
 
-      const rawName = $activeFile?.name ?? $fileName;
+      const rawName = $activeFile?.name ?? "prompt";
       const exportName = rawName.replace(/\.[^/.]+$/, "");
 
       await exportFile(format, $editorHtml, filesToExport, exportName, {
