@@ -271,7 +271,9 @@
           <p class="text-xs font-medium text-[var(--text-tertiary)]">
             Нет вложений
           </p>
-          <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-dim)]">
+          <p
+            class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]"
+          >
             Загрузите файлы или перетащите их сюда
           </p>
           <button

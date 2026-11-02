@@ -338,7 +338,7 @@
         <p class="text-xs font-medium text-[var(--text-tertiary)]">
           Дерево не создано
         </p>
-        <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-dim)]">
+        <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
           Откройте папку или подключите GitHub-репозиторий
         </p>
       </div>

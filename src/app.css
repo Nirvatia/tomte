@@ -17,8 +17,10 @@
   /* Text Colors */
   --text-primary: #e0f2f1;
   --text-secondary: #a7c4c2;
-  --text-tertiary: #729996;
-  --text-dim: #4d6b69;
+  /* Контраст по WCAG 2.1: tertiary — текст, не ниже 4.5:1 на всех фонах панелей;
+     dim — только декоративные иконки, не ниже 3:1. Пересчитывать при смене фонов. */
+  --text-tertiary: #82a6a3;
+  --text-dim: #6a8b88;
 
   /* Accent & Status Colors */
   --accent: #14b8a6;
