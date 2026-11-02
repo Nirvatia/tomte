@@ -14,13 +14,15 @@
     X,
   } from "@lucide/svelte";
 
-  import type { Project } from "../../types";
 
   import { activeProject, isProjectManagerOpen } from "../../stores";
   import { requestAlert, requestConfirm } from "../../stores/confirm";
 
   import { formatFileSize, getErrorMessage, pluralize } from "../../utils";
-  import { calculateProjectSize, loadAllProjects } from "../../utils/projectDb";
+  import {
+    loadProjectSummaries,
+    type ProjectSummary,
+  } from "../../utils/projectDb";
   import {
     createNewProject,
     deleteProjectById,
@@ -29,7 +31,7 @@
     switchProject,
   } from "../../utils/projectActions";
 
-  let projects = $state<Project[]>([]);
+  let projects = $state<ProjectSummary[]>([]);
   let isLoading = $state(false);
   let searchQuery = $state("");
   let renamingProjectId = $state<string | null>(null);
@@ -58,10 +60,7 @@
     isLoading = true;
     errorMessage = null;
     try {
-      const all = await loadAllProjects();
-      projects = [...all]
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-        .map((p) => ({ ...p, totalSize: calculateProjectSize(p) }));
+      projects = await loadProjectSummaries();
     } catch (error) {
       console.error("Failed to load projects:", error);
       projects = [];
@@ -175,7 +174,7 @@
     }
   }
 
-  function startRename(project: Project, event: MouseEvent) {
+  function startRename(project: ProjectSummary, event: MouseEvent) {
     event.stopPropagation();
     if (actionInProgress) return;
     errorMessage = null;
@@ -212,7 +211,7 @@
     renameValue = "";
   }
 
-  async function handleDelete(project: Project, event: MouseEvent) {
+  async function handleDelete(project: ProjectSummary, event: MouseEvent) {
     event.stopPropagation();
     if (actionInProgress) return;
     if (projects.length <= 1) return;
@@ -245,7 +244,7 @@
     }
   }
 
-  async function handleDuplicate(project: Project, event: MouseEvent) {
+  async function handleDuplicate(project: ProjectSummary, event: MouseEvent) {
     event.stopPropagation();
     if (actionInProgress) return;
     actionInProgress = true;
@@ -493,9 +492,9 @@
                 >
                   <span class="flex items-center gap-1">
                     <FileText size={12} />
-                    {project.files.length}
+                    {project.fileCount}
                     {pluralize(
-                      project.files.length,
+                      project.fileCount,
                       "промпт",
                       "промпта",
                       "промптов",
@@ -503,15 +502,15 @@
                   </span>
                   <span class="flex items-center gap-1">
                     <Paperclip size={12} />
-                    {project.attachments.length}
+                    {project.attachmentCount}
                     {pluralize(
-                      project.attachments.length,
+                      project.attachmentCount,
                       "вложение",
                       "вложения",
                       "вложений",
                     )}
                   </span>
-                  {#if project.projectTreeSource}
+                  {#if project.hasTree}
                     <span class="flex items-center gap-1">
                       <FolderTree size={12} />
                       дерево

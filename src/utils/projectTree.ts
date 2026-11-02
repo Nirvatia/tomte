@@ -1,6 +1,10 @@
 import type { AttachedFile } from "../types";
 
-import { fetchGithubFileContent, type GithubRepoConfig } from "./github";
+import {
+  fetchGithubFileContent,
+  type GithubRef,
+  type GithubRepoConfig,
+} from "./github";
 
 export interface TreeNode {
   name: string;
@@ -8,7 +12,7 @@ export interface TreeNode {
   type: "file" | "directory";
   children: TreeNode[];
   fileRef?: File | FileSystemFileHandle;
-  githubRef?: { owner: string; repo: string; branch: string; token?: string };
+  githubRef?: GithubRef;
 }
 
 export interface TreeStats {
@@ -264,7 +268,10 @@ export function getTreeGithubConfig(
   nodes: TreeNode[],
 ): GithubRepoConfig | undefined {
   for (const node of nodes) {
-    if (node.githubRef) return node.githubRef;
+    if (node.githubRef) {
+      const { owner, repo, branch } = node.githubRef;
+      return { owner, repo, branch };
+    }
     if (node.children.length > 0) {
       const found = getTreeGithubConfig(node.children);
       if (found) return found;

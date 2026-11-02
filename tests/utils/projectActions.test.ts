@@ -340,6 +340,40 @@ describe("projectActions", () => {
       expect(get(previewFileId)).toBeNull();
       expect(get(activeFileId)).toBe("f2");
     });
+
+    it("при быстрых кликах побеждает последний, даже если его flush закончился раньше", async () => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one.md"),
+            promptFile("f2", "two.md"),
+            promptFile("f3", "three.md"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+
+      // Первый flush медленный (идёт сохранение), второй мгновенный.
+      let releaseSlowFlush!: () => void;
+      const slowFlush = new Promise<void>((resolve) => {
+        releaseSlowFlush = resolve;
+      });
+      const flush = vi
+        .fn<() => Promise<void>>()
+        .mockReturnValueOnce(slowFlush)
+        .mockResolvedValue(undefined);
+      pendingSaveController.set({ flush });
+
+      const firstClick = previewPromptFile("f2");
+      const secondClick = previewPromptFile("f3");
+      await secondClick;
+      releaseSlowFlush();
+      await firstClick;
+
+      expect(get(activeFileId)).toBe("f3");
+      expect(get(previewFileId)).toBe("f3");
+    });
   });
 
   describe("pinPromptFile", () => {
@@ -476,6 +510,40 @@ describe("projectActions", () => {
       const project = get(activeProject);
       expect(project!.attachments).toHaveLength(0);
       expect(saveProject).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("что именно пишется в базу", () => {
+    it("добавление вложений пишет только новые вложения", async () => {
+      activeProject.set(makeProject({ attachments: [attachment({ id: "old" })] }));
+      const added = attachment({ id: "new" });
+
+      await addAttachmentsToProject([added]);
+
+      expect(saveProject).toHaveBeenCalledWith(expect.anything(), {
+        attachments: { put: [added] },
+      });
+    });
+
+    it("удаление вложения удаляет только его", async () => {
+      activeProject.set(makeProject({ attachments: [attachment({ id: "a1" })] }));
+
+      await removeAttachmentFromProject("a1");
+
+      expect(saveProject).toHaveBeenCalledWith(expect.anything(), {
+        attachments: { delete: ["a1"] },
+      });
+    });
+
+    it("операции с промптами не трогают вложения и дерево", async () => {
+      activeProject.set(makeProject());
+
+      await createPromptFile("new.md");
+      await renamePromptFile("file-1", "renamed.md");
+
+      for (const call of vi.mocked(saveProject).mock.calls) {
+        expect(call[1]).toEqual({});
+      }
     });
   });
 

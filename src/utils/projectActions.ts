@@ -28,17 +28,31 @@ import { requestConfirm } from "../stores/confirm";
 
 import {
   saveProject,
+  SAVE_META,
   checkProjectSize,
   loadProject,
   deleteProject,
-  loadAllProjects,
+  loadProjectSummaries,
   createEmptyProject,
   calculateProjectSize,
 } from "./projectDb";
 import { buildTreeString, calculateStats, getTreeGithubConfig } from "./projectTree";
-import { fetchGithubTree } from "./github";
+import { fetchGithubTree, resolveGithubToken } from "./github";
+import { PROJECT_SIZE_LIMIT } from "../types";
 
-const IDB_MAX_BYTES = 25 * 1024 * 1024;
+/**
+ * Номер последнего запроса на переключение файла.
+ * Каждое переключение сначала ждёт сохранения текста; если за это время
+ * пользователь кликнул по другому файлу, старый запрос не должен его перебить.
+ */
+let navigationSeq = 0;
+
+async function navigate(apply: () => void): Promise<void> {
+  const seq = ++navigationSeq;
+  await flushPendingEditorSave();
+  if (seq !== navigationSeq) return;
+  apply();
+}
 
 export async function flushPendingEditorSave(): Promise<void> {
   const controller = get(pendingSaveController);
@@ -141,7 +155,7 @@ export async function createPromptFile(name?: string): Promise<string | null> {
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, SAVE_META);
 
   openFileIds.update((ids) =>
     ids.includes(newFile.id) ? ids : [...ids, newFile.id],
@@ -180,7 +194,7 @@ export async function renamePromptFile(
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, SAVE_META);
 
   return true;
 }
@@ -248,7 +262,7 @@ export async function deletePromptFile(fileId: string): Promise<boolean> {
   }
 
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, SAVE_META);
   openFileIds.set(nextOpenIds);
 
   if (createdFile) {
@@ -270,41 +284,36 @@ export async function deletePromptFile(fileId: string): Promise<boolean> {
 }
 
 export async function activatePromptFile(fileId: string): Promise<void> {
-  await flushPendingEditorSave();
-  const project = get(activeProject);
-  if (!project) return;
-
-  const file = project.files.find((f) => f.id === fileId);
-  if (!file) return;
-  activeFileId.set(fileId);
+  await navigate(() => {
+    const project = get(activeProject);
+    if (!project?.files.some((f) => f.id === fileId)) return;
+    activeFileId.set(fileId);
+  });
 }
 
 export async function previewPromptFile(fileId: string): Promise<void> {
-  await flushPendingEditorSave();
-  const project = get(activeProject);
-  if (!project) return;
+  await navigate(() => {
+    const project = get(activeProject);
+    if (!project?.files.some((f) => f.id === fileId)) return;
 
-  const file = project.files.find((f) => f.id === fileId);
-  if (!file) return;
-
-  const openIds = get(openFileIds);
-  if (!openIds.includes(fileId)) {
-    previewFileId.set(fileId);
-  }
-  activeFileId.set(fileId);
+    if (!get(openFileIds).includes(fileId)) {
+      previewFileId.set(fileId);
+    }
+    activeFileId.set(fileId);
+  });
 }
 
 export async function pinPromptFile(fileId: string): Promise<void> {
-  await flushPendingEditorSave();
-  const project = get(activeProject);
-  if (!project) return;
+  await navigate(() => {
+    const project = get(activeProject);
+    if (!project?.files.some((f) => f.id === fileId)) return;
 
-  const file = project.files.find((f) => f.id === fileId);
-  if (!file) return;
-
-  openFileIds.update((ids) => (ids.includes(fileId) ? ids : [...ids, fileId]));
-  previewFileId.set(null);
-  activeFileId.set(fileId);
+    openFileIds.update((ids) =>
+      ids.includes(fileId) ? ids : [...ids, fileId],
+    );
+    previewFileId.set(null);
+    activeFileId.set(fileId);
+  });
 }
 
 export async function closePromptFileTab(fileId: string): Promise<void> {
@@ -365,7 +374,7 @@ export async function clearActiveFileContent(): Promise<void> {
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, SAVE_META);
 }
 
 export async function addAttachmentsToProject(
@@ -386,7 +395,7 @@ export async function addAttachmentsToProject(
   if (sizeCheck.ok) {
     updatedProject.totalSize = sizeCheck.size;
     activeProject.set(updatedProject);
-    await saveProject(updatedProject);
+    await saveProject(updatedProject, { attachments: { put: files } });
     return;
   }
 
@@ -433,7 +442,9 @@ export async function addAttachmentsToProject(
 
   liteUpdatedProject.totalSize = liteSizeCheck.size;
   activeProject.set(liteUpdatedProject);
-  await saveProject(liteUpdatedProject);
+  await saveProject(liteUpdatedProject, {
+    attachments: { put: liteNewFiles },
+  });
 }
 
 export async function removeAttachmentFromProject(
@@ -451,7 +462,7 @@ export async function removeAttachmentFromProject(
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, { attachments: { delete: [fileId] } });
 
   selectedFileIds.update((ids) => {
     const next = new Set(ids);
@@ -475,7 +486,7 @@ export async function removeAttachmentsFromProject(
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, { attachments: { delete: fileIds } });
 
   selectedFileIds.update((ids) => {
     const next = new Set(ids);
@@ -513,7 +524,9 @@ export async function removeSelectedAttachmentsFromProject(): Promise<number> {
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, {
+    attachments: { delete: idsToDelete },
+  });
 
   selectedFileIds.update((ids) => {
     const next = new Set(ids);
@@ -539,7 +552,7 @@ export async function clearAttachmentsFromProject(): Promise<void> {
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, { attachments: "all" });
   selectedFileIds.set(new Set());
 }
 
@@ -562,7 +575,15 @@ export function pruneSelectedFileIds(): void {
   });
 }
 
-async function materializeFiles(nodes: TreeNode[]): Promise<TreeNode[] | null> {
+/**
+ * Читает содержимое файлов дерева, чтобы сохранить его в базе.
+ * Если суммарно не влезает в budgetBytes, возвращает null:
+ * тогда дерево сохраняется без содержимого.
+ */
+async function materializeFiles(
+  nodes: TreeNode[],
+  budgetBytes: number,
+): Promise<TreeNode[] | null> {
   let totalBytes = 0;
 
   async function walk(items: TreeNode[]): Promise<TreeNode[] | null> {
@@ -586,7 +607,7 @@ async function materializeFiles(nodes: TreeNode[]): Promise<TreeNode[] | null> {
 
       if (file instanceof File) {
         totalBytes += file.size;
-        if (totalBytes > IDB_MAX_BYTES) return null;
+        if (totalBytes > budgetBytes) return null;
       }
       result.push({ ...item, fileRef: file });
     }
@@ -612,7 +633,15 @@ export async function setProjectTreeSource(
   const project = get(activeProject);
   if (!project) return false;
 
-  const materializedNodes = await materializeFiles(source.nodes);
+  // Бюджет на содержимое дерева: что осталось от лимита проекта без старого дерева.
+  const sizeWithoutTree = calculateProjectSize({
+    ...project,
+    projectTreeSource: undefined,
+  });
+  const materializedNodes = await materializeFiles(
+    source.nodes,
+    PROJECT_SIZE_LIMIT - sizeWithoutTree,
+  );
   const nodes = materializedNodes ?? stripFileRefs(source.nodes);
 
   const treeSource: ProjectTreeSource = {
@@ -661,7 +690,7 @@ export async function setProjectTreeSource(
 
   updatedProject.totalSize = sizeCheck.size;
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, { tree: true });
 
   const saved = updatedProject.projectTreeSource!;
   projectTreeNodes.set(saved.nodes);
@@ -686,7 +715,7 @@ export async function clearProjectTreeSource(): Promise<void> {
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, { tree: true });
 
   projectTreeNodes.set([]);
   projectTreeRootName.set("");
@@ -720,7 +749,7 @@ export async function setGithubConfig(config: GithubRepoConfig): Promise<void> {
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, SAVE_META);
 }
 
 export async function clearGithubConfig(): Promise<void> {
@@ -736,7 +765,7 @@ export async function clearGithubConfig(): Promise<void> {
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
   activeProject.set(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, SAVE_META);
 }
 
 export async function switchProject(projectId: string): Promise<void> {
@@ -775,7 +804,7 @@ export async function renameProjectById(
     totalSize: 0,
   };
   updatedProject.totalSize = calculateProjectSize(updatedProject);
-  await saveProject(updatedProject);
+  await saveProject(updatedProject, SAVE_META);
 
   if (current?.id === projectId) {
     activeProject.set(updatedProject);
@@ -784,17 +813,15 @@ export async function renameProjectById(
 
 export async function deleteProjectById(projectId: string): Promise<boolean> {
   await flushPendingEditorSave();
-  const allProjects = await loadAllProjects();
+  const allProjects = await loadProjectSummaries();
   if (allProjects.length <= 1) return false;
 
   await deleteProject(projectId);
   const current = get(activeProject);
 
   if (current?.id === projectId) {
-    const remaining = await loadAllProjects();
-    const latest = [...remaining].sort((a, b) =>
-      b.updatedAt.localeCompare(a.updatedAt),
-    )[0];
+    const remaining = await loadProjectSummaries();
+    const latest = remaining[0];
 
     if (latest) {
       await switchProject(latest.id);
@@ -867,7 +894,10 @@ export async function refreshProjectTree(): Promise<boolean> {
   const config = getTreeGithubConfig(get(projectTreeNodes));
   if (!config) return false; // дерево не из GitHub — обновлять нечего
 
-  const freshNodes = await fetchGithubTree(config);
+  const freshNodes = await fetchGithubTree({
+    ...config,
+    token: resolveGithubToken(config),
+  });
   await setProjectTreeSource({
     rootName: config.repo,
     nodes: freshNodes,

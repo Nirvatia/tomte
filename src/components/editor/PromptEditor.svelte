@@ -21,7 +21,11 @@
 
   import { createFlushableAsync } from "../../utils";
   import { processFile } from "../../utils/files";
-  import { saveProject } from "../../utils/projectDb";
+  import {
+    estimatePromptFileSize,
+    saveProject,
+    SAVE_META,
+  } from "../../utils/projectDb";
   import { addAttachmentsToProject } from "../../utils/projectActions";
 
   interface Props {
@@ -76,27 +80,28 @@
 
     pendingSave = null;
 
-    const updatedFiles = project.files.map((f) =>
-      f.id === saveData.fileId
-        ? {
-            ...f,
-            content: saveData.content,
-            updatedAt: new Date().toISOString(),
-          }
-        : f,
-    );
+    const target = project.files.find((f) => f.id === saveData.fileId);
+    if (!target) return;
 
+    const now = new Date().toISOString();
+    const updatedFile = { ...target, content: saveData.content, updatedAt: now };
     const updatedProject = {
       ...project,
-      files: updatedFiles,
-      updatedAt: new Date().toISOString(),
+      files: project.files.map((f) => (f.id === target.id ? updatedFile : f)),
+      updatedAt: now,
+      // Пересчитываем размер по разнице, а не по всему проекту.
+      totalSize:
+        project.totalSize -
+        estimatePromptFileSize(target) +
+        estimatePromptFileSize(updatedFile),
     };
 
     activeProject.set(updatedProject);
 
     try {
       saveStatus = "saving";
-      await saveProject(updatedProject);
+      // Пишем только метаданные и промпты: вложения и дерево не трогаем.
+      await saveProject(updatedProject, SAVE_META);
       markSaved();
     } catch (error) {
       console.error("Failed to save project:", error);

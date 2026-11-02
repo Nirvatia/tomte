@@ -1,3 +1,6 @@
+import { get } from "svelte/store";
+
+import { activeProject } from "../stores";
 import type { TreeNode } from "./projectTree";
 
 export interface GithubRepoConfig {
@@ -5,6 +8,23 @@ export interface GithubRepoConfig {
   repo: string;
   branch: string;
   token?: string;
+}
+
+/** Ссылка на репозиторий в узлах дерева. Без токена: он живёт только в githubConfig проекта. */
+export type GithubRef = Pick<GithubRepoConfig, "owner" | "repo" | "branch">;
+
+function sameRepo(a: GithubRef, b: GithubRef): boolean {
+  return (
+    a.owner.toLowerCase() === b.owner.toLowerCase() &&
+    a.repo.toLowerCase() === b.repo.toLowerCase()
+  );
+}
+
+/** Токен для репозитория берётся из githubConfig активного проекта. */
+export function resolveGithubToken(ref: GithubRef): string | undefined {
+  const config = get(activeProject)?.githubConfig;
+  if (!config?.token || !sameRepo(config, ref)) return undefined;
+  return config.token;
 }
 
 export function parseGithubUrl(
@@ -44,6 +64,12 @@ export async function fetchGithubTree(
 
   const data = await response.json();
   const flatFiles = data.tree;
+  // Один объект на всё дерево и без токена: токен не должен расползаться по узлам.
+  const ref: GithubRef = {
+    owner: config.owner,
+    repo: config.repo,
+    branch: config.branch,
+  };
   const map = new Map<string, TreeNode>();
 
   const root: TreeNode = {
@@ -51,7 +77,7 @@ export async function fetchGithubTree(
     path: "",
     type: "directory",
     children: [],
-    githubRef: config,
+    githubRef: ref,
   };
 
   map.set("", root);
@@ -73,7 +99,7 @@ export async function fetchGithubTree(
             path: currentPath,
             type: isFile ? "file" : "directory",
             children: [],
-            githubRef: config,
+            githubRef: ref,
           };
           map.set(currentPath, newNode);
           const parent = map.get(parentPath);
@@ -107,8 +133,9 @@ export async function fetchGithubFileContent(
   const url = `https://raw.githubusercontent.com/${node.githubRef.owner}/${node.githubRef.repo}/${node.githubRef.branch}/${node.path}`;
   const headers: HeadersInit = {};
 
-  if (node.githubRef.token) {
-    headers.Authorization = `token ${node.githubRef.token}`;
+  const token = resolveGithubToken(node.githubRef);
+  if (token) {
+    headers.Authorization = `token ${token}`;
   }
 
   const response = await fetch(url, { headers });
