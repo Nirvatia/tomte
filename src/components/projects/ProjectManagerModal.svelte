@@ -14,7 +14,6 @@
     X,
   } from "@lucide/svelte";
 
-
   import { activeProject, isProjectManagerOpen } from "../../stores";
   import { requestAlert, requestConfirm } from "../../stores/confirm";
 
@@ -524,42 +523,42 @@
                 </div>
 
                 {#if renamingProjectId !== project.id}
-                <div
-                  class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                >
-                  <button
-                    type="button"
-                    onclick={(event) => startRename(project, event)}
-                    disabled={actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                    title="Переименовать"
-                    aria-label="Переименовать проект {project.name}"
+                  <div
+                    class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                   >
-                    <Pencil size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={(event) => handleDuplicate(project, event)}
-                    disabled={actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                    title="Дублировать"
-                    aria-label="Дублировать проект {project.name}"
-                  >
-                    <Copy size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={(event) => handleDelete(project, event)}
-                    disabled={projects.length <= 1 || actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
-                    title={projects.length <= 1
-                      ? "Нельзя удалить последний проект"
-                      : "Удалить"}
-                    aria-label="Удалить проект {project.name}"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onclick={(event) => startRename(project, event)}
+                      disabled={actionInProgress}
+                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                      title="Переименовать"
+                      aria-label="Переименовать проект {project.name}"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onclick={(event) => handleDuplicate(project, event)}
+                      disabled={actionInProgress}
+                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                      title="Дублировать"
+                      aria-label="Дублировать проект {project.name}"
+                    >
+                      <Copy size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onclick={(event) => handleDelete(project, event)}
+                      disabled={projects.length <= 1 || actionInProgress}
+                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
+                      title={projects.length <= 1
+                        ? "Нельзя удалить последний проект"
+                        : "Удалить"}
+                      aria-label="Удалить проект {project.name}"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 {/if}
               </div>
             {/each}

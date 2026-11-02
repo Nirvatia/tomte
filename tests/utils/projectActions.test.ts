@@ -507,7 +507,9 @@ describe("projectActions", () => {
 
   describe("что именно пишется в базу", () => {
     it("добавление вложений пишет только новые вложения", async () => {
-      activeProject.set(makeProject({ attachments: [attachment({ id: "old" })] }));
+      activeProject.set(
+        makeProject({ attachments: [attachment({ id: "old" })] }),
+      );
       const added = attachment({ id: "new" });
 
       await addAttachmentsToProject([added]);
@@ -518,7 +520,9 @@ describe("projectActions", () => {
     });
 
     it("удаление вложения удаляет только его", async () => {
-      activeProject.set(makeProject({ attachments: [attachment({ id: "a1" })] }));
+      activeProject.set(
+        makeProject({ attachments: [attachment({ id: "a1" })] }),
+      );
 
       await removeAttachmentFromProject("a1");
 

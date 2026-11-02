@@ -30,8 +30,8 @@ describe("formatFileSize", () => {
 
 describe("sanitizeFileName", () => {
   it("убирает запрещённые символы", () => {
-    expect(sanitizeFileName('file<name>.md')).toBe("filename.md");
-    expect(sanitizeFileName('file:name.md')).toBe("filename.md");
+    expect(sanitizeFileName("file<name>.md")).toBe("filename.md");
+    expect(sanitizeFileName("file:name.md")).toBe("filename.md");
     expect(sanitizeFileName('file"name.md')).toBe("filename.md");
     expect(sanitizeFileName("file|name.md")).toBe("filename.md");
     expect(sanitizeFileName("file?name.md")).toBe("filename.md");

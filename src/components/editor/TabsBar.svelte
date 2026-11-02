@@ -121,22 +121,30 @@
       class="group flex h-[39px] cursor-pointer items-center gap-2.5 border-r border-[var(--border)] px-5 whitespace-nowrap transition-all {isActive
         ? 'bg-[var(--bg-darkest)]'
         : 'bg-[var(--bg-dark)] hover:bg-[var(--bg-medium)] hover:text-[var(--text-secondary)]'}"
-      style={isActive ? "border-top: 2px solid var(--accent); margin-top: -1px;" : ""}
+      style={isActive
+        ? "border-top: 2px solid var(--accent); margin-top: -1px;"
+        : ""}
       role="tab"
       aria-selected={isActive}
-      aria-label="Вкладка {file.name}{isPreviewTab(file.id) ? ' (предпросмотр)' : ''}"
+      aria-label="Вкладка {file.name}{isPreviewTab(file.id)
+        ? ' (предпросмотр)'
+        : ''}"
       tabindex="0"
       onclick={() => handleSelectFile(file.id)}
       onkeydown={(event) => handleTabKeydown(event, file.id)}
     >
       <FileText
         size={15}
-        class="shrink-0 {isActive ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)]'}"
+        class="shrink-0 {isActive
+          ? 'text-[var(--accent)]'
+          : 'text-[var(--text-tertiary)]'}"
       />
       <span
         class="text-[13px] {isActive
           ? 'font-medium text-[var(--text-primary)]'
-          : 'text-[var(--text-tertiary)]'} {isPreviewTab(file.id) ? 'italic' : ''}"
+          : 'text-[var(--text-tertiary)]'} {isPreviewTab(file.id)
+          ? 'italic'
+          : ''}"
       >
         {file.name}
       </span>

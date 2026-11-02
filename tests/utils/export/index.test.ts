@@ -52,7 +52,12 @@ describe("exportFile", () => {
   it("передаёт options в exportToPDF", async () => {
     const options = { openInNewTab: true };
     await exportFile("pdf", "<p>text</p>", files, "test", options);
-    expect(exportToPDF).toHaveBeenCalledWith("<p>text</p>", files, "test", options);
+    expect(exportToPDF).toHaveBeenCalledWith(
+      "<p>text</p>",
+      files,
+      "test",
+      options,
+    );
   });
 
   it("вызывает exportToDOCX для формата docx", async () => {

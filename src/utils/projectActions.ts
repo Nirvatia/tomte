@@ -174,7 +174,9 @@ export async function createPromptFile(name?: string): Promise<string | null> {
   const created = { file: null as PromptFile | null };
 
   await updateProject((project) => {
-    created.file = createPromptFileObject(getUniquePromptFileName(project, name));
+    created.file = createPromptFileObject(
+      getUniquePromptFileName(project, name),
+    );
     return { ...project, files: [...project.files, created.file] };
   });
   if (!created.file) return null;
@@ -686,7 +688,11 @@ export async function renameProjectById(
   const project = isActive ? current : await loadProject(projectId);
   if (!project) return;
 
-  const updated: Project = { ...project, name: trimmedName, updatedAt: nowIso() };
+  const updated: Project = {
+    ...project,
+    name: trimmedName,
+    updatedAt: nowIso(),
+  };
   updated.totalSize = calculateProjectSize(updated);
   await saveProject(updated, SAVE_META);
 

@@ -58,4 +58,7 @@
 <ExtractorModal />
 <ProjectManagerModal />
 <TagManagerModal {editor} />
-<CodeMapModal isOpen={$isCodeMapOpen} onClose={() => isCodeMapOpen.set(false)} />
+<CodeMapModal
+  isOpen={$isCodeMapOpen}
+  onClose={() => isCodeMapOpen.set(false)}
+/>

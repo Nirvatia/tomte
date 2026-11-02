@@ -18,7 +18,14 @@ async function freshDb(): Promise<ProjectDb> {
 }
 
 function attachment(id: string, content = `content of ${id}`): AttachedFile {
-  return { id, name: `${id}.txt`, size: content.length, type: "text", content, ext: "txt" };
+  return {
+    id,
+    name: `${id}.txt`,
+    size: content.length,
+    type: "text",
+    content,
+    ext: "txt",
+  };
 }
 
 function githubNode(path: string, token?: string): TreeNode {
@@ -27,7 +34,12 @@ function githubNode(path: string, token?: string): TreeNode {
     path,
     type: "file",
     children: [],
-    githubRef: { owner: "me", repo: "repo", branch: "main", ...(token ? { token } : {}) } as TreeNode["githubRef"],
+    githubRef: {
+      owner: "me",
+      repo: "repo",
+      branch: "main",
+      ...(token ? { token } : {}),
+    } as TreeNode["githubRef"],
   };
 }
 
@@ -36,7 +48,15 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   return {
     id: "p1",
     name: "Test",
-    files: [{ id: "f1", name: "main", content: "<p>hi</p>", createdAt: now, updatedAt: now }],
+    files: [
+      {
+        id: "f1",
+        name: "main",
+        content: "<p>hi</p>",
+        createdAt: now,
+        updatedAt: now,
+      },
+    ],
     attachments: [],
     totalSize: 100,
     createdAt: now,
@@ -66,7 +86,11 @@ describe("projectDb: хранение по частям", () => {
     const db = await freshDb();
     const project = makeProject({
       attachments: [attachment("a1"), attachment("a2")],
-      projectTreeSource: { rootName: "repo", nodes: [githubNode("src/a.ts")], fileCount: 1 },
+      projectTreeSource: {
+        rootName: "repo",
+        nodes: [githubNode("src/a.ts")],
+        fileCount: 1,
+      },
     });
 
     await db.saveProject(project);
@@ -88,7 +112,9 @@ describe("projectDb: хранение по частям", () => {
     expect(raw.projects[0]).not.toHaveProperty("attachments");
     expect(raw.projects[0]).not.toHaveProperty("projectTreeSource");
     expect(raw.projects[0].attachmentIds).toEqual(["a1"]);
-    expect(raw.attachments).toEqual([expect.objectContaining({ id: "a1", projectId: "p1" })]);
+    expect(raw.attachments).toEqual([
+      expect.objectContaining({ id: "a1", projectId: "p1" }),
+    ]);
     expect(raw.trees).toEqual([expect.objectContaining({ projectId: "p1" })]);
   });
 
@@ -135,7 +161,9 @@ describe("projectDb: хранение по частям", () => {
   it("сохраняет порядок вложений", async () => {
     const db = await freshDb();
     const ids = ["z", "a", "m", "b"];
-    await db.saveProject(makeProject({ attachments: ids.map((id) => attachment(id)) }));
+    await db.saveProject(
+      makeProject({ attachments: ids.map((id) => attachment(id)) }),
+    );
 
     const loaded = await db.loadProject("p1");
     expect(loaded?.attachments.map((a) => a.id)).toEqual(ids);
@@ -143,9 +171,13 @@ describe("projectDb: хранение по частям", () => {
 
   it('attachments: "all" удаляет лишние записи', async () => {
     const db = await freshDb();
-    await db.saveProject(makeProject({ attachments: [attachment("a1"), attachment("a2")] }));
+    await db.saveProject(
+      makeProject({ attachments: [attachment("a1"), attachment("a2")] }),
+    );
 
-    await db.saveProject(makeProject({ attachments: [] }), { attachments: "all" });
+    await db.saveProject(makeProject({ attachments: [] }), {
+      attachments: "all",
+    });
 
     expect((await rawStores()).attachments).toEqual([]);
   });
@@ -157,7 +189,10 @@ describe("projectDb: хранение по частям", () => {
     });
     await db.saveProject(project);
 
-    await db.saveProject({ ...project, projectTreeSource: undefined }, { tree: true });
+    await db.saveProject(
+      { ...project, projectTreeSource: undefined },
+      { tree: true },
+    );
 
     expect((await db.loadProject("p1"))?.projectTreeSource).toBeUndefined();
     expect((await rawStores()).trees).toEqual([]);
@@ -167,7 +202,12 @@ describe("projectDb: хранение по частям", () => {
     const db = await freshDb();
     await db.saveProject(
       makeProject({
-        githubConfig: { owner: "me", repo: "repo", branch: "main", token: "ghp_secret" },
+        githubConfig: {
+          owner: "me",
+          repo: "repo",
+          branch: "main",
+          token: "ghp_secret",
+        },
         projectTreeSource: {
           rootName: "repo",
           nodes: [
@@ -193,7 +233,9 @@ describe("projectDb: хранение по частям", () => {
     const db = await freshDb();
     const broken = makeProject({ name: (() => {}) as unknown as string });
 
-    await expect(db.saveProject(broken)).rejects.toThrow("Не удалось сохранить проект");
+    await expect(db.saveProject(broken)).rejects.toThrow(
+      "Не удалось сохранить проект",
+    );
   });
 
   it("loadProject возвращает null для несуществующего проекта", async () => {
@@ -209,7 +251,9 @@ describe("projectDb: хранение по частям", () => {
         projectTreeSource: { rootName: "repo", nodes: [], fileCount: 0 },
       }),
     );
-    await db.saveProject(makeProject({ id: "p2", attachments: [attachment("b1")] }));
+    await db.saveProject(
+      makeProject({ id: "p2", attachments: [attachment("b1")] }),
+    );
 
     await db.deleteProject("p1");
 
@@ -223,7 +267,9 @@ describe("projectDb: хранение по частям", () => {
 describe("projectDb: список проектов", () => {
   it("loadProjectSummaries отдаёт счётчики без содержимого, свежие сверху", async () => {
     const db = await freshDb();
-    await db.saveProject(makeProject({ id: "old", updatedAt: "2024-01-01T00:00:00Z" }));
+    await db.saveProject(
+      makeProject({ id: "old", updatedAt: "2024-01-01T00:00:00Z" }),
+    );
     await db.saveProject(
       makeProject({
         id: "new",
@@ -236,7 +282,11 @@ describe("projectDb: список проектов", () => {
     const summaries = await db.loadProjectSummaries();
 
     expect(summaries.map((s) => s.id)).toEqual(["new", "old"]);
-    expect(summaries[0]).toMatchObject({ fileCount: 1, attachmentCount: 2, hasTree: true });
+    expect(summaries[0]).toMatchObject({
+      fileCount: 1,
+      attachmentCount: 2,
+      hasTree: true,
+    });
     expect(summaries[1]).toMatchObject({ attachmentCount: 0, hasTree: false });
     expect(summaries[0]).not.toHaveProperty("attachments");
   });
@@ -254,9 +304,15 @@ describe("projectDb: initializeActiveProject", () => {
 
   it("возвращает самый свежий проект целиком", async () => {
     const db = await freshDb();
-    await db.saveProject(makeProject({ id: "old", updatedAt: "2024-01-01T00:00:00Z" }));
     await db.saveProject(
-      makeProject({ id: "new", updatedAt: "2024-02-01T00:00:00Z", attachments: [attachment("a1")] }),
+      makeProject({ id: "old", updatedAt: "2024-01-01T00:00:00Z" }),
+    );
+    await db.saveProject(
+      makeProject({
+        id: "new",
+        updatedAt: "2024-02-01T00:00:00Z",
+        attachments: [attachment("a1")],
+      }),
     );
 
     const result = await db.initializeActiveProject();
@@ -297,7 +353,12 @@ describe("projectDb: миграция v1 → v2", () => {
   it("раскладывает старые проекты по хранилищам без потерь", async () => {
     const legacy = makeProject({
       attachments: [attachment("a2"), attachment("a1")],
-      githubConfig: { owner: "me", repo: "repo", branch: "main", token: "ghp_secret" },
+      githubConfig: {
+        owner: "me",
+        repo: "repo",
+        branch: "main",
+        token: "ghp_secret",
+      },
       projectTreeSource: {
         rootName: "repo",
         nodes: [githubNode("README.md", "ghp_secret")],
@@ -328,8 +389,17 @@ describe("projectDb: миграция v1 → v2", () => {
 describe("utf8ByteLength", () => {
   it("считает байты как TextEncoder", async () => {
     const db = await freshDb();
-    for (const text of ["", "abc", "привет", "日本語", "emoji 😀 and 𝄞", "mixed é ü ж"]) {
-      expect(db.utf8ByteLength(text)).toBe(new TextEncoder().encode(text).length);
+    for (const text of [
+      "",
+      "abc",
+      "привет",
+      "日本語",
+      "emoji 😀 and 𝄞",
+      "mixed é ü ж",
+    ]) {
+      expect(db.utf8ByteLength(text)).toBe(
+        new TextEncoder().encode(text).length,
+      );
     }
   });
 });

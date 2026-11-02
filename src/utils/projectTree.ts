@@ -118,9 +118,9 @@ export async function readDirectoryViaInput(
   const fileArray = Array.from(files);
   if (fileArray.length === 0) return { nodes: [], rootName: "root" };
 
-  const rootName = (
-    fileArray[0].webkitRelativePath || fileArray[0].name
-  ).split("/")[0];
+  const rootName = (fileArray[0].webkitRelativePath || fileArray[0].name).split(
+    "/",
+  )[0];
   root.name = rootName;
 
   for (const file of fileArray) {

@@ -172,7 +172,9 @@ describe("tags", () => {
       addTag("Третий", "Текст 3");
       const tags = loadTags();
       const idsToRemove = new Set(
-        tags.filter((t) => t.name === "Первый" || t.name === "Второй").map((t) => t.id),
+        tags
+          .filter((t) => t.name === "Первый" || t.name === "Второй")
+          .map((t) => t.id),
       );
 
       removeTags(idsToRemove);

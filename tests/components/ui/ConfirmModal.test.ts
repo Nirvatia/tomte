@@ -6,7 +6,11 @@ import { render, screen, fireEvent } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 
 import ConfirmModal from "../../../src/components/ui/ConfirmModal.svelte";
-import { confirmState, requestConfirm, requestAlert } from "../../../src/stores/confirm";
+import {
+  confirmState,
+  requestConfirm,
+  requestAlert,
+} from "../../../src/stores/confirm";
 
 describe("ConfirmModal", () => {
   beforeEach(() => {

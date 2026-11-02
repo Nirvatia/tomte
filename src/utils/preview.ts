@@ -28,7 +28,11 @@ function placeholderRegex(label: string): RegExp {
   return new RegExp(`\\[${label}(?::[^\\]]*)?\\]`, "g");
 }
 
-function imageBlock(title: string, file: ExportFile, className: string): string {
+function imageBlock(
+  title: string,
+  file: ExportFile,
+  className: string,
+): string {
   return `
     <div class="${className}">
       <div class="${className === "preview-image-block" ? "preview-image-label" : "preview-unused-label"}">${title}</div>
@@ -114,7 +118,9 @@ export function buildPreviewHtml(
   return {
     html:
       result +
-      (appendixHtml ? `<div class="preview-appendix">${appendixHtml}</div>` : ""),
+      (appendixHtml
+        ? `<div class="preview-appendix">${appendixHtml}</div>`
+        : ""),
     stats,
   };
 }

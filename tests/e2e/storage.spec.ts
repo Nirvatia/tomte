@@ -18,19 +18,27 @@ test.describe("Хранение", () => {
 
     await page.reload();
     await waitForEditor(page);
-    await expect(page.locator(".tiptap-prose")).toContainText("Не потеряй меня");
+    await expect(page.locator(".tiptap-prose")).toContainText(
+      "Не потеряй меня",
+    );
   });
 
-  test("переключение файлов сразу после набора не теряет текст", async ({ page }) => {
+  test("переключение файлов сразу после набора не теряет текст", async ({
+    page,
+  }) => {
     await page.goto("/");
     const editor = await waitForEditor(page);
     const tablist = page.getByRole("tablist", { name: "Файлы промптов" });
 
-    await tablist.getByRole("button", { name: "Создать новый файл промпта" }).click();
+    await tablist
+      .getByRole("button", { name: "Создать новый файл промпта" })
+      .click();
     const nameInput = page.locator('input[placeholder="Имя файла..."]');
     await nameInput.fill("second");
     await nameInput.press("Enter");
-    await expect(tablist.getByRole("tab", { name: "Вкладка second" })).toBeVisible();
+    await expect(
+      tablist.getByRole("tab", { name: "Вкладка second" }),
+    ).toBeVisible();
 
     // Печатаем во втором файле и сразу, не дожидаясь автосохранения, уходим в первый.
     await editor.click();
@@ -42,15 +50,21 @@ test.describe("Хранение", () => {
     await page.reload();
     await waitForEditor(page);
     // После перезагрузки открывается первый файл проекта; второй открываем из панели.
-    const resizer = page.getByRole("button", { name: "Изменить ширину панели" });
+    const resizer = page.getByRole("button", {
+      name: "Изменить ширину панели",
+    });
     if (!(await resizer.isVisible())) {
-      await page.getByRole("button", { name: "Открыть панель структуры проекта" }).click();
+      await page
+        .getByRole("button", { name: "Открыть панель структуры проекта" })
+        .click();
     }
     await page
       .getByRole("complementary")
       .getByRole("button", { name: "second", exact: true })
       .click();
-    await expect(page.locator(".tiptap-prose")).toContainText("Текст второго файла");
+    await expect(page.locator(".tiptap-prose")).toContainText(
+      "Текст второго файла",
+    );
   });
 
   test("база старого формата (v1) открывается без потерь", async ({ page }) => {
@@ -58,16 +72,46 @@ test.describe("Хранение", () => {
     await page.goto("/robots.txt");
     await page.evaluate(async () => {
       const now = new Date().toISOString();
-      const ref = { owner: "me", repo: "repo", branch: "main", token: "ghp_secret" };
+      const ref = {
+        owner: "me",
+        repo: "repo",
+        branch: "main",
+        token: "ghp_secret",
+      };
       const project = {
         id: "legacy",
         name: "Legacy Project",
-        files: [{ id: "f1", name: "main", content: "<p>старый текст</p>", createdAt: now, updatedAt: now }],
-        attachments: [{ id: "a1", name: "note.txt", size: 4, type: "text", content: "note", ext: "txt" }],
+        files: [
+          {
+            id: "f1",
+            name: "main",
+            content: "<p>старый текст</p>",
+            createdAt: now,
+            updatedAt: now,
+          },
+        ],
+        attachments: [
+          {
+            id: "a1",
+            name: "note.txt",
+            size: 4,
+            type: "text",
+            content: "note",
+            ext: "txt",
+          },
+        ],
         projectTreeSource: {
           rootName: "repo",
           fileCount: 1,
-          nodes: [{ name: "a.ts", path: "a.ts", type: "file", children: [], githubRef: ref }],
+          nodes: [
+            {
+              name: "a.ts",
+              path: "a.ts",
+              type: "file",
+              children: [],
+              githubRef: ref,
+            },
+          ],
         },
         githubConfig: ref,
         totalSize: 1,

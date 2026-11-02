@@ -1,11 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 
 import TabsBar from "../../../src/components/editor/TabsBar.svelte";
@@ -252,9 +247,7 @@ describe("TabsBar", () => {
       await fireEvent.keyDown(input, { key: "Escape" });
 
       await waitFor(() => {
-        expect(
-          screen.queryByPlaceholderText("Имя файла..."),
-        ).toBeNull();
+        expect(screen.queryByPlaceholderText("Имя файла...")).toBeNull();
       });
 
       expect(createPromptFile).not.toHaveBeenCalled();

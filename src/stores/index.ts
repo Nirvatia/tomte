@@ -1,9 +1,4 @@
-import {
-  derived,
-  readable,
-  writable,
-  type Readable,
-} from "svelte/store";
+import { derived, readable, writable, type Readable } from "svelte/store";
 
 import type { AttachedFile, ExportFormat, Project, PromptFile } from "../types";
 import type { TreeNode } from "../utils/projectTree";
@@ -100,10 +95,14 @@ export const selectedProjectFiles = writable<string[]>([]);
 /** Файл дерева, открытый в превью. */
 export const previewFileFromTree = writable<AttachedFile | null>(null);
 
-export const totalFilesCount = derived(attachedFiles, ($files) => $files.length);
+export const totalFilesCount = derived(
+  attachedFiles,
+  ($files) => $files.length,
+);
 export const selectedFilesCount = derived(
   [attachedFiles, selectedFileIds],
-  ([$files, $selectedIds]) => $files.filter((f) => $selectedIds.has(f.id)).length,
+  ([$files, $selectedIds]) =>
+    $files.filter((f) => $selectedIds.has(f.id)).length,
 );
 
 export const exportFormat = writable<ExportFormat>("pdf");

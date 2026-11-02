@@ -78,13 +78,13 @@
     totalFiles > 0 && selectedCount > 0 && selectedCount < totalFiles,
   );
 
-function toggleSelectAll() {
-  if (selectedCount > 0) {
-    deselectAll();
-  } else {
-    selectAll();
+  function toggleSelectAll() {
+    if (selectedCount > 0) {
+      deselectAll();
+    } else {
+      selectAll();
+    }
   }
-}
 
   function getAllFilePaths(nodes: typeof $projectTreeNodes): string[] {
     const paths: string[] = [];

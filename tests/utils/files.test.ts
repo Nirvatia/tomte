@@ -118,7 +118,9 @@ describe("processFile", () => {
   });
 
   it("обрабатывает текстовый файл", async () => {
-    const file = new File(["hello world"], "test.md", { type: "text/markdown" });
+    const file = new File(["hello world"], "test.md", {
+      type: "text/markdown",
+    });
     const result = await processFile(file);
 
     expect(result.name).toBe("test.md");
@@ -141,19 +143,36 @@ describe("processFile", () => {
     // happy-dom не декодирует картинки: подставляем decode и размеры.
     function stubImageDecoding(result: "ok" | "fail") {
       vi.spyOn(HTMLImageElement.prototype, "decode").mockImplementation(() =>
-        result === "ok" ? Promise.resolve() : Promise.reject(new Error("bad image")),
+        result === "ok"
+          ? Promise.resolve()
+          : Promise.reject(new Error("bad image")),
       );
-      vi.spyOn(HTMLImageElement.prototype, "naturalWidth", "get").mockReturnValue(800);
-      vi.spyOn(HTMLImageElement.prototype, "naturalHeight", "get").mockReturnValue(600);
+      vi.spyOn(
+        HTMLImageElement.prototype,
+        "naturalWidth",
+        "get",
+      ).mockReturnValue(800);
+      vi.spyOn(
+        HTMLImageElement.prototype,
+        "naturalHeight",
+        "get",
+      ).mockReturnValue(600);
     }
 
     it("читает картинку как data URL и запоминает размеры", async () => {
       stubImageDecoding("ok");
-      const file = new File([new Uint8Array([1, 2, 3])], "photo.png", { type: "image/png" });
+      const file = new File([new Uint8Array([1, 2, 3])], "photo.png", {
+        type: "image/png",
+      });
 
       const result = await processFile(file);
 
-      expect(result).toMatchObject({ type: "image", width: 800, height: 600, ext: "png" });
+      expect(result).toMatchObject({
+        type: "image",
+        width: 800,
+        height: 600,
+        ext: "png",
+      });
       expect(result.dataUrl).toMatch(/^data:image\/png;base64,/);
     });
 
@@ -167,21 +186,34 @@ describe("processFile", () => {
     it("битую картинку сохраняет как файл без содержимого, а не теряет", async () => {
       stubImageDecoding("fail");
       vi.spyOn(console, "warn").mockImplementation(() => {});
-      const file = new File([new Uint8Array([1])], "broken.png", { type: "image/png" });
+      const file = new File([new Uint8Array([1])], "broken.png", {
+        type: "image/png",
+      });
 
       const result = await processFile(file);
 
-      expect(result).toMatchObject({ type: "binary", name: "broken.png", size: 1 });
+      expect(result).toMatchObject({
+        type: "binary",
+        name: "broken.png",
+        size: 1,
+      });
       expect(result.dataUrl).toBeUndefined();
     });
   });
 
   it("PDF и прочие бинарные файлы сохраняет как метаданные", async () => {
-    const file = new File([new Uint8Array(10)], "doc.pdf", { type: "application/pdf" });
+    const file = new File([new Uint8Array(10)], "doc.pdf", {
+      type: "application/pdf",
+    });
 
     const result = await processFile(file);
 
-    expect(result).toMatchObject({ type: "binary", name: "doc.pdf", size: 10, ext: "pdf" });
+    expect(result).toMatchObject({
+      type: "binary",
+      name: "doc.pdf",
+      size: 10,
+      ext: "pdf",
+    });
     expect(result.content).toBeUndefined();
     expect(result.dataUrl).toBeUndefined();
   });
@@ -190,7 +222,12 @@ describe("processFile", () => {
 describe("нумерация плейсхолдеров", () => {
   it("бинарные и текстовые файлы делят одну нумерацию [FILE_n]", () => {
     const text = makeFile("a.txt");
-    const pdf: AttachedFile = { id: "pdf", name: "b.pdf", size: 1, type: "binary" };
+    const pdf: AttachedFile = {
+      id: "pdf",
+      name: "b.pdf",
+      size: 1,
+      type: "binary",
+    };
     const image = makeFile("c.png", "image");
     const all = [text, image, pdf];
 

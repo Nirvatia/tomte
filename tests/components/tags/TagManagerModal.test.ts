@@ -604,27 +604,27 @@ describe("TagManagerModal", () => {
   });
 
   describe("Закрытие модалки", () => {
-it("закрывается кнопкой крестика", async () => {
-  isTagManagerOpen.set(true);
-  render(TagManagerModal);
+    it("закрывается кнопкой крестика", async () => {
+      isTagManagerOpen.set(true);
+      render(TagManagerModal);
 
-  await screen.findByText("Нет тегов");
+      await screen.findByText("Нет тегов");
 
-  // Находим все элементы с ролью "кнопка" и именем "Закрыть менеджер тегов".
-  // Сюда попадают и фон (div с role="button"), и сам крестик (<button>).
-  const closeElements = screen.getAllByRole("button", {
-    name: "Закрыть менеджер тегов",
-  });
+      // Находим все элементы с ролью "кнопка" и именем "Закрыть менеджер тегов".
+      // Сюда попадают и фон (div с role="button"), и сам крестик (<button>).
+      const closeElements = screen.getAllByRole("button", {
+        name: "Закрыть менеджер тегов",
+      });
 
-  // Нам нужен именно настоящий <button>, а не фон-обертка.
-  const closeButton = closeElements.find((el) => el.tagName === "BUTTON");
+      // Нам нужен именно настоящий <button>, а не фон-обертка.
+      const closeButton = closeElements.find((el) => el.tagName === "BUTTON");
 
-  await fireEvent.click(closeButton!);
+      await fireEvent.click(closeButton!);
 
-  await waitFor(() => {
-    expect(get(isTagManagerOpen)).toBe(false);
-  });
-});
+      await waitFor(() => {
+        expect(get(isTagManagerOpen)).toBe(false);
+      });
+    });
 
     it("закрывается по клику на фон", async () => {
       isTagManagerOpen.set(true);

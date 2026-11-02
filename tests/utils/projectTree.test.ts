@@ -78,9 +78,7 @@ describe("projectTree", () => {
         },
       ];
 
-      expect(treeToText(nodes)).toBe(
-        "src\n└── index.ts\nREADME.md\n",
-      );
+      expect(treeToText(nodes)).toBe("src\n└── index.ts\nREADME.md\n");
     });
   });
 
@@ -238,9 +236,7 @@ describe("projectTree", () => {
         },
       ];
 
-      const result = await getSelectedTreeFilesAsAttachments(nodes, [
-        "a.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(nodes, ["a.txt"]);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
@@ -269,9 +265,10 @@ describe("projectTree", () => {
         },
       };
 
-      const result = await getSelectedTreeFilesAsAttachments([node], [
-        "gh.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(
+        [node],
+        ["gh.txt"],
+      );
 
       expect(fetchGithubFileContent).toHaveBeenCalledWith(node);
       expect(result).toHaveLength(1);
@@ -287,9 +284,10 @@ describe("projectTree", () => {
         children: [],
       };
 
-      const result = await getSelectedTreeFilesAsAttachments([node], [
-        "empty.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(
+        [node],
+        ["empty.txt"],
+      );
 
       expect(result).toEqual([]);
     });
@@ -307,9 +305,10 @@ describe("projectTree", () => {
         fileRef: badFileHandle as any,
       };
 
-      const result = await getSelectedTreeFilesAsAttachments([node], [
-        "bad.txt",
-      ]);
+      const result = await getSelectedTreeFilesAsAttachments(
+        [node],
+        ["bad.txt"],
+      );
 
       expect(result).toEqual([]);
     });

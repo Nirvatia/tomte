@@ -230,7 +230,9 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4">
+<div
+  class="flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
+>
   <button
     type="button"
     onclick={toggleProjectTree}
@@ -269,7 +271,8 @@
   <div class="flex items-center gap-0.5">
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
       class={btnClass(isBlockActive("h1"))}
       aria-label="Заголовок 1"
       title="Заголовок 1"
@@ -278,7 +281,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
       class={btnClass(isBlockActive("h2"))}
       aria-label="Заголовок 2"
       title="Заголовок 2"
@@ -351,7 +355,8 @@
   <div class="flex items-center gap-0.5">
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleBulletList().run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleBulletList().run())}
       class={btnClass(isBlockActive("bulletList"))}
       aria-label="Маркированный список"
       title="Маркированный список"
@@ -360,7 +365,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleOrderedList().run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleOrderedList().run())}
       class={btnClass(isBlockActive("orderedList"))}
       aria-label="Нумерованный список"
       title="Нумерованный список"
@@ -369,7 +375,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().liftListItem("listItem").run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().liftListItem("listItem").run())}
       class={TOOLBAR_BTN_BASE}
       aria-label="Уменьшить отступ"
       title="Уменьшить отступ"
@@ -378,7 +385,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().sinkListItem("listItem").run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().sinkListItem("listItem").run())}
       class={TOOLBAR_BTN_BASE}
       aria-label="Увеличить отступ"
       title="Увеличить отступ"
@@ -387,7 +395,8 @@
     </button>
     <button
       type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleBlockquote().run())}
+      onclick={() =>
+        run(() => editor?.chain().focus().toggleBlockquote().run())}
       class={btnClass(isBlockActive("blockquote"))}
       aria-label="Цитата"
       title="Цитата"
@@ -399,7 +408,9 @@
   {#if toolbarState.isInsideTable}
     <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
     <div class="flex animate-fade-in items-center gap-0.5">
-      <div class="select-none px-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--warning)]">
+      <div
+        class="select-none px-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--warning)]"
+      >
         Таблица
       </div>
       <button
@@ -503,7 +514,9 @@
       <button
         type="button"
         onclick={toggleToolsMenu}
-        class="{ACTION_BTN_BASE} {isToolsMenuOpen ? 'border-[var(--accent)] text-[var(--accent)]' : ''}"
+        class="{ACTION_BTN_BASE} {isToolsMenuOpen
+          ? 'border-[var(--accent)] text-[var(--accent)]'
+          : ''}"
         aria-haspopup="menu"
         aria-expanded={isToolsMenuOpen}
         aria-label="Открыть меню инструментов"

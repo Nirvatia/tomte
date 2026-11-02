@@ -22,11 +22,29 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     id: "p1",
     name: "Test",
     files: [
-      { id: "f1", name: "main.md", content: "hello", createdAt: now, updatedAt: now },
-      { id: "f2", name: "second.md", content: "world", createdAt: now, updatedAt: now },
+      {
+        id: "f1",
+        name: "main.md",
+        content: "hello",
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: "f2",
+        name: "second.md",
+        content: "world",
+        createdAt: now,
+        updatedAt: now,
+      },
     ],
     attachments: [
-      { id: "a1", name: "img.png", size: 100, type: "image", dataUrl: "data:..." },
+      {
+        id: "a1",
+        name: "img.png",
+        size: 100,
+        type: "image",
+        dataUrl: "data:...",
+      },
       { id: "a2", name: "doc.txt", size: 50, type: "text", content: "text" },
     ],
     totalSize: 1000,
@@ -121,7 +139,9 @@ describe("stores/index derived stores", () => {
 describe("производные сторы проекта", () => {
   const tree = {
     rootName: "repo",
-    nodes: [{ name: "a.ts", path: "a.ts", type: "file" as const, children: [] }],
+    nodes: [
+      { name: "a.ts", path: "a.ts", type: "file" as const, children: [] },
+    ],
     fileCount: 1,
   };
   const baseProject = {

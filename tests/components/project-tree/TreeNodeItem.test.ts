@@ -1,19 +1,11 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { get } from "svelte/store";
 import TreeNodeItem from "../../../src/components/project-tree/TreeNodeItem.svelte";
 import type { TreeNode } from "../../../src/utils/projectTree";
-import {
-  selectedProjectFiles,
-  previewFileFromTree,
-} from "../../../src/stores";
+import { selectedProjectFiles, previewFileFromTree } from "../../../src/stores";
 import { requestAlert } from "../../../src/stores/confirm";
 import { fetchGithubFileContent } from "../../../src/utils/github";
 

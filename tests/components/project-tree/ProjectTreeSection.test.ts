@@ -1,11 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { tick } from "svelte";
 import { get } from "svelte/store";
@@ -100,21 +95,22 @@ describe("ProjectTreeSection", () => {
       expect(screen.getByText("Project")).toBeInTheDocument();
       expect(screen.getByText("Дерево не создано")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          "Откройте папку или подключите GitHub-репозиторий",
-        ),
+        screen.getByText("Откройте папку или подключите GitHub-репозиторий"),
       ).toBeInTheDocument();
     });
 
     it("показывает корень и файлы дерева", () => {
-      setActiveTree([
-        {
-          name: "file.txt",
-          path: "file.txt",
-          type: "file",
-          children: [],
-        },
-      ] as any, "my-project");
+      setActiveTree(
+        [
+          {
+            name: "file.txt",
+            path: "file.txt",
+            type: "file",
+            children: [],
+          },
+        ] as any,
+        "my-project",
+      );
 
       vi.mocked(calculateStats).mockReturnValue({
         totalFiles: 1,
@@ -168,10 +164,7 @@ describe("ProjectTreeSection", () => {
 
       await fireEvent.click(selectAllCheckbox);
 
-      expect(get(selectedProjectFiles).sort()).toEqual([
-        "b.md",
-        "src/a.ts",
-      ]);
+      expect(get(selectedProjectFiles).sort()).toEqual(["b.md", "src/a.ts"]);
 
       await fireEvent.click(selectAllCheckbox);
 

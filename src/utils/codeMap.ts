@@ -2,7 +2,6 @@ import type { TreeNode } from "./projectTree";
 import { fetchGithubFileContent } from "./github";
 import { isOutlineSupported, parseFileOutline } from "./treeSitter";
 
-
 async function readFileContent(node: TreeNode): Promise<string | null> {
   if (node.fileRef) {
     if (node.fileRef instanceof File) {

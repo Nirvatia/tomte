@@ -149,10 +149,16 @@ describe("buildPreviewHtml", () => {
     });
 
     it("файлы без метки (из дерева) подписываются только именем", () => {
-      const attachment = { ...makeTextFile("a.md", "attached"), label: "FILE_1" };
+      const attachment = {
+        ...makeTextFile("a.md", "attached"),
+        label: "FILE_1",
+      };
       const treeFile = { ...makeTextFile("src/x.ts", "tree"), label: null };
 
-      const result = buildPreviewHtml("<p>[FILE_1: a.md]</p>", [attachment, treeFile]);
+      const result = buildPreviewHtml("<p>[FILE_1: a.md]</p>", [
+        attachment,
+        treeFile,
+      ]);
 
       expect(result.html).toContain(">src/x.ts</div>");
       expect(result.stats.usedFiles).toBe(1);
@@ -170,11 +176,11 @@ describe("buildPreviewHtml", () => {
   });
 
   it("экранирует HTML в содержимом текстовых файлов", () => {
-    const files = [makeTextFile("evil.md", '<img src=x onerror=alert(1)>')];
+    const files = [makeTextFile("evil.md", "<img src=x onerror=alert(1)>")];
     const html = "<p>text</p>";
 
     const result = buildPreviewHtml(html, files);
 
-    expect(result.html).not.toContain('onerror=alert(1)');
+    expect(result.html).not.toContain("onerror=alert(1)");
   });
 });

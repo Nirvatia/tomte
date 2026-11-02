@@ -90,7 +90,11 @@
     if (!target) return;
 
     const now = new Date().toISOString();
-    const updatedFile = { ...target, content: saveData.content, updatedAt: now };
+    const updatedFile = {
+      ...target,
+      content: saveData.content,
+      updatedAt: now,
+    };
     const updatedProject = {
       ...project,
       files: project.files.map((f) => (f.id === target.id ? updatedFile : f)),
@@ -253,7 +257,11 @@
           <span class="text-[var(--accent-hover)]">Сохранение...</span>
         {:else if saveStatus === "error"}
           <TriangleAlert size={13} class="text-[var(--error)]" />
-          <span class="text-[var(--error)]" role="alert" title={saveErrorMessage}>
+          <span
+            class="text-[var(--error)]"
+            role="alert"
+            title={saveErrorMessage}
+          >
             Не сохранено: {saveErrorMessage}
           </span>
         {:else if saveStatus === "saved"}

@@ -1,22 +1,12 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 
 import TagPanel from "../../../src/components/tags/TagPanel.svelte";
 import { tagsVersion } from "../../../src/stores";
 import { requestConfirm } from "../../../src/stores/confirm";
-import {
-  addTag,
-  loadTags,
-  sortTags,
-  updateTag,
-} from "../../../src/utils/tags";
+import { addTag, loadTags, sortTags, updateTag } from "../../../src/utils/tags";
 import type { Tag } from "../../../src/types";
 
 vi.mock("../../../src/stores/confirm", () => ({
@@ -148,9 +138,7 @@ describe("TagPanel", () => {
 
       expect(editor.chain).toHaveBeenCalled();
       expect(editor.focus).toHaveBeenCalled();
-      expect(editor.insertContent).toHaveBeenCalledWith(
-        "Apply this text\n",
-      );
+      expect(editor.insertContent).toHaveBeenCalledWith("Apply this text\n");
       expect(editor.run).toHaveBeenCalled();
     });
 
@@ -219,24 +207,22 @@ describe("TagPanel", () => {
     });
   });
 
-describe("Кнопка 'Новый тег'", () => {
-  it("открывает TagCreateModal по клику", async () => {
-    render(TagPanel);
+  describe("Кнопка 'Новый тег'", () => {
+    it("открывает TagCreateModal по клику", async () => {
+      render(TagPanel);
 
-    const newTagButton = screen.getByRole("button", {
-      name: /Новый тег/,
+      const newTagButton = screen.getByRole("button", {
+        name: /Новый тег/,
+      });
+
+      await fireEvent.click(newTagButton);
+
+      // Модалка открылась — появилось поле ввода названия тега.
+      // Это надёжнее, чем искать текст "Новый тег", который есть
+      // и на кнопке, и в заголовке модалки.
+      expect(await screen.findByLabelText("Название")).toBeInTheDocument();
     });
-
-    await fireEvent.click(newTagButton);
-
-    // Модалка открылась — появилось поле ввода названия тега.
-    // Это надёжнее, чем искать текст "Новый тег", который есть
-    // и на кнопке, и в заголовке модалки.
-    expect(
-      await screen.findByLabelText("Название"),
-    ).toBeInTheDocument();
   });
-});
 
   describe("Редактирование тега", () => {
     it("открывает TagCreateModal с данными тега по клику на карандаш", async () => {
@@ -260,9 +246,7 @@ describe("Кнопка 'Новый тег'", () => {
       await fireEvent.click(editButton);
 
       // TagCreateModal должен открыться в режиме редактирования
-      expect(
-        await screen.findByText("Редактировать тег"),
-      ).toBeInTheDocument();
+      expect(await screen.findByText("Редактировать тег")).toBeInTheDocument();
 
       // Поля должны быть префиллены
       expect(screen.getByLabelText("Название")).toHaveValue("Edit Tag");
@@ -295,36 +279,36 @@ describe("Кнопка 'Новый тег'", () => {
     });
   });
 
-describe("Создание тега через модалку", () => {
-  it("вызывает addTag и обновляет список после создания", async () => {
-    vi.mocked(loadTags).mockReturnValue([]);
+  describe("Создание тега через модалку", () => {
+    it("вызывает addTag и обновляет список после создания", async () => {
+      vi.mocked(loadTags).mockReturnValue([]);
 
-    render(TagPanel);
+      render(TagPanel);
 
-    // Кнопку в панели ищем по роли и имени — это однозначно кнопка,
-    // а не заголовок модалки.
-    const newTagButton = screen.getByRole("button", {
-      name: /Новый тег/,
+      // Кнопку в панели ищем по роли и имени — это однозначно кнопка,
+      // а не заголовок модалки.
+      const newTagButton = screen.getByRole("button", {
+        name: /Новый тег/,
+      });
+      await fireEvent.click(newTagButton);
+
+      // Открытие модалки проверяем по полю формы.
+      // Оно есть только внутри TagCreateModal, поэтому коллизий нет.
+      const nameInput = await screen.findByLabelText("Название");
+
+      await fireEvent.input(nameInput, {
+        target: { value: "Created Tag" },
+      });
+
+      await fireEvent.input(screen.getByLabelText("Текст инструкции"), {
+        target: { value: "Created value" },
+      });
+
+      await fireEvent.click(screen.getByText("Создать"));
+
+      expect(addTag).toHaveBeenCalledWith("Created Tag", "Created value");
     });
-    await fireEvent.click(newTagButton);
-
-    // Открытие модалки проверяем по полю формы.
-    // Оно есть только внутри TagCreateModal, поэтому коллизий нет.
-    const nameInput = await screen.findByLabelText("Название");
-
-    await fireEvent.input(nameInput, {
-      target: { value: "Created Tag" },
-    });
-
-    await fireEvent.input(screen.getByLabelText("Текст инструкции"), {
-      target: { value: "Created value" },
-    });
-
-    await fireEvent.click(screen.getByText("Создать"));
-
-    expect(addTag).toHaveBeenCalledWith("Created Tag", "Created value");
   });
-});
 
   describe("Обновление тега через модалку", () => {
     it("вызывает updateTag при редактировании", async () => {
@@ -357,7 +341,11 @@ describe("Создание тега через модалку", () => {
 
       await fireEvent.click(screen.getByText("Сохранить"));
 
-      expect(updateTag).toHaveBeenCalledWith("update-1", "Updated", "Updated value");
+      expect(updateTag).toHaveBeenCalledWith(
+        "update-1",
+        "Updated",
+        "Updated value",
+      );
     });
   });
 });

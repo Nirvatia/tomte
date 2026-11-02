@@ -88,9 +88,15 @@
     aria-label="Генератор карты кода"
     tabindex="-1"
   >
-    <div class="flex h-[80vh] w-full max-w-5xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-[var(--shadow-lg)]">
-      <div class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4">
-        <h3 class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">
+    <div
+      class="flex h-[80vh] w-full max-w-5xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-[var(--shadow-lg)]"
+    >
+      <div
+        class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4"
+      >
+        <h3
+          class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
+        >
           <Folder size={20} class="text-[var(--accent)]" />
           Генератор карты кода (Tree-sitter)
         </h3>
@@ -106,7 +112,9 @@
 
       <div class="flex flex-1 overflow-hidden">
         <div class="flex w-1/3 flex-col border-r border-[var(--border)]">
-          <div class="border-b border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+          <div
+            class="border-b border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          >
             Выберите папку
           </div>
           <div class="flex-1 overflow-y-auto p-2">
@@ -129,8 +137,12 @@
         </div>
 
         <div class="flex w-2/3 flex-col bg-[var(--bg-darkest)]">
-          <div class="flex items-center justify-between border-b border-[var(--border)] px-4 py-2">
-            <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
+          <div
+            class="flex items-center justify-between border-b border-[var(--border)] px-4 py-2"
+          >
+            <span
+              class="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+            >
               {selectedNode ? `Карта для: ${selectedNode.name}` : "Результат"}
             </span>
             <div class="flex gap-2">
@@ -151,7 +163,9 @@
                 <button
                   type="button"
                   onclick={handleCopy}
-                  class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors {copied ? 'text-[var(--success)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
+                  class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors {copied
+                    ? 'text-[var(--success)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
                 >
                   {#if copied}
                     <Check size={14} />
@@ -166,10 +180,15 @@
           </div>
           <div class="flex-1 overflow-y-auto p-4">
             {#if generatedMap}
-              <pre class="font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap">{generatedMap}</pre>
+              <pre
+                class="font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap">{generatedMap}</pre>
             {:else}
-              <div class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]">
-                {selectedNode ? "Нажмите 'Сгенерировать'" : "Выберите папку слева"}
+              <div
+                class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]"
+              >
+                {selectedNode
+                  ? "Нажмите 'Сгенерировать'"
+                  : "Выберите папку слева"}
               </div>
             {/if}
           </div>

@@ -34,7 +34,11 @@ export default ts.config(
       // Неиспользуемое с префиксом _ — осознанно (деструктуризация, чтобы выкинуть поле).
       "@typescript-eslint/no-unused-vars": [
         "error",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" },
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
       ],
     },
   },

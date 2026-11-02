@@ -92,7 +92,17 @@ export function resolveExportLabel(
   );
 }
 
-const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "avif", "ico"];
+const IMAGE_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "webp",
+  "bmp",
+  "svg",
+  "avif",
+  "ico",
+];
 
 function getExtension(name: string): string {
   // Без точки всё имя считается расширением: Makefile -> "makefile".
@@ -102,14 +112,18 @@ function getExtension(name: string): string {
 }
 
 function isImageFile(file: File, ext: string): boolean {
-  return file.type.startsWith("image/") || (!file.type && IMAGE_EXTENSIONS.includes(ext));
+  return (
+    file.type.startsWith("image/") ||
+    (!file.type && IMAGE_EXTENSIONS.includes(ext))
+  );
 }
 
 export function readAsDataUrl(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error ?? new Error("Не удалось прочитать файл"));
+    reader.onerror = () =>
+      reject(reader.error ?? new Error("Не удалось прочитать файл"));
     reader.readAsDataURL(file);
   });
 }

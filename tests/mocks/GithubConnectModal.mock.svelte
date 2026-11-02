@@ -6,8 +6,6 @@
   <div role="dialog" aria-label="GithubConnectModal">
     GithubConnectModal
 
-    <button type="button" onclick={onClose}>
-      Закрыть
-    </button>
+    <button type="button" onclick={onClose}> Закрыть </button>
   </div>
 {/if}

@@ -1,11 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { get } from "svelte/store";
 import AttachmentsSection from "../../../src/components/project-tree/AttachmentsSection.svelte";
@@ -46,25 +41,20 @@ vi.mock("../../../src/utils/projectActions", () => ({
   removeAttachmentsFromProject: vi.fn(),
 }));
 
-vi.mock(
-  "../../../src/components/attachments/FileItem.svelte",
-  async () => {
-    const { default: FileItemMock } = await import(
-      "../../mocks/FileItem.mock.svelte"
-    );
+vi.mock("../../../src/components/attachments/FileItem.svelte", async () => {
+  const { default: FileItemMock } =
+    await import("../../mocks/FileItem.mock.svelte");
 
-    return {
-      default: FileItemMock,
-    };
-  },
-);
+  return {
+    default: FileItemMock,
+  };
+});
 
 vi.mock(
   "../../../src/components/attachments/FilePreviewModal.svelte",
   async () => {
-    const { default: FilePreviewModalMock } = await import(
-      "../../mocks/FilePreviewModal.mock.svelte"
-    );
+    const { default: FilePreviewModalMock } =
+      await import("../../mocks/FilePreviewModal.mock.svelte");
 
     return {
       default: FilePreviewModalMock,

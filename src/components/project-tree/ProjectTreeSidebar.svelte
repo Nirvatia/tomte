@@ -95,8 +95,7 @@
       console.error("Failed to refresh project tree:", error);
       await requestAlert({
         title: "Не удалось обновить дерево",
-        message:
-          error instanceof Error ? error.message : "Неизвестная ошибка",
+        message: error instanceof Error ? error.message : "Неизвестная ошибка",
         confirmText: "Понятно",
         danger: true,
       });

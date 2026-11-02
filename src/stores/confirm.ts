@@ -60,7 +60,7 @@ export function requestConfirm(options: ConfirmOptions): Promise<boolean> {
  * Показывает только одну кнопку подтверждения.
  */
 export function requestAlert(
-  options: Omit<ConfirmOptions, "hideCancel" | "cancelText">
+  options: Omit<ConfirmOptions, "hideCancel" | "cancelText">,
 ): Promise<boolean> {
   return requestConfirm({
     ...options,

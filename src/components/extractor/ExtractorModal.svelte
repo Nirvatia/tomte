@@ -198,8 +198,7 @@
             bind:value={markdownInput}
             placeholder="Вставьте сюда весь текст ответа LLM с code blocks..."
             class="min-h-0 w-full flex-1 resize-none rounded-lg border border-[var(--border)] bg-[var(--bg-darkest)] px-4 py-3 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
-            aria-label="Ответ LLM в формате Markdown"
-          ></textarea>
+            aria-label="Ответ LLM в формате Markdown"></textarea>
         </div>
       </div>
 

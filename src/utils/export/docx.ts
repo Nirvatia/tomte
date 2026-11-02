@@ -153,7 +153,9 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
         ...((tag === "strong" || tag === "b") && { bold: true }),
         ...((tag === "em" || tag === "i") && { italics: true }),
         ...(tag === "u" && { underline: {} }),
-        ...((tag === "s" || tag === "strike" || tag === "del") && { strike: true }),
+        ...((tag === "s" || tag === "strike" || tag === "del") && {
+          strike: true,
+        }),
         ...(tag === "mark" && { highlight: "yellow" }),
       };
 

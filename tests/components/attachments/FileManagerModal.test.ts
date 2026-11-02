@@ -1,11 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from "@testing-library/svelte";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { get } from "svelte/store";
 
@@ -16,11 +11,7 @@ import {
   selectedFileIds,
 } from "../../../src/stores";
 import { requestConfirm } from "../../../src/stores/confirm";
-import {
-  formatFileSize,
-  getErrorMessage,
-  pluralize,
-} from "../../../src/utils";
+import { formatFileSize, getErrorMessage, pluralize } from "../../../src/utils";
 import { processFile } from "../../../src/utils/files";
 import {
   addAttachmentsToProject,

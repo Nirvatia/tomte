@@ -8,12 +8,7 @@
 
   import TagCreateModal from "./TagCreateModal.svelte";
 
-  import {
-    addTag,
-    loadTags,
-    sortTags,
-    updateTag,
-  } from "../../utils/tags";
+  import { addTag, loadTags, sortTags, updateTag } from "../../utils/tags";
 
   interface Props {
     editor?: Editor | null;

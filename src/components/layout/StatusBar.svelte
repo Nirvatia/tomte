@@ -113,10 +113,9 @@
       selectedPaths,
     );
 
-    const uncached = collectSelectedTreeFiles(
-      treeNodes,
-      selectedPaths,
-    ).filter((node) => getCachedTreeTokens(node.path) === undefined);
+    const uncached = collectSelectedTreeFiles(treeNodes, selectedPaths).filter(
+      (node) => getCachedTreeTokens(node.path) === undefined,
+    );
     if (uncached.length === 0) {
       isTreeLoading = false;
       return;

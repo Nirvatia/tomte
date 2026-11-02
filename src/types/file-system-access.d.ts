@@ -2,7 +2,9 @@
 // и асинхронного обхода папки. Описываем только то, чем пользуемся.
 
 interface FileSystemDirectoryHandle {
-  values(): AsyncIterableIterator<FileSystemDirectoryHandle | FileSystemFileHandle>;
+  values(): AsyncIterableIterator<
+    FileSystemDirectoryHandle | FileSystemFileHandle
+  >;
 }
 
 interface Window {

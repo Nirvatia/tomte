@@ -30,8 +30,10 @@ type StoreName = typeof PROJECTS | typeof ATTACHMENTS | typeof TREES;
 type UpgradeTx = IDBPTransaction<unknown, StoreName[], "versionchange">;
 
 /** Запись в хранилище projects. */
-interface StoredProjectMeta
-  extends Omit<Project, "attachments" | "projectTreeSource"> {
+interface StoredProjectMeta extends Omit<
+  Project,
+  "attachments" | "projectTreeSource"
+> {
   /** Порядок вложений. Сами вложения лежат в attachments. */
   attachmentIds: string[];
   hasTree: boolean;
@@ -203,7 +205,9 @@ export async function saveProject(
   try {
     const db = await getDB();
     const tx = db.transaction([PROJECTS, ATTACHMENTS, TREES], "readwrite");
-    const ops: Promise<unknown>[] = [tx.objectStore(PROJECTS).put(toMeta(project))];
+    const ops: Promise<unknown>[] = [
+      tx.objectStore(PROJECTS).put(toMeta(project)),
+    ];
 
     const attachmentStore = tx.objectStore(ATTACHMENTS);
     if (changes.attachments === "all") {

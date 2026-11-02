@@ -183,8 +183,12 @@ describe("downloadFile", () => {
     vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
 
     const clickSpy = vi.fn();
-    const appendChildSpy = vi.spyOn(document.body, "appendChild").mockImplementation(() => ({} as any));
-    const removeChildSpy = vi.spyOn(document.body, "removeChild").mockImplementation(() => ({} as any));
+    const appendChildSpy = vi
+      .spyOn(document.body, "appendChild")
+      .mockImplementation(() => ({}) as any);
+    const removeChildSpy = vi
+      .spyOn(document.body, "removeChild")
+      .mockImplementation(() => ({}) as any);
     vi.spyOn(document, "createElement").mockReturnValue({
       href: "",
       download: "",

@@ -61,14 +61,16 @@ npm run dev
 
 ## Команды
 
-| Команда | Что делает |
-| --- | --- |
-| `npm run dev` | dev-сервер |
-| `npm run build` | сборка |
-| `npm run preview` | посмотреть собранное |
-| `npm run check` | проверка типов (`svelte-check`) |
-| `npm test` | юнит- и компонентные тесты (Vitest) |
-| `npm run test:e2e` | e2e (Playwright) |
+| Команда              | Что делает                            |
+| -------------------- | ------------------------------------- |
+| `npm run dev`        | dev-сервер                            |
+| `npm run build`      | сборка                                |
+| `npm run preview`    | посмотреть собранное                  |
+| `npm run check`      | проверка типов (`svelte-check`)       |
+| `npm run lint`       | ESLint                                |
+| `npm run format`     | Prettier (`format:check` — проверка)  |
+| `npm test`           | юнит- и компонентные тесты (Vitest)   |
+| `npm run test:e2e`   | e2e (Playwright)                      |
 | `npm run check:wasm` | проверка совместимости WASM-грамматик |
 
 ## Структура
