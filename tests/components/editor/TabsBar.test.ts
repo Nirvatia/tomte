@@ -14,6 +14,7 @@ import {
   activatePromptFile,
   closePromptFileTab,
   createPromptFile,
+  renamePromptFile,
 } from "../../../src/utils/projectActions";
 import type { Project, PromptFile } from "../../../src/types";
 
@@ -21,6 +22,7 @@ vi.mock("../../../src/utils/projectActions", () => ({
   activatePromptFile: vi.fn(),
   closePromptFileTab: vi.fn(),
   createPromptFile: vi.fn(),
+  renamePromptFile: vi.fn(),
 }));
 
 function makeFile(overrides: Partial<PromptFile> = {}): PromptFile {
@@ -267,6 +269,45 @@ describe("TabsBar", () => {
       await fireEvent.keyDown(tab, { key: "Enter" });
 
       expect(activatePromptFile).toHaveBeenCalledWith("f2");
+    });
+  });
+
+  describe("Переименование вкладки", () => {
+    it("двойной клик открывает поле, Enter сохраняет имя", async () => {
+      setProject([makeFile({ id: "f1", name: "main" })]);
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+      render(TabsBar);
+
+      await fireEvent.dblClick(
+        await screen.findByRole("tab", { name: "Вкладка main" }),
+      );
+      const input = screen.getByRole("textbox", {
+        name: "Новое имя файла main",
+      });
+      await fireEvent.input(input, { target: { value: "renamed" } });
+      await fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(renamePromptFile).toHaveBeenCalledWith("f1", "renamed");
+    });
+
+    it("Escape отменяет переименование", async () => {
+      setProject([makeFile({ id: "f1", name: "main" })]);
+      openFileIds.set(["f1"]);
+      activeFileId.set("f1");
+      render(TabsBar);
+
+      const tab = await screen.findByRole("tab", { name: "Вкладка main" });
+      await fireEvent.keyDown(tab, { key: "F2" });
+      const input = screen.getByRole("textbox", {
+        name: "Новое имя файла main",
+      });
+      await fireEvent.keyDown(input, { key: "Escape" });
+
+      expect(
+        screen.queryByRole("textbox", { name: "Новое имя файла main" }),
+      ).toBeNull();
+      expect(renamePromptFile).not.toHaveBeenCalled();
     });
   });
 });

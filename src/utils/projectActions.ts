@@ -404,6 +404,68 @@ export async function pinPromptFile(fileId: string): Promise<void> {
   });
 }
 
+/**
+ * Копия файла промпта рядом с оригиналом: «имя (копия)», открывается
+ * во вкладке справа от оригинала и становится активной.
+ */
+export async function duplicatePromptFile(
+  fileId: string,
+): Promise<string | null> {
+  const created = { file: null as PromptFile | null };
+  await updateProject((project) => {
+    const index = project.files.findIndex((f) => f.id === fileId);
+    if (index < 0) return null;
+    const source = project.files[index];
+    created.file = createPromptFileObject(
+      getUniquePromptFileName(project, `${source.name} (копия)`),
+      source.content,
+    );
+    return {
+      ...project,
+      files: insertAt(project.files, index + 1, created.file),
+    };
+  });
+  if (!created.file) return null;
+
+  const id = created.file.id;
+  openFileIds.update((ids) => {
+    const at = ids.indexOf(fileId);
+    return at >= 0 ? insertAt(ids, at + 1, id) : [...ids, id];
+  });
+  previewFileId.set(null);
+  activeFileId.set(id);
+  return id;
+}
+
+/** Оставляет открытой только вкладку fileId (она же становится активной). */
+export async function closeOtherTabs(fileId: string): Promise<void> {
+  await flushPendingEditorSave();
+  if (!hasFile(fileId)) return;
+  openFileIds.set([fileId]);
+  previewFileId.set(null);
+  activeFileId.set(fileId);
+}
+
+/** Вкладки в том порядке, в каком их видно: закреплённые, затем предпросмотр. */
+export function getVisibleTabIds(): string[] {
+  const files = get(activeProject)?.files ?? [];
+  const exists = (id: string) => files.some((f) => f.id === id);
+  const open = get(openFileIds).filter(exists);
+  const preview = get(previewFileId);
+  return preview && exists(preview) && !open.includes(preview)
+    ? [...open, preview]
+    : open;
+}
+
+/** Переключает на соседнюю вкладку по кругу (step: 1 — вправо, -1 — влево). */
+export async function activateAdjacentTab(step: 1 | -1): Promise<void> {
+  const tabs = getVisibleTabIds();
+  if (tabs.length < 2) return;
+  const current = tabs.indexOf(get(activeFileId) ?? "");
+  const next = tabs[(current + step + tabs.length) % tabs.length];
+  await activatePromptFile(next);
+}
+
 export async function closePromptFileTab(fileId: string): Promise<void> {
   await flushPendingEditorSave();
   const project = get(activeProject);

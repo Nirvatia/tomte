@@ -116,6 +116,11 @@ export const isProjectTreeOpen = writable<boolean>(false);
 export const isProjectManagerOpen = writable<boolean>(false);
 export const isTagManagerOpen = writable<boolean>(false);
 export const isCodeMapOpen = writable<boolean>(false);
+export const isExportMenuOpen = writable<boolean>(false);
+/** Поиск файла промпта (Ctrl+K). */
+export const isQuickOpenOpen = writable<boolean>(false);
+/** Шпаргалка по горячим клавишам («?»). */
+export const isShortcutsOpen = writable<boolean>(false);
 
 // ═══ Теги ═══
 

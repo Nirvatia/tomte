@@ -14,6 +14,8 @@
 
   import { autofocus } from "$lib/actions/autofocus";
   import { notifyError, notifyUndo } from "$lib/notify";
+  import { promptFileMenu } from "$lib/promptFileMenu";
+  import { openContextMenu } from "../../stores/contextMenu";
   import { requestConfirm } from "../../stores/confirm";
   import {
     activeFileId,
@@ -319,8 +321,21 @@
               type="button"
               onclick={() => handleSelectFile(file.id)}
               ondblclick={() => handlePinFile(file.id)}
+              onkeydown={(event) => {
+                if (event.key === "F2") {
+                  event.preventDefault();
+                  handleStartRename(file.id, file.name);
+                }
+              }}
+              oncontextmenu={(event) =>
+                openContextMenu(
+                  event,
+                  promptFileMenu(file, "sidebar", () =>
+                    handleStartRename(file.id, file.name),
+                  ),
+                )}
               class="flex flex-1 items-center gap-2 truncate text-left"
-              title="{file.name} (клик — предпросмотр, двойной клик — закрепить)"
+              title="{file.name} (клик — предпросмотр, двойной клик — закрепить, F2 — переименовать)"
             >
               <FileText size={14} class="shrink-0" />
               <span class="truncate {isFileInPreview(file.id) ? 'italic' : ''}">
@@ -329,7 +344,7 @@
             </button>
 
             <div
-              class="flex items-center gap-3 opacity-0 transition-opacity group-hover:opacity-100"
+              class="flex items-center gap-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
             >
               <button
                 type="button"

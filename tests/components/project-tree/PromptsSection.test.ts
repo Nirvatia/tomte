@@ -109,7 +109,7 @@ describe("PromptsSection", () => {
       render(PromptsSection);
 
       const fileButton = screen.getByTitle(
-        "prompt-1.md (клик — предпросмотр, двойной клик — закрепить)",
+        "prompt-1.md (клик — предпросмотр, двойной клик — закрепить, F2 — переименовать)",
       );
 
       await fireEvent.click(fileButton);
@@ -123,7 +123,7 @@ describe("PromptsSection", () => {
       render(PromptsSection);
 
       const fileButton = screen.getByTitle(
-        "prompt-1.md (клик — предпросмотр, двойной клик — закрепить)",
+        "prompt-1.md (клик — предпросмотр, двойной клик — закрепить, F2 — переименовать)",
       );
 
       await fireEvent.dblClick(fileButton);

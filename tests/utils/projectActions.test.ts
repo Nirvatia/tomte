@@ -28,6 +28,9 @@ import {
   duplicateProjectById,
   deletePromptFileWithUndo,
   removeAttachmentWithUndo,
+  duplicatePromptFile,
+  closeOtherTabs,
+  activateAdjacentTab,
 } from "../../src/utils/projectActions";
 
 import {
@@ -811,6 +814,59 @@ describe("projectActions", () => {
       expect(saved.id).toBe("p-old");
       expect(saved.files.map((f) => f.id)).toEqual(["f1", "f2"]);
       expect(get(activeProject)!.id).toBe("p-new");
+    });
+  });
+
+  describe("действия контекстного меню и вкладок", () => {
+    beforeEach(() => {
+      activeProject.set(
+        makeProject({
+          files: [
+            promptFile("f1", "one", "<p>1</p>"),
+            promptFile("f2", "two"),
+            promptFile("f3", "three"),
+          ],
+        }),
+      );
+      openFileIds.set(["f1", "f2"]);
+      activeFileId.set("f1");
+    });
+
+    it("дублирует файл рядом с оригиналом и открывает копию справа", async () => {
+      const id = await duplicatePromptFile("f1");
+
+      const files = get(activeProject)!.files;
+      expect(files.map((f) => f.name)).toEqual([
+        "one",
+        "one (копия)",
+        "two",
+        "three",
+      ]);
+      expect(files[1].content).toBe("<p>1</p>");
+      expect(get(openFileIds)).toEqual(["f1", id, "f2"]);
+      expect(get(activeFileId)).toBe(id);
+    });
+
+    it("закрывает остальные вкладки", async () => {
+      previewFileId.set("f3");
+      await closeOtherTabs("f2");
+
+      expect(get(openFileIds)).toEqual(["f2"]);
+      expect(get(previewFileId)).toBeNull();
+      expect(get(activeFileId)).toBe("f2");
+    });
+
+    it("переключает вкладки по кругу, включая вкладку предпросмотра", async () => {
+      previewFileId.set("f3");
+
+      await activateAdjacentTab(1);
+      expect(get(activeFileId)).toBe("f2");
+      await activateAdjacentTab(1);
+      expect(get(activeFileId)).toBe("f3");
+      await activateAdjacentTab(1);
+      expect(get(activeFileId)).toBe("f1");
+      await activateAdjacentTab(-1);
+      expect(get(activeFileId)).toBe("f3");
     });
   });
 });

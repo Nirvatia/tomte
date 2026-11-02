@@ -20,16 +20,19 @@
     attachedFiles,
     editorHtml,
     exportFormat,
+    isExportMenuOpen,
     projectTreeNodes,
     selectedFileIds,
     selectedProjectFiles,
   } from "../../stores";
 
   import { exportFile } from "../../utils/export";
+  import { menu } from "$lib/actions/menu";
+  import { formatHotkey, hotkeyFor } from "$lib/hotkeys";
   import { labelAttachments } from "../../utils/files";
   import { getSelectedTreeFilesAsAttachments } from "../../utils/projectTree";
 
-  let isExportMenuOpen = $state(false);
+  let exportButton = $state<HTMLButtonElement | null>(null);
   let isExporting = $state(false);
   let exportError = $state<string | null>(null);
   let openInNewTab = $state(false);
@@ -37,16 +40,16 @@
 
   function toggleExportMenu(event: MouseEvent) {
     event.stopPropagation();
-    isExportMenuOpen = !isExportMenuOpen;
+    isExportMenuOpen.update((open) => !open);
   }
 
   function handleClickOutside(event: MouseEvent) {
     if (
-      isExportMenuOpen &&
+      $isExportMenuOpen &&
       exportMenuContainer &&
       !exportMenuContainer.contains(event.target as Node)
     ) {
-      isExportMenuOpen = false;
+      isExportMenuOpen.set(false);
     }
   }
 
@@ -65,7 +68,7 @@
 
   async function handleExport(format: ExportFormat) {
     exportFormat.set(format);
-    isExportMenuOpen = false;
+    isExportMenuOpen.set(false);
     if (isExporting) return;
 
     isExporting = true;
@@ -136,9 +139,11 @@
       onclick={toggleExportMenu}
       disabled={isExporting}
       class="flex h-7 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+      bind:this={exportButton}
       aria-haspopup="menu"
-      aria-expanded={isExportMenuOpen}
+      aria-expanded={$isExportMenuOpen}
       aria-label="Экспорт"
+      title="Экспорт ({formatHotkey(hotkeyFor('export').keys)})"
     >
       {#if isExporting}
         <LoaderCircle size={14} class="animate-spin" />
@@ -148,14 +153,18 @@
       <span>Экспорт</span>
       <ChevronDown
         size={12}
-        class="transition-transform duration-150 {isExportMenuOpen
+        class="transition-transform duration-150 {$isExportMenuOpen
           ? 'rotate-180'
           : ''}"
       />
     </button>
 
-    {#if isExportMenuOpen}
+    {#if $isExportMenuOpen}
       <div
+        use:menu={{
+          onClose: () => isExportMenuOpen.set(false),
+          returnFocus: exportButton,
+        }}
         role="menu"
         aria-label="Формат экспорта"
         class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"

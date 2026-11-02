@@ -13,6 +13,10 @@
   import ProjectManagerModal from "../components/projects/ProjectManagerModal.svelte";
   import TagManagerModal from "../components/tags/TagManagerModal.svelte";
   import CodeMapModal from "../components/project-tree/CodeMapModal.svelte";
+  import GlobalHotkeys from "../components/shortcuts/GlobalHotkeys.svelte";
+  import ContextMenuHost from "../components/ui/ContextMenuHost.svelte";
+  import QuickOpenModal from "../components/shortcuts/QuickOpenModal.svelte";
+  import ShortcutsModal from "../components/shortcuts/ShortcutsModal.svelte";
   import type { AttachedFile } from "../types";
   import { attachedFiles, isCodeMapOpen } from "../stores";
   import { getPlaceholder } from "../utils/files";
@@ -66,6 +70,10 @@
     isOpen={$isCodeMapOpen}
     onClose={() => isCodeMapOpen.set(false)}
   />
+  <QuickOpenModal />
+  <ShortcutsModal />
+  <GlobalHotkeys />
+  <ContextMenuHost />
 {:else}
   <div
     class="flex flex-1 items-center justify-center text-sm text-[var(--text-tertiary)]"

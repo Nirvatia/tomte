@@ -202,7 +202,7 @@
     <button
       type="button"
       onclick={handleInsertLink}
-      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:opacity-100"
+      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:opacity-100 group-focus-within:opacity-100"
       title="Вставить ссылку на файл"
       aria-label="Вставить ссылку на файл {node.name}"
     >
@@ -213,7 +213,7 @@
       type="button"
       onclick={handlePreview}
       disabled={isPreviewLoading}
-      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] group-hover:opacity-100 disabled:pointer-events-none"
+      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] group-hover:opacity-100 group-focus-within:opacity-100 disabled:pointer-events-none"
       title="Просмотреть содержимое"
       aria-label="Просмотреть содержимое {node.name}"
     >

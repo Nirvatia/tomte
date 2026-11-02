@@ -118,7 +118,7 @@
   </div>
 
   <div
-    class="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+    class="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
   >
     <button
       type="button"

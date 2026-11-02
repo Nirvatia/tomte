@@ -12,12 +12,17 @@
     activatePromptFile,
     closePromptFileTab,
     createPromptFile,
+    renamePromptFile,
   } from "../../utils/projectActions";
+  import { openContextMenu } from "../../stores/contextMenu";
+  import { promptFileMenu } from "$lib/promptFileMenu";
 
   let newFileName = $state("");
   let isCreatingFile = $state(false);
   let actionInProgress = $state(false);
   let tabsContainer = $state<HTMLDivElement | null>(null);
+  let renamingFileId = $state<string | null>(null);
+  let renameValue = $state("");
 
   const displayFiles = $derived.by(() => {
     const pinned = $openFileIds
@@ -100,11 +105,31 @@
     newFileName = "";
   }
 
-  function handleTabKeydown(event: KeyboardEvent, fileId: string) {
+  function handleTabKeydown(event: KeyboardEvent, file: PromptFile) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      handleSelectFile(fileId);
+      handleSelectFile(file.id);
+    } else if (event.key === "F2") {
+      event.preventDefault();
+      startRename(file);
     }
+  }
+
+  // Переименование вкладки двойным кликом или F2 (решение этапа 5).
+  function startRename(file: PromptFile) {
+    renamingFileId = file.id;
+    renameValue = file.name;
+  }
+
+  async function finishRename() {
+    const fileId = renamingFileId;
+    if (!fileId) return;
+    renamingFileId = null;
+    if (renameValue.trim()) await renamePromptFile(fileId, renameValue);
+  }
+
+  function cancelRename() {
+    renamingFileId = null;
   }
 </script>
 
@@ -130,8 +155,15 @@
         ? ' (предпросмотр)'
         : ''}"
       tabindex="0"
+      title="{file.name} (двойной клик или F2 — переименовать)"
       onclick={() => handleSelectFile(file.id)}
-      onkeydown={(event) => handleTabKeydown(event, file.id)}
+      ondblclick={() => startRename(file)}
+      onkeydown={(event) => handleTabKeydown(event, file)}
+      oncontextmenu={(event) =>
+        openContextMenu(
+          event,
+          promptFileMenu(file, "tab", () => startRename(file)),
+        )}
     >
       <FileText
         size={15}
@@ -139,19 +171,37 @@
           ? 'text-[var(--accent)]'
           : 'text-[var(--text-tertiary)]'}"
       />
-      <span
-        class="text-[13px] {isActive
-          ? 'font-medium text-[var(--text-primary)]'
-          : 'text-[var(--text-tertiary)]'} {isPreviewTab(file.id)
-          ? 'italic'
-          : ''}"
-      >
-        {file.name}
-      </span>
+      {#if renamingFileId === file.id}
+        <input
+          use:autofocus
+          bind:value={renameValue}
+          onblur={finishRename}
+          onclick={(event) => event.stopPropagation()}
+          ondblclick={(event) => event.stopPropagation()}
+          onkeydown={(event) => {
+            event.stopPropagation();
+            if (event.key === "Enter") void finishRename();
+            if (event.key === "Escape") cancelRename();
+          }}
+          aria-label="Новое имя файла {file.name}"
+          class="w-28 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
+          maxlength="50"
+        />
+      {:else}
+        <span
+          class="text-[13px] {isActive
+            ? 'font-medium text-[var(--text-primary)]'
+            : 'text-[var(--text-tertiary)]'} {isPreviewTab(file.id)
+            ? 'italic'
+            : ''}"
+        >
+          {file.name}
+        </span>
+      {/if}
       <button
         type="button"
         onclick={(event) => handleCloseFile(event, file.id)}
-        class="ml-1 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[3px] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--bg-lighter)]"
+        class="ml-1 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[3px] opacity-0 transition-all group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-[var(--bg-lighter)]"
         aria-label="Закрыть вкладку {file.name}"
         title="Закрыть"
       >

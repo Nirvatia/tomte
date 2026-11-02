@@ -524,7 +524,7 @@
 
                 {#if renamingProjectId !== project.id}
                   <div
-                    class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
                   >
                     <button
                       type="button"
