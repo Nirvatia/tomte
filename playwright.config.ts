@@ -9,6 +9,8 @@ export default defineConfig({
   reporter: "html",
   use: {
     baseURL: "http://localhost:5173",
+    // Тесты написаны на русском: язык интерфейса берётся из браузера.
+    locale: "ru-RU",
     trace: "on-first-retry",
   },
   projects: [

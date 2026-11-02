@@ -64,7 +64,7 @@ describe("PromptsSection", () => {
 
       render(PromptsSection);
 
-      expect(screen.getByText("Prompts")).toBeInTheDocument();
+      expect(screen.getByText("Промпты")).toBeInTheDocument();
       expect(screen.getByText("2")).toBeInTheDocument();
       expect(screen.getByText("prompt-1.md")).toBeInTheDocument();
       expect(screen.getByText("prompt-2.md")).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe("PromptsSection", () => {
       render(PromptsSection);
 
       const headerButton = screen.getByRole("button", {
-        name: /Prompts/,
+        name: /Промпты/,
       });
 
       await fireEvent.click(headerButton);

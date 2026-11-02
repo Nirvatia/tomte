@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
   import { X, Copy, Check, Folder, LoaderCircle } from "@lucide/svelte";
   import { projectTreeNodes, projectTreeRootName } from "../../stores";
   import { generateCodeMap, type CodeMapResult } from "../../utils/codeMap";
-  import { pluralize } from "../../utils";
   import type { TreeNode } from "../../utils/projectTree";
   import CodeMapFolderItem from "./CodeMapFolderItem.svelte";
 
@@ -58,7 +58,7 @@
       console.error(err);
       report = null;
       generatedMap = "";
-      generateError = "Не удалось построить карту кода";
+      generateError = $t("codeMap.error");
     } finally {
       isGenerating = false;
     }
@@ -96,7 +96,7 @@
     onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Генератор карты кода"
+    aria-label={$t("codeMap.dialog")}
     tabindex="-1"
   >
     <div
@@ -109,13 +109,13 @@
           class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
         >
           <Folder size={20} class="text-[var(--accent)]" />
-          Генератор карты кода (Tree-sitter)
+          {$t("codeMap.title")}
         </h3>
         <button
           type="button"
           onclick={onClose}
           class="rounded p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          aria-label="Закрыть"
+          aria-label={$t("common.close")}
         >
           <X size={18} />
         </button>
@@ -126,12 +126,12 @@
           <div
             class="border-b border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
-            Выберите папку
+            {$t("codeMap.pickFolder")}
           </div>
           <div class="flex-1 overflow-y-auto p-2">
             {#if $projectTreeNodes.length === 0}
               <div class="p-4 text-center text-sm text-[var(--text-tertiary)]">
-                Дерево проекта пусто.
+                {$t("codeMap.emptyTree")}
               </div>
             {:else}
               {#each $projectTreeNodes as node (node.path)}
@@ -154,7 +154,9 @@
             <span
               class="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
             >
-              {selectedNode ? `Карта для: ${selectedNode.name}` : "Результат"}
+              {selectedNode
+                ? $t("codeMap.mapFor", { name: selectedNode.name })
+                : $t("codeMap.result")}
             </span>
             <div class="flex gap-2">
               <button
@@ -165,9 +167,9 @@
               >
                 {#if isGenerating}
                   <LoaderCircle size={14} class="animate-spin" />
-                  <span>Генерация...</span>
+                  <span>{$t("codeMap.generating")}</span>
                 {:else}
-                  <span>Сгенерировать</span>
+                  <span>{$t("codeMap.generate")}</span>
                 {/if}
               </button>
               {#if generatedMap}
@@ -180,10 +182,10 @@
                 >
                   {#if copied}
                     <Check size={14} />
-                    <span>Скопировано</span>
+                    <span>{$t("common.copied")}</span>
                   {:else}
                     <Copy size={14} />
-                    <span>Копировать</span>
+                    <span>{$t("common.copy")}</span>
                   {/if}
                 </button>
               {/if}
@@ -197,23 +199,22 @@
               >
                 {#if report.noContent.length > 0}
                   <p>
-                    Пропущено {report.noContent.length}
-                    {pluralize(
-                      report.noContent.length,
-                      "файл",
-                      "файла",
-                      "файлов",
-                    )}: дерево сохранено без содержимого (проект не влез в
-                    лимит). Откройте папку заново, чтобы прочитать файлы.
+                    {$t("codeMap.skippedNoContent", {
+                      count: report.noContent.length,
+                    })}
                   </p>
                 {/if}
                 {#if report.failed.length > 0}
                   <p class="mt-1">
-                    Не удалось разобрать: {report.failed
-                      .slice(0, 5)
-                      .join(", ")}{report.failed.length > 5
-                      ? ` и ещё ${report.failed.length - 5}`
-                      : ""}.
+                    {$t("codeMap.failed", {
+                      files:
+                        report.failed.length > 5
+                          ? $t("codeMap.andMore", {
+                              files: report.failed.slice(0, 5).join(", "),
+                              count: report.failed.length - 5,
+                            })
+                          : report.failed.join(", "),
+                    })}
                   </p>
                 {/if}
               </div>
@@ -224,8 +225,7 @@
               </p>
             {:else if report && !generatedMap}
               <p class="text-sm text-[var(--text-tertiary)]">
-                В выбранной папке нет поддерживаемых файлов с функциями или
-                классами.
+                {$t("codeMap.nothingSupported")}
               </p>
             {/if}
             {#if generatedMap}
@@ -236,8 +236,8 @@
                 class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]"
               >
                 {selectedNode
-                  ? "Нажмите 'Сгенерировать'"
-                  : "Выберите папку слева"}
+                  ? $t("codeMap.pressGenerate")
+                  : $t("codeMap.pickFolderLeft")}
               </div>
             {/if}
           </div>

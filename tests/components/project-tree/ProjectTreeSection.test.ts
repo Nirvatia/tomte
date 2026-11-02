@@ -89,7 +89,7 @@ describe("ProjectTreeSection", () => {
     it("показывает пустое состояние, если дерево не создано", () => {
       render(ProjectTreeSection);
 
-      expect(screen.getByText("Project")).toBeInTheDocument();
+      expect(screen.getByText("Проект")).toBeInTheDocument();
       expect(screen.getByText("Дерево не создано")).toBeInTheDocument();
       expect(
         screen.getByText("Откройте папку или подключите GitHub-репозиторий"),

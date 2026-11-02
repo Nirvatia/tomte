@@ -86,7 +86,7 @@ describe("AttachmentsSection", () => {
 
       render(AttachmentsSection);
 
-      expect(screen.getByText("Attachments")).toBeInTheDocument();
+      expect(screen.getByText("Вложения")).toBeInTheDocument();
       expect(screen.getByText("Нет вложений")).toBeInTheDocument();
       expect(
         screen.getByText("Загрузите файлы или перетащите их сюда"),
@@ -101,7 +101,7 @@ describe("AttachmentsSection", () => {
 
       render(AttachmentsSection);
 
-      expect(screen.getByText("Attachments")).toBeInTheDocument();
+      expect(screen.getByText("Вложения")).toBeInTheDocument();
       expect(screen.getByText("2")).toBeInTheDocument();
       expect(screen.getByText("a.txt")).toBeInTheDocument();
       expect(screen.getByText("b.txt")).toBeInTheDocument();
