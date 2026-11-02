@@ -48,7 +48,7 @@
 
     {#if isOpen && node.children.length > 0}
       <div class="ml-4 border-l border-[var(--border)] pl-2">
-        {#each node.children as child}
+        {#each node.children as child (child.path)}
           {#if child.type === "directory"}
             <CodeMapFolderItem
               node={child}

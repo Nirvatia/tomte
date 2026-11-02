@@ -54,7 +54,7 @@ export function extractFilesFromMarkdown(markdown: string): ExtractedFile[] {
 
   while ((match = blockRegex.exec(normalizedMarkdown)) !== null) {
     const lang = match[1].trim().toLowerCase();
-    let code = match[2].trim();
+    const code = match[2].trim();
 
     if (code.length < 15 && !code.includes("\n") && !lang) {
       continue;

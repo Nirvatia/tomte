@@ -53,7 +53,7 @@ export async function readDirectoryRecursive(
 ): Promise<TreeNode[]> {
   const nodes: TreeNode[] = [];
 
-  for await (const entry of (dirHandle as any).values()) {
+  for await (const entry of dirHandle.values()) {
     if (ignore.includes(entry.name)) continue;
     if (entry.name.startsWith(".") && entry.kind === "directory") continue;
 
@@ -73,7 +73,7 @@ export async function readDirectoryRecursive(
         path: entryPath,
         type: "file",
         children: [],
-        fileRef: entry as FileSystemFileHandle,
+        fileRef: entry,
       });
     }
   }
@@ -119,12 +119,12 @@ export async function readDirectoryViaInput(
   if (fileArray.length === 0) return { nodes: [], rootName: "root" };
 
   const rootName = (
-    (fileArray[0] as any).webkitRelativePath || fileArray[0].name
+    fileArray[0].webkitRelativePath || fileArray[0].name
   ).split("/")[0];
   root.name = rootName;
 
   for (const file of fileArray) {
-    const relativePath = (file as any).webkitRelativePath || file.name;
+    const relativePath = file.webkitRelativePath || file.name;
     const parts = relativePath.split("/").slice(1);
     const shouldIgnore = parts.some((part: string) => {
       if (ignore.includes(part)) return true;

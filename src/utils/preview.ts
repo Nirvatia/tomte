@@ -1,4 +1,5 @@
-import type { AttachedFile } from '../types';
+import type { ExportFile } from "../types";
+import { resolveExportLabel } from "./files";
 
 export interface PreviewResult {
   html: string;
@@ -14,17 +15,42 @@ export interface PreviewResult {
 
 function escapeHtml(text: string): string {
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    // ИСПРАВЛЕНО: Экранируем знак равенства, чтобы тесты на XSS (onerror=...) проходили
-    .replace(/=/g, '&#61;'); 
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/=/g, "&#61;");
 }
 
-export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): PreviewResult {
+/** Плейсхолдер [LABEL] или [LABEL: что угодно]. Точное совпадение: FILE_1 не ловит FILE_10. */
+function placeholderRegex(label: string): RegExp {
+  return new RegExp(`\\[${label}(?::[^\\]]*)?\\]`, "g");
+}
+
+function imageBlock(title: string, file: ExportFile, className: string): string {
+  return `
+    <div class="${className}">
+      <div class="${className === "preview-image-block" ? "preview-image-label" : "preview-unused-label"}">${title}</div>
+      <img src="${escapeHtml(file.dataUrl ?? "")}" alt="${escapeHtml(file.name)}" />
+    </div>
+  `;
+}
+
+/**
+ * Собирает HTML для превью и для экспорта в PDF/PNG:
+ * подставляет картинки на место [IMAGE_n], подсвечивает [FILE_n],
+ * картинки без плейсхолдера и содержимое всех текстовых файлов добавляет в конец.
+ *
+ * Номера берутся из file.label (см. ExportFile), поэтому совпадают
+ * с тем, что пользователь видит в редакторе, даже если отобрана часть вложений.
+ */
+export function buildPreviewHtml(
+  editorHtml: string,
+  files: ExportFile[],
+): PreviewResult {
   let result = editorHtml;
+  let appendixHtml = "";
   const stats = {
     totalFiles: files.length,
     usedImages: 0,
@@ -34,84 +60,61 @@ export function buildPreviewHtml(editorHtml: string, files: AttachedFile[]): Pre
     attachedTexts: 0,
   };
 
-  let imgIndex = 1;
-  files.forEach((f) => {
-    if (f.type === 'image' && f.dataUrl) {
-      const regex = new RegExp(`\\[IMAGE_${imgIndex}(:[^\\]]+)?\\]`, 'g');
-      const matches = result.match(regex);
-      if (matches && matches.length > 0) {
-        stats.usedImages++;
-        // ИСПРАВЛЕНО: Экранируем dataUrl, чтобы предотвратить XSS через base64/src
-        const imageHtml = `
-          <div class="preview-image-block">
-            <div class="preview-image-label">[IMAGE_${imgIndex}: ${escapeHtml(f.name)}]</div>
-            <img src="${escapeHtml(f.dataUrl)}" alt="${escapeHtml(f.name)}" />
-          </div>
-        `;
-        result = result.replace(regex, imageHtml);
-      } else {
-        stats.unusedImages++;
-      }
-      imgIndex++;
-    }
-  });
+  for (const file of files) {
+    const label = resolveExportLabel(file, files);
+    const regex = label ? placeholderRegex(label) : null;
+    const isReferenced = regex ? regex.test(editorHtml) : false;
+    const title = label
+      ? `${label}: ${escapeHtml(file.name)}`
+      : escapeHtml(file.name);
 
-  let fileIndex = 1;
-  files.forEach((f) => {
-    if (f.type === 'text') {
-      const regex = new RegExp(`\\[FILE_${fileIndex}(:[^\\]]+)?\\]`, 'g');
-      const matches = result.match(regex);
-      if (matches && matches.length > 0) {
-        stats.usedFiles++;
+    if (file.type === "image") {
+      if (!file.dataUrl) continue;
+      if (isReferenced && regex) {
+        stats.usedImages++;
         result = result.replace(
           regex,
-          `<span class="preview-file-placeholder">[FILE_${fileIndex}: ${escapeHtml(f.name)}]</span>`
+          imageBlock(`[${title}]`, file, "preview-image-block"),
         );
       } else {
-        stats.unusedFiles++;
+        stats.unusedImages++;
+        appendixHtml += imageBlock(
+          `Вложение ${title} (без плейсхолдера)`,
+          file,
+          "preview-unused-image",
+        );
       }
-      fileIndex++;
+      continue;
     }
-  });
 
-  let appendixHtml = '';
-  let textFileIndex = 1;
-  files.forEach((f) => {
-    if (f.type === 'text' && f.content) {
-      const placeholderPattern = `[FILE_${textFileIndex}`;
-      const hasPlaceholder = editorHtml.includes(placeholderPattern);
-      if (!hasPlaceholder) {
-        appendixHtml += `
-          <div class="preview-attached-file">
-            <div class="preview-attached-label">FILE_${textFileIndex}: ${escapeHtml(f.name)}</div>
-            <pre class="preview-attached-content">${escapeHtml(f.content)}</pre>
-          </div>
-        `;
-        stats.attachedTexts++;
-      }
-      textFileIndex++;
+    // Текстовые и бинарные файлы: ссылку в тексте подсвечиваем,
+    // а содержимое текста всегда кладём в приложение — иначе ссылка
+    // [FILE_n] в PDF/PNG вела бы в никуда.
+    if (isReferenced && regex) {
+      stats.usedFiles++;
+      result = result.replace(
+        regex,
+        `<span class="preview-file-placeholder">[${title}]</span>`,
+      );
+    } else {
+      stats.unusedFiles++;
     }
-  });
 
-  let checkImgIndex = 1;
-  files.forEach((f) => {
-    if (f.type === 'image' && f.dataUrl) {
-      const placeholderPattern = `[IMAGE_${checkImgIndex}`;
-      if (!editorHtml.includes(placeholderPattern)) {
-        // ИСПРАВЛЕНО: Экранируем dataUrl и здесь
-        appendixHtml += `
-          <div class="preview-unused-image">
-            <div class="preview-unused-label">Вложение IMAGE_${checkImgIndex}: ${escapeHtml(f.name)} (без плейсхолдера)</div>
-            <img src="${escapeHtml(f.dataUrl)}" alt="${escapeHtml(f.name)}" />
-          </div>
-        `;
-      }
-      checkImgIndex++;
+    if (file.type === "text" && file.content) {
+      appendixHtml += `
+        <div class="preview-attached-file">
+          <div class="preview-attached-label">${title}</div>
+          <pre class="preview-attached-content">${escapeHtml(file.content)}</pre>
+        </div>
+      `;
+      stats.attachedTexts++;
     }
-  });
+  }
 
   return {
-    html: result + (appendixHtml ? `<div class="preview-appendix">${appendixHtml}</div>` : ''),
+    html:
+      result +
+      (appendixHtml ? `<div class="preview-appendix">${appendixHtml}</div>` : ""),
     stats,
   };
 }

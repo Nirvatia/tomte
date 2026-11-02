@@ -41,6 +41,7 @@
   } from "../../utils/projectTree";
 
   import { SECTION_TOOL_BTN } from "./constants";
+  import { getErrorMessage } from "../../utils";
 
   interface Props {
     editor?: Editor | null;
@@ -114,9 +115,7 @@ function toggleSelectAll() {
 
     try {
       if (supportsFileSystem) {
-        const dirHandle = await (window as any).showDirectoryPicker({
-          mode: "read",
-        });
+        const dirHandle = await window.showDirectoryPicker!({ mode: "read" });
         const nodes = await readDirectoryRecursive(dirHandle);
         const fileCount = calculateStats(nodes).totalFiles;
         const saved = await setProjectTreeSource({
@@ -131,9 +130,10 @@ function toggleSelectAll() {
       } else {
         fileInput?.click();
       }
-    } catch (err: any) {
-      if (err.name !== "AbortError") {
-        error = err.message || "Не удалось прочитать папку";
+    } catch (err) {
+      // Пользователь закрыл диалог выбора папки — это не ошибка.
+      if (!(err instanceof DOMException && err.name === "AbortError")) {
+        error = getErrorMessage(err, "Не удалось прочитать папку");
         console.error(err);
       }
     } finally {
@@ -151,8 +151,8 @@ function toggleSelectAll() {
       if (!restored) {
         error = "Не удалось восстановить репозиторий";
       }
-    } catch (err: any) {
-      error = err.message || "Не удалось загрузить репозиторий";
+    } catch (err) {
+      error = getErrorMessage(err, "Не удалось загрузить репозиторий");
       console.error(err);
     } finally {
       isLoading = false;
@@ -178,8 +178,8 @@ function toggleSelectAll() {
       if (saved) {
         await clearGithubConfig();
       }
-    } catch (err: any) {
-      error = err.message || "Не удалось прочитать папку";
+    } catch (err) {
+      error = getErrorMessage(err, "Не удалось прочитать папку");
       console.error(err);
     } finally {
       isLoading = false;
@@ -193,7 +193,7 @@ function toggleSelectAll() {
       await navigator.clipboard.writeText($projectTreeString);
       copied = true;
       setTimeout(() => (copied = false), 2000);
-    } catch (err) {
+    } catch {
       error = "Не удалось скопировать";
     }
   }

@@ -1,4 +1,4 @@
-import type { AttachedFile, ExportFormat } from "../../types";
+import type { ExportFile, ExportFormat } from "../../types";
 
 import { exportToDOCX } from "./docx";
 import { exportToMD } from "./md";
@@ -13,7 +13,7 @@ export interface ExportOptions {
 export async function exportFile(
   format: ExportFormat,
   editorHtml: string,
-  files: AttachedFile[],
+  files: ExportFile[],
   fileName: string,
   options: ExportOptions = {},
 ): Promise<void> {

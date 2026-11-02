@@ -168,6 +168,9 @@
           <div
             class="preview-content mx-auto max-w-4xl rounded-lg border border-[var(--border)] bg-[var(--bg-darkest)] p-8"
           >
+            <!-- HTML редактора идёт из схемы Tiptap, имена и содержимое вложений
+                 экранирует buildPreviewHtml. -->
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -->
             {@html previewData.html}
           </div>
         {/if}

@@ -10,12 +10,14 @@ import {
   TableRow,
   TextRun,
   WidthType,
+  type IRunOptions,
 } from "docx";
 
-import type { AttachedFile } from "../../types";
+import type { ExportFile } from "../../types";
 
 import { sanitizeFileName } from "../index";
 import { buildPreviewHtml } from "../preview";
+import { exportTitle } from "./common";
 
 function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
   const parser = new DOMParser();
@@ -110,7 +112,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
       case "table":
         processTable(el);
         break;
-      case "pre":
+      case "pre": {
         const codeText = el.textContent || "";
         codeText.split("\n").forEach((line) => {
           elements.push(
@@ -123,6 +125,7 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
           );
         });
         break;
+      }
       default:
         Array.from(el.childNodes).forEach(processNode);
     }
@@ -142,18 +145,17 @@ function parseHtmlToDocx(html: string): (Paragraph | Table)[] {
 
       const child = node as HTMLElement;
       const tag = child.tagName.toLowerCase();
-      const baseProps: any = { text: child.textContent || "", size: 24 };
-
-      if (tag === "strong" || tag === "b") baseProps.bold = true;
-      if (tag === "em" || tag === "i") baseProps.italics = true;
-      if (tag === "u") baseProps.underline = {};
-      if (tag === "s" || tag === "strike" || tag === "del")
-        baseProps.strike = true;
-      if (tag === "mark") baseProps.highlight = "yellow";
-      if (tag === "code") {
-        baseProps.font = "Courier New";
-        baseProps.size = 20;
-      }
+      const isCode = tag === "code";
+      const baseProps: IRunOptions = {
+        text: child.textContent || "",
+        size: isCode ? 20 : 24,
+        ...(isCode && { font: "Courier New" }),
+        ...((tag === "strong" || tag === "b") && { bold: true }),
+        ...((tag === "em" || tag === "i") && { italics: true }),
+        ...(tag === "u" && { underline: {} }),
+        ...((tag === "s" || tag === "strike" || tag === "del") && { strike: true }),
+        ...(tag === "mark" && { highlight: "yellow" }),
+      };
 
       if (
         child.childNodes.length === 1 &&
@@ -294,7 +296,7 @@ function createDocxImage(
 
 export async function exportToDOCX(
   editorHtml: string,
-  files: AttachedFile[],
+  files: ExportFile[],
   fileName: string,
 ): Promise<void> {
   try {
@@ -339,12 +341,12 @@ export async function exportToDOCX(
           }),
         );
 
-        images.forEach((img, i) => {
+        images.forEach((img) => {
           content.push(
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `IMAGE_${i + 1}: ${img.name}`,
+                  text: exportTitle(img, files),
                   bold: true,
                   size: 22,
                   color: "2563EB",
@@ -381,12 +383,12 @@ export async function exportToDOCX(
           }),
         );
 
-        textFiles.forEach((file, i) => {
+        textFiles.forEach((file) => {
           content.push(
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `FILE_${i + 1}: ${file.name}`,
+                  text: exportTitle(file, files),
                   bold: true,
                   size: 22,
                   color: "059669",

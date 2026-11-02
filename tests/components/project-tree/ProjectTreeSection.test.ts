@@ -25,7 +25,6 @@ import {
   calculateStats,
   hasFileSystemAccess,
   readDirectoryRecursive,
-  readDirectoryViaInput,
 } from "../../../src/utils/projectTree";
 
 vi.mock("$app/environment", () => ({

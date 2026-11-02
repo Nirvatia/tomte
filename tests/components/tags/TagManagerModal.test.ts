@@ -23,7 +23,7 @@ vi.mock("../../../src/stores/confirm", () => ({
 }));
 
 vi.mock("../../../src/utils", () => ({
-  pluralize: vi.fn((n: number, one: string, few: string, many: string) => one),
+  pluralize: vi.fn((_n: number, one: string) => one),
 }));
 
 vi.mock("../../../src/utils/tags", () => ({

@@ -3,11 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   render,
   screen,
-  fireEvent,
 } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
 import { tick } from "svelte";
-import { get } from "svelte/store";
 import ProjectTreeSidebar from "../../../src/components/project-tree/ProjectTreeSidebar.svelte";
 import {
   activeProject,

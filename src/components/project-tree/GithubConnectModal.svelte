@@ -7,6 +7,7 @@
   import { activeProject, selectedProjectFiles } from "../../stores";
 
   import { calculateStats } from "../../utils/projectTree";
+  import { getErrorMessage } from "../../utils";
   import {
     setGithubConfig,
     setProjectTreeSource,
@@ -104,8 +105,8 @@
 
       await setGithubConfig(config);
       onClose();
-    } catch (err: any) {
-      error = err.message || "Не удалось загрузить репозиторий";
+    } catch (err) {
+      error = getErrorMessage(err, "Не удалось загрузить репозиторий");
       console.error(err);
     } finally {
       isLoading = false;

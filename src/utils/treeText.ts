@@ -3,7 +3,6 @@ import type { TreeNode } from "./projectTree";
 export function treeToText(
   nodes: TreeNode[],
   prefix = "",
-  isLast = true,
   isRoot = true,
 ): string {
   let result = "";
@@ -13,12 +12,12 @@ export function treeToText(
     const childPrefix = isRoot ? "" : prefix + (isLastItem ? "    " : "│   ");
     result += prefix + connector + node.name + "\n";
     if (node.type === "directory" && node.children.length > 0) {
-      result += treeToText(node.children, childPrefix, isLastItem, false);
+      result += treeToText(node.children, childPrefix, false);
     }
   });
   return result;
 }
 
 export function buildTreeString(rootName: string, nodes: TreeNode[]): string {
-  return `${rootName}/\n` + treeToText(nodes, "", true, true);
+  return `${rootName}/\n` + treeToText(nodes, "", true);
 }

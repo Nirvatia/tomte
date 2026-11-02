@@ -1,5 +1,6 @@
 <script lang="ts">
   import { FileText, Plus, X } from "@lucide/svelte";
+  import { autofocus } from "$lib/actions/autofocus";
   import type { PromptFile } from "../../types";
   import {
     activeFileId,
@@ -11,16 +12,11 @@
     activatePromptFile,
     closePromptFileTab,
     createPromptFile,
-    renamePromptFile,
   } from "../../utils/projectActions";
 
-  let editingFileId = $state<string | null>(null);
-  let editingFileName = $state("");
   let newFileName = $state("");
   let isCreatingFile = $state(false);
   let actionInProgress = $state(false);
-  let editingInput = $state<HTMLInputElement | null>(null);
-  let newFileInput = $state<HTMLInputElement | null>(null);
   let tabsContainer = $state<HTMLDivElement | null>(null);
 
   const displayFiles = $derived.by(() => {
@@ -73,35 +69,6 @@
     void activatePromptFile(fileId);
   }
 
-  function handleStartRename(fileId: string, currentName: string) {
-    if (actionInProgress) return;
-    editingFileId = fileId;
-    editingFileName = currentName;
-    setTimeout(() => editingInput?.focus(), 50);
-  }
-
-  async function saveRename() {
-    if (actionInProgress) return;
-    if (!editingFileId || !editingFileName.trim()) {
-      cancelRename();
-      return;
-    }
-    const fileId = editingFileId;
-    const name = editingFileName;
-    actionInProgress = true;
-    try {
-      await renamePromptFile(fileId, name);
-      cancelRename();
-    } finally {
-      actionInProgress = false;
-    }
-  }
-
-  function cancelRename() {
-    editingFileId = null;
-    editingFileName = "";
-  }
-
   function handleCloseFile(event: MouseEvent, fileId: string) {
     event.stopPropagation();
     void closePromptFileTab(fileId);
@@ -111,7 +78,6 @@
     if (actionInProgress || isCreatingFile) return;
     isCreatingFile = true;
     newFileName = suggestNewFileName();
-    setTimeout(() => newFileInput?.focus(), 50);
   }
 
   async function saveNewFile() {
@@ -134,9 +100,10 @@
     newFileName = "";
   }
 
-  function handleTabKeydown(event: KeyboardEvent) {
+  function handleTabKeydown(event: KeyboardEvent, fileId: string) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
+      handleSelectFile(fileId);
     }
   }
 </script>
@@ -149,112 +116,40 @@
   aria-label="Файлы промптов"
 >
   {#each displayFiles as file (file.id)}
-    {#if $activeFileId === file.id}
-      <div
-        class="group flex h-[39px] cursor-pointer items-center gap-2.5 border-r border-[var(--border)] bg-[var(--bg-darkest)] px-5 whitespace-nowrap transition-all"
-        style="border-top: 2px solid var(--accent); margin-top: -1px;"
-        role="tab"
-        aria-selected="true"
-        aria-label="Вкладка {file.name}{isPreviewTab(file.id)
-          ? ' (предпросмотр)'
-          : ''}"
-        tabindex="0"
-        onclick={() => handleSelectFile(file.id)}
-        onkeydown={handleTabKeydown}
+    {@const isActive = $activeFileId === file.id}
+    <div
+      class="group flex h-[39px] cursor-pointer items-center gap-2.5 border-r border-[var(--border)] px-5 whitespace-nowrap transition-all {isActive
+        ? 'bg-[var(--bg-darkest)]'
+        : 'bg-[var(--bg-dark)] hover:bg-[var(--bg-medium)] hover:text-[var(--text-secondary)]'}"
+      style={isActive ? "border-top: 2px solid var(--accent); margin-top: -1px;" : ""}
+      role="tab"
+      aria-selected={isActive}
+      aria-label="Вкладка {file.name}{isPreviewTab(file.id) ? ' (предпросмотр)' : ''}"
+      tabindex="0"
+      onclick={() => handleSelectFile(file.id)}
+      onkeydown={(event) => handleTabKeydown(event, file.id)}
+    >
+      <FileText
+        size={15}
+        class="shrink-0 {isActive ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)]'}"
+      />
+      <span
+        class="text-[13px] {isActive
+          ? 'font-medium text-[var(--text-primary)]'
+          : 'text-[var(--text-tertiary)]'} {isPreviewTab(file.id) ? 'italic' : ''}"
       >
-        <FileText size={15} class="shrink-0 text-[var(--accent)]" />
-        {#if editingFileId === file.id}
-          <input
-            bind:this={editingInput}
-            bind:value={editingFileName}
-            onblur={saveRename}
-            onkeydown={(event) => {
-              event.stopPropagation();
-              if (event.key === "Enter") {
-                void saveRename();
-              }
-              if (event.key === "Escape") {
-                cancelRename();
-              }
-            }}
-            onclick={(event) => event.stopPropagation()}
-            class="w-28 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
-            maxlength="50"
-          />
-        {:else}
-          <span
-            class="text-[13px] font-medium text-[var(--text-primary)] {isPreviewTab(
-              file.id,
-            )
-              ? 'italic'
-              : ''}"
-          >
-            {file.name}
-          </span>
-        {/if}
-        <button
-          type="button"
-          onclick={(event) => handleCloseFile(event, file.id)}
-          class="flex h-[18px] w-[18px] ml-1 shrink-0 items-center justify-center rounded-[3px] transition-all opacity-0 hover:bg-[var(--bg-lighter)] group-hover:opacity-100"
-          aria-label="Закрыть вкладку {file.name}"
-          title="Закрыть"
-        >
-          <X size={14} />
-        </button>
-      </div>
-    {:else}
-      <div
-        class="group flex h-[39px] cursor-pointer items-center gap-2.5 border-r border-[var(--border)] bg-[var(--bg-dark)] px-5 whitespace-nowrap transition-all hover:bg-[var(--bg-medium)] hover:text-[var(--text-secondary)]"
-        onclick={() => handleSelectFile(file.id)}
-        role="tab"
-        aria-selected="false"
-        aria-label="Вкладка {file.name}{isPreviewTab(file.id)
-          ? ' (предпросмотр)'
-          : ''}"
-        tabindex="0"
-        onkeydown={handleTabKeydown}
+        {file.name}
+      </span>
+      <button
+        type="button"
+        onclick={(event) => handleCloseFile(event, file.id)}
+        class="ml-1 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[3px] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--bg-lighter)]"
+        aria-label="Закрыть вкладку {file.name}"
+        title="Закрыть"
       >
-        <FileText size={15} class="shrink-0 text-[var(--text-tertiary)]" />
-        {#if editingFileId === file.id}
-          <input
-            bind:this={editingInput}
-            bind:value={editingFileName}
-            onblur={saveRename}
-            onkeydown={(event) => {
-              event.stopPropagation();
-              if (event.key === "Enter") {
-                void saveRename();
-              }
-              if (event.key === "Escape") {
-                cancelRename();
-              }
-            }}
-            onclick={(event) => event.stopPropagation()}
-            class="w-28 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-1.5 py-0.5 text-[13px] text-[var(--text-primary)] focus:outline-none"
-            maxlength="50"
-          />
-        {:else}
-          <span
-            class="text-[13px] text-[var(--text-tertiary)] {isPreviewTab(
-              file.id,
-            )
-              ? 'italic'
-              : ''}"
-          >
-            {file.name}
-          </span>
-        {/if}
-        <button
-          type="button"
-          onclick={(event) => handleCloseFile(event, file.id)}
-          class="flex h-[18px] w-[18px] ml-1 shrink-0 items-center justify-center rounded-[3px] transition-all opacity-0 hover:bg-[var(--bg-lighter)] group-hover:opacity-100"
-          aria-label="Закрыть вкладку {file.name}"
-          title="Закрыть"
-        >
-          <X size={14} />
-        </button>
-      </div>
-    {/if}
+        <X size={14} />
+      </button>
+    </div>
   {/each}
 
   {#if isCreatingFile}
@@ -264,7 +159,7 @@
     >
       <FileText size={15} class="shrink-0 text-[var(--accent)]" />
       <input
-        bind:this={newFileInput}
+        use:autofocus
         bind:value={newFileName}
         onblur={saveNewFile}
         onkeydown={(event) => {

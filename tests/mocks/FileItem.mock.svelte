@@ -1,7 +1,7 @@
 <script lang="ts">
   let {
     file,
-    allFiles = [],
+    allFiles: _allFiles = [],
     isSelected = false,
     onToggleSelect = () => {},
     onRemove = () => {},

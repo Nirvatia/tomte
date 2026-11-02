@@ -1,6 +1,6 @@
 import { domToPng } from "modern-screenshot";
 
-import type { AttachedFile } from "../../types";
+import type { ExportFile } from "../../types";
 
 import { sanitizeFileName } from "../index";
 import { buildPreviewHtml } from "../preview";
@@ -13,7 +13,7 @@ import {
 
 export async function exportToPNG(
   editorHtml: string,
-  files: AttachedFile[],
+  files: ExportFile[],
   fileName: string,
 ): Promise<void> {
   const { html } = buildPreviewHtml(editorHtml, files);

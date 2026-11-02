@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildPreviewHtml } from "../../src/utils/preview";
-import type { PreviewResult } from "../../src/utils/preview";
+import { labelAttachments } from "../../src/utils/files";
 import type { AttachedFile } from "../../src/types";
 
 function makeTextFile(name: string, content: string): AttachedFile {
@@ -89,14 +89,18 @@ describe("buildPreviewHtml", () => {
     expect(result.html).toContain("# Notes");
   });
 
-  it("не добавляет в конец если плейсхолдер уже есть", () => {
+  // Раньше содержимое файла с плейсхолдером не попадало в PDF/PNG вовсе:
+  // ссылка [FILE_1] вела в никуда.
+  it("файл с плейсхолдером подсвечивается в тексте и попадает в приложение", () => {
     const files = [makeTextFile("notes.md", "# Notes")];
     const html = "<p>[FILE_1: notes.md]</p>";
 
     const result = buildPreviewHtml(html, files);
 
-    expect(result.stats.attachedTexts).toBe(0);
-    expect(result.html).not.toContain("preview-appendix");
+    expect(result.stats.usedFiles).toBe(1);
+    expect(result.stats.attachedTexts).toBe(1);
+    expect(result.html).toContain("preview-file-placeholder");
+    expect(result.html).toContain("# Notes");
   });
 
   it("корректно считает статистику для смешанных файлов", () => {
@@ -114,7 +118,45 @@ describe("buildPreviewHtml", () => {
     expect(result.stats.unusedFiles).toBe(1);
     expect(result.stats.usedImages).toBe(1);
     expect(result.stats.unusedImages).toBe(0);
-    expect(result.stats.attachedTexts).toBe(1);
+    expect(result.stats.attachedTexts).toBe(2);
+  });
+
+  describe("нумерация совпадает с редактором", () => {
+    it("использует метки, посчитанные по всем вложениям, а не по отобранным", () => {
+      const all = [makeImageFile("a.png"), makeImageFile("b.png")];
+      // Пользователь отметил для экспорта только вторую картинку.
+      const selected = labelAttachments([all[1]], all);
+      const html = "<p>Смотри [IMAGE_2: b.png]</p>";
+
+      const result = buildPreviewHtml(html, selected);
+
+      expect(result.stats.usedImages).toBe(1);
+      expect(result.html).toContain("data:image/png;base64,b.png");
+      expect(result.html).not.toContain("[IMAGE_2: b.png]</p>");
+      expect(result.html).not.toContain("без плейсхолдера");
+    });
+
+    it("[FILE_1] не совпадает с [FILE_10]", () => {
+      const files = Array.from({ length: 10 }, (_, i) =>
+        makeTextFile(`f${i + 1}.md`, `content ${i + 1}`),
+      );
+      const html = "<p>[FILE_10: f10.md]</p>";
+
+      const result = buildPreviewHtml(html, files);
+
+      expect(result.stats.usedFiles).toBe(1);
+      expect(result.stats.unusedFiles).toBe(9);
+    });
+
+    it("файлы без метки (из дерева) подписываются только именем", () => {
+      const attachment = { ...makeTextFile("a.md", "attached"), label: "FILE_1" };
+      const treeFile = { ...makeTextFile("src/x.ts", "tree"), label: null };
+
+      const result = buildPreviewHtml("<p>[FILE_1: a.md]</p>", [attachment, treeFile]);
+
+      expect(result.html).toContain(">src/x.ts</div>");
+      expect(result.stats.usedFiles).toBe(1);
+    });
   });
 
   it("экранирует HTML в именах файлов", () => {

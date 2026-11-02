@@ -7,7 +7,6 @@ import {
   waitFor,
 } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
-import { get } from "svelte/store";
 
 import TabsBar from "../../../src/components/editor/TabsBar.svelte";
 import {
@@ -15,13 +14,11 @@ import {
   activeFileId,
   openFileIds,
   previewFileId,
-  promptFiles,
 } from "../../../src/stores";
 import {
   activatePromptFile,
   closePromptFileTab,
   createPromptFile,
-  renamePromptFile,
 } from "../../../src/utils/projectActions";
 import type { Project, PromptFile } from "../../../src/types";
 
@@ -29,7 +26,6 @@ vi.mock("../../../src/utils/projectActions", () => ({
   activatePromptFile: vi.fn(),
   closePromptFileTab: vi.fn(),
   createPromptFile: vi.fn(),
-  renamePromptFile: vi.fn(),
 }));
 
 function makeFile(overrides: Partial<PromptFile> = {}): PromptFile {
@@ -66,7 +62,6 @@ describe("TabsBar", () => {
     vi.mocked(activatePromptFile).mockResolvedValue(undefined);
     vi.mocked(closePromptFileTab).mockResolvedValue(undefined);
     vi.mocked(createPromptFile).mockResolvedValue("new-file-id");
-    vi.mocked(renamePromptFile).mockResolvedValue(true);
   });
 
   describe("Рендеринг вкладок", () => {
@@ -266,24 +261,19 @@ describe("TabsBar", () => {
     });
   });
 
-  describe("Переименование файла", () => {
-    it("переименовывает файл по Enter", async () => {
+  describe("Клавиатура", () => {
+    it("Enter на вкладке переключает на файл", async () => {
       const file1 = makeFile({ id: "f1", name: "main" });
-
-      setProject([file1]);
-      openFileIds.set(["f1"]);
+      const file2 = makeFile({ id: "f2", name: "second" });
+      setProject([file1, file2]);
+      openFileIds.set(["f1", "f2"]);
       activeFileId.set("f1");
 
       render(TabsBar);
+      const tab = await screen.findByRole("tab", { name: "Вкладка second" });
+      await fireEvent.keyDown(tab, { key: "Enter" });
 
-      await screen.findByText("main");
-
-      // Двойной клик для начала переименования не предусмотрен в TabsBar,
-      // переименование запускается через двойной клик в PromptsSection.
-      // В TabsBar нет кнопки переименования, поэтому этот тест
-      // проверяет, что логика переименования существует.
-      // Реальное переименование в TabsBar происходит через двойной клик,
-      // но в текущей реализации его нет — переименование только в сайдбаре.
+      expect(activatePromptFile).toHaveBeenCalledWith("f2");
     });
   });
 });

@@ -26,6 +26,7 @@
   } from "../../stores";
 
   import { exportFile } from "../../utils/export";
+  import { labelAttachments } from "../../utils/files";
   import { getSelectedTreeFilesAsAttachments } from "../../utils/projectTree";
 
   let isExportMenuOpen = $state(false);
@@ -71,16 +72,21 @@
     exportError = null;
 
     try {
-      const selectedAttachments = $attachedFiles.filter((f) =>
-        $selectedFileIds.has(f.id),
+      // Метки считаем по всем вложениям: так [FILE_2] в тексте совпадёт
+      // с подписью в экспорте, даже если отмечена только часть файлов.
+      const selectedAttachments = labelAttachments(
+        $attachedFiles.filter((f) => $selectedFileIds.has(f.id)),
+        $attachedFiles,
       );
       const rawTreeFiles = await getSelectedTreeFilesAsAttachments(
         $projectTreeNodes,
         $selectedProjectFiles,
       );
+      // У файлов дерева нет плейсхолдеров в тексте: подписываем их путём.
       const selectedTreeFiles = rawTreeFiles.map((f) => ({
         ...f,
         id: `tree_${f.id}`,
+        label: null,
       }));
       const filesToExport = [...selectedAttachments, ...selectedTreeFiles];
 

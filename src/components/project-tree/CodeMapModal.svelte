@@ -115,7 +115,7 @@
                 Дерево проекта пусто.
               </div>
             {:else}
-              {#each $projectTreeNodes as node}
+              {#each $projectTreeNodes as node (node.path)}
                 {#if node.type === "directory"}
                   <CodeMapFolderItem
                     {node}

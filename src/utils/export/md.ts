@@ -1,7 +1,8 @@
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
-import type { AttachedFile } from "../../types";
+import type { ExportFile } from "../../types";
 import { sanitizeFileName } from "../index";
+import { resolveExportLabel } from "../files";
 
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -121,7 +122,7 @@ function tightenLists(markdown: string): string {
 
 export async function exportToMD(
   editorHtml: string,
-  files: AttachedFile[],
+  files: ExportFile[],
   fileName: string,
 ): Promise<void> {
   const preparedHtml = prepareHtmlForMarkdown(editorHtml);
@@ -159,7 +160,8 @@ export async function exportToMD(
         "zsh",
       ];
       const lang = supportedLangs.includes(ext) ? ext : "";
-      markdown += `### 📄 \`${file.name}\`\n\n`;
+      const label = resolveExportLabel(file, files);
+      markdown += `### 📄 ${label ? `${label}: ` : ""}\`${file.name}\`\n\n`;
       markdown += `\`\`\`${lang}\n${file.content}\n\`\`\`\n\n`;
     }
   }

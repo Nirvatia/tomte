@@ -1,4 +1,4 @@
-import type { AttachedFile } from "../types";
+import type { AttachedFile, ExportFile } from "../types";
 import { generateId } from "./index";
 
 export const TEXT_EXTENSIONS = [
@@ -59,6 +59,37 @@ export function getPlaceholder(
   const prefix = getPlaceholderPrefix(file);
   const index = getPlaceholderIndex(file, allFiles);
   return `[${prefix}_${index}: ${file.name}]`;
+}
+
+/** Метка плейсхолдера без имени: «IMAGE_2», «FILE_1». */
+export function getPlaceholderLabel(
+  file: AttachedFile,
+  allFiles: AttachedFile[],
+): string {
+  return `${getPlaceholderPrefix(file)}_${getPlaceholderIndex(file, allFiles)}`;
+}
+
+/** Проставляет отобранным вложениям метки, посчитанные по всем вложениям проекта. */
+export function labelAttachments(
+  selected: AttachedFile[],
+  allAttachments: AttachedFile[],
+): ExportFile[] {
+  return selected.map((file) => ({
+    ...file,
+    label: getPlaceholderLabel(file, allAttachments),
+  }));
+}
+
+/** Метка файла в превью/экспорте (см. ExportFile.label). */
+export function resolveExportLabel(
+  file: ExportFile,
+  files: ExportFile[],
+): string | null {
+  if (file.label !== undefined) return file.label;
+  return getPlaceholderLabel(
+    file,
+    files.filter((f) => f.label === undefined),
+  );
 }
 
 const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "avif", "ico"];

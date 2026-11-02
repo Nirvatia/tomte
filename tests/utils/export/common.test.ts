@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   createExportContainer,
   removeContainer,
   waitForImages,
   escapeHtml,
-  buildAttachmentsHtml,
+  exportTitle,
 } from "../../../src/utils/export/common";
 import type { AttachedFile } from "../../../src/types";
 
@@ -52,71 +52,6 @@ describe("escapeHtml", () => {
 
   it("возвращает пустую строку для пустого ввода", () => {
     expect(escapeHtml("")).toBe("");
-  });
-});
-
-describe("buildAttachmentsHtml", () => {
-  it("возвращает пустую строку для пустого массива", () => {
-    expect(buildAttachmentsHtml([])).toBe("");
-  });
-
-  it("содержит заголовок с количеством файлов", () => {
-    const files = [makeFile({ name: "a.txt", content: "hello" })];
-    const html = buildAttachmentsHtml(files);
-    expect(html).toContain("Вложения (1)");
-  });
-
-  it("рендерит изображения с dataUrl", () => {
-    const files = [
-      makeFile({
-        type: "image",
-        name: "photo.png",
-        dataUrl: "data:image/png;base64,AAA",
-      }),
-    ];
-    const html = buildAttachmentsHtml(files);
-    expect(html).toContain("Изображения");
-    expect(html).toContain("IMAGE_1: photo.png");
-    expect(html).toContain('src="data:image/png;base64,AAA"');
-  });
-
-  it("не рендерит изображения без dataUrl", () => {
-    const files = [makeFile({ type: "image", name: "photo.png" })];
-    const html = buildAttachmentsHtml(files);
-    expect(html).not.toContain("Изображения");
-  });
-
-  it("рендерит текстовые файлы с содержимым", () => {
-    const files = [makeFile({ type: "text", name: "code.js", content: "console.log(1)" })];
-    const html = buildAttachmentsHtml(files);
-    expect(html).toContain("Текстовые файлы");
-    expect(html).toContain("FILE_1: code.js");
-    expect(html).toContain("console.log(1)");
-  });
-
-  it("не рендерит текстовые файлы без содержимого", () => {
-    const files = [makeFile({ type: "text", name: "empty.txt" })];
-    const html = buildAttachmentsHtml(files);
-    expect(html).not.toContain("Текстовые файлы");
-  });
-
-  it("нумерует изображения и текстовые файлы отдельно", () => {
-    const files = [
-      makeFile({ type: "image", name: "img1.png", dataUrl: "data:image/png;base64,A" }),
-      makeFile({ type: "image", name: "img2.png", dataUrl: "data:image/png;base64,B" }),
-      makeFile({ type: "text", name: "a.txt", content: "text" }),
-    ];
-    const html = buildAttachmentsHtml(files);
-    expect(html).toContain("IMAGE_1: img1.png");
-    expect(html).toContain("IMAGE_2: img2.png");
-    expect(html).toContain("FILE_1: a.txt");
-  });
-
-  it("экранирует имена файлов в HTML", () => {
-    const files = [makeFile({ type: "text", name: '<script>alert("x")</script>.txt', content: "safe" })];
-    const html = buildAttachmentsHtml(files);
-    expect(html).not.toContain('<script>alert("x")</script>');
-    expect(html).toContain("&lt;script&gt;");
   });
 });
 
@@ -189,5 +124,23 @@ describe("waitForImages", () => {
     img.onerror?.call(img, new Event("error"));
 
     await expect(promise).resolves.toBeUndefined();
+  });
+});
+
+describe("exportTitle", () => {
+  it("подписывает файл меткой из редактора", () => {
+    const file = { ...makeFile({ name: "notes.md" }), label: "FILE_2" };
+    expect(exportTitle(file, [file])).toBe("FILE_2: notes.md");
+  });
+
+  it("файл без метки (из дерева) подписывает только именем", () => {
+    const file = { ...makeFile({ name: "src/a.ts" }), label: null };
+    expect(exportTitle(file, [file])).toBe("src/a.ts");
+  });
+
+  it("без заданной метки считает её по переданному списку", () => {
+    const a = makeFile({ id: "a", name: "a.md" });
+    const b = makeFile({ id: "b", name: "b.md" });
+    expect(exportTitle(b, [a, b])).toBe("FILE_2: b.md");
   });
 });

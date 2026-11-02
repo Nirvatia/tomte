@@ -13,6 +13,17 @@ export interface AttachedFile {
   height?: number;
 }
 
+/**
+ * Файл, уходящий в превью или экспорт.
+ * label: метка плейсхолдера из редактора («IMAGE_2», «FILE_1»), посчитанная
+ * по всем вложениям проекта, а не по отобранным. null — плейсхолдера нет
+ * (например, файл из дерева проекта): файл подписывается только именем.
+ * undefined — посчитать по списку, в котором файл передан.
+ */
+export interface ExportFile extends AttachedFile {
+  label?: string | null;
+}
+
 export interface Tag {
   id: string;
   name: string;

@@ -1,36 +1,7 @@
 import type { TreeNode } from "./projectTree";
 import { fetchGithubFileContent } from "./github";
-import { parseFileOutline } from "./treeSitter";
+import { isOutlineSupported, parseFileOutline } from "./treeSitter";
 
-const EXT_TO_WASM: Record<string, string> = {
-  js: "javascript",
-  mjs: "javascript",
-  cjs: "javascript",
-  jsx: "javascript",
-  ts: "typescript",
-  mts: "typescript",
-  cts: "typescript",
-  tsx: "tsx",
-  py: "python",
-  rs: "rust",
-  go: "go",
-  java: "java",
-  cpp: "cpp",
-  cc: "cpp",
-  cxx: "cpp",
-  c: "cpp",
-  h: "cpp",
-  hpp: "cpp",
-  cs: "c-sharp",
-  php: "php",
-  rb: "ruby",
-  css: "css",
-  sh: "bash",
-  bash: "bash",
-  ps1: "powershell",
-  ini: "ini",
-  cfg: "ini",
-};
 
 async function readFileContent(node: TreeNode): Promise<string | null> {
   if (node.fileRef) {
@@ -60,8 +31,7 @@ export async function generateCodeMap(rootNode: TreeNode): Promise<string> {
       if (node.name.endsWith(".svelte")) return;
 
       const ext = node.name.split(".").pop()?.toLowerCase() || "";
-      const lang = EXT_TO_WASM[ext];
-      if (!lang) return;
+      if (!isOutlineSupported(ext)) return;
 
       try {
         const content = await readFileContent(node);

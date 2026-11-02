@@ -7,7 +7,6 @@ import {
   waitFor,
 } from "@testing-library/svelte";
 import "@testing-library/jest-dom/vitest";
-import { get } from "svelte/store";
 
 import TagPanel from "../../../src/components/tags/TagPanel.svelte";
 import { tagsVersion } from "../../../src/stores";
@@ -15,7 +14,6 @@ import { requestConfirm } from "../../../src/stores/confirm";
 import {
   addTag,
   loadTags,
-  removeTag,
   sortTags,
   updateTag,
 } from "../../../src/utils/tags";

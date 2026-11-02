@@ -83,7 +83,7 @@
         >
       </button>
       <div class="mx-1 my-1 h-px bg-[var(--border)]"></div>
-      {#each FONT_SIZES as size}
+      {#each FONT_SIZES as size (size)}
         <button
           type="button"
           onclick={() => setSize(size.value)}
