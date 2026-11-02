@@ -30,6 +30,9 @@ export async function exportFile(
       case "docx":
         await exportToDOCX(editorHtml, files, fileName);
         break;
+      case "docx-gost":
+        await exportToDOCX(editorHtml, files, fileName, "gost");
+        break;
       case "png":
         await exportToPNG(editorHtml, files, fileName);
         break;

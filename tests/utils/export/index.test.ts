@@ -65,6 +65,16 @@ describe("exportFile", () => {
     expect(exportToDOCX).toHaveBeenCalledWith("<p>text</p>", files, "test");
   });
 
+  it("вызывает exportToDOCX с пресетом ГОСТ для docx-gost", async () => {
+    await exportFile("docx-gost", "<p>text</p>", files, "test");
+    expect(exportToDOCX).toHaveBeenCalledWith(
+      "<p>text</p>",
+      files,
+      "test",
+      "gost",
+    );
+  });
+
   it("вызывает exportToPNG для формата png", async () => {
     await exportFile("png", "<p>text</p>", files, "test");
     expect(exportToPNG).toHaveBeenCalledWith("<p>text</p>", files, "test");

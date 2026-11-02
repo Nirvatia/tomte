@@ -202,6 +202,20 @@
         <button
           type="button"
           role="menuitem"
+          onclick={() => handleExport("docx-gost")}
+          class={EXPORT_ITEM_BASE}
+          title="Times New Roman 14, интервал 1,5, отступ 1,25 см, поля 30/15/20/20 мм, нумерация страниц"
+        >
+          <FileText size={14} class="shrink-0" />
+          <span class="flex-1">DOCX по ГОСТ 7.32</span>
+          {#if $exportFormat === "docx-gost"}
+            <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+          {/if}
+        </button>
+
+        <button
+          type="button"
+          role="menuitem"
           onclick={() => handleExport("png")}
           class={EXPORT_ITEM_BASE}
         >

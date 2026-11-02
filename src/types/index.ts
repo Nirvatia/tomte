@@ -1,4 +1,5 @@
-export type ExportFormat = "md" | "pdf" | "docx" | "png";
+/** docx-gost: DOCX с оформлением по ГОСТ 7.32-2017. */
+export type ExportFormat = "md" | "pdf" | "docx" | "docx-gost" | "png";
 
 export interface AttachedFile {
   id: string;
