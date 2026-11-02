@@ -3,6 +3,7 @@
   import { Editor } from "@tiptap/core";
 
   import { buildExtensions } from "../../lib/tiptap/config";
+  import { imageFilesFromClipboard } from "../../utils/files";
 
   interface Props {
     content?: string;
@@ -13,6 +14,8 @@
       text: string;
       charCount: number;
     }) => void;
+    /** Вставка картинок из буфера в редактор. Вставку текста редактор обрабатывает сам. */
+    onPasteImages?: (files: File[]) => void;
     /** Число символов после программной загрузки текста (смена файла), без сохранения. */
     onContentLoaded?: (charCount: number) => void;
   }
@@ -23,6 +26,7 @@
     onReady = () => {},
     onUpdate = () => {},
     onContentLoaded = () => {},
+    onPasteImages,
   }: Props = $props();
 
   let editor: Editor | null = $state(null);
@@ -40,6 +44,15 @@
         attributes: {
           class: "tiptap-prose",
           spellcheck: "true",
+        },
+        // Ловим только вставку в сам редактор: картинка, вставленная
+        // в модалку или поле ввода, не должна становиться вложением.
+        handlePaste: (_view, event) => {
+          if (!onPasteImages) return false;
+          const files = imageFilesFromClipboard(event.clipboardData);
+          if (files.length === 0) return false;
+          onPasteImages(files);
+          return true; // ProseMirror не вставляет ту же картинку второй раз
         },
       },
       onUpdate: ({ editor: currentEditor }) => {

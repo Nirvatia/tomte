@@ -6,6 +6,7 @@ import {
   getPlaceholderIndex,
   getPlaceholder,
   processFile,
+  imageFilesFromClipboard,
   TEXT_EXTENSIONS,
 } from "../../src/utils/files";
 
@@ -234,5 +235,44 @@ describe("нумерация плейсхолдеров", () => {
     expect(getPlaceholder(text, all)).toBe("[FILE_1: a.txt]");
     expect(getPlaceholder(pdf, all)).toBe("[FILE_2: b.pdf]");
     expect(getPlaceholder(image, all)).toBe("[IMAGE_1: c.png]");
+  });
+});
+
+describe("imageFilesFromClipboard", () => {
+  function clipboard(
+    items: Array<{ kind: string; type: string; file?: File }>,
+  ) {
+    return {
+      items: items.map((item) => ({
+        kind: item.kind,
+        type: item.type,
+        getAsFile: () => item.file ?? null,
+      })),
+    } as unknown as DataTransfer;
+  }
+
+  it("берёт только файлы-картинки", () => {
+    const png = new File(["x"], "shot.png", { type: "image/png" });
+    const files = imageFilesFromClipboard(
+      clipboard([
+        { kind: "string", type: "text/html" },
+        { kind: "file", type: "image/png", file: png },
+        {
+          kind: "file",
+          type: "application/pdf",
+          file: new File(["y"], "a.pdf"),
+        },
+      ]),
+    );
+    expect(files).toEqual([png]);
+  });
+
+  it("пустой буфер и текст без картинок дают пустой список", () => {
+    expect(imageFilesFromClipboard(null)).toEqual([]);
+    expect(
+      imageFilesFromClipboard(
+        clipboard([{ kind: "string", type: "text/plain" }]),
+      ),
+    ).toEqual([]);
   });
 });

@@ -25,7 +25,7 @@
   } from "../../stores";
 
   import { createFlushableAsync } from "../../utils";
-  import { processFile } from "../../utils/files";
+  import { getPlaceholder, processFile } from "../../utils/files";
   import {
     estimatePromptFileSize,
     saveProject,
@@ -187,34 +187,32 @@
     }
   }
 
-  async function handlePaste(event: ClipboardEvent) {
-    const items = event.clipboardData?.items;
-    if (!items) return;
-
-    const imageFiles: File[] = [];
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.type.indexOf("image") !== -1) {
-        const file = item.getAsFile();
-        if (file) imageFiles.push(file);
-      }
-    }
-
-    if (imageFiles.length > 0) {
-      event.preventDefault();
-      for (const file of imageFiles) {
-        try {
-          const attachedFile = await processFile(file);
-          await addAttachmentsToProject([attachedFile]);
-        } catch (error) {
-          console.error("Error processing pasted image:", error);
+  /**
+   * Вставленные картинки становятся вложениями, а на место курсора встаёт
+   * плейсхолдер [IMAGE_n: имя], как при клике по вложению в панели.
+   */
+  async function handlePasteImages(files: File[]) {
+    for (const file of files) {
+      try {
+        const attached = await processFile(file);
+        await addAttachmentsToProject([attached]);
+        const all = get(activeProject)?.attachments ?? [];
+        const added = all.find((f) => f.id === attached.id);
+        if (added && editorInstance) {
+          editorInstance
+            .chain()
+            .focus()
+            .insertContent(getPlaceholder(added, all) + " ")
+            .run();
         }
+      } catch (error) {
+        console.error("Error processing pasted image:", error);
       }
     }
   }
 </script>
 
-<svelte:window onpaste={handlePaste} onbeforeunload={handleBeforeUnload} />
+<svelte:window onbeforeunload={handleBeforeUnload} />
 
 {#if $activeFile}
   <div class="editor-canvas flex h-full flex-col overflow-hidden p-3">
@@ -232,6 +230,7 @@
           onReady={handleReady}
           onUpdate={handleUpdate}
           onContentLoaded={(count) => (charCount = count)}
+          onPasteImages={handlePasteImages}
         />
       </div>
 
