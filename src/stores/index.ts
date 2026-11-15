@@ -3,6 +3,7 @@ import { derived, readable, writable, type Readable } from "svelte/store";
 import type { AttachedFile, ExportFormat, Project, PromptFile } from "../types";
 import type { TreeNode } from "../utils/projectTree";
 import { buildTreeString } from "../utils/treeText";
+import { buildTreeMatcher, collectFilteredPaths } from "../utils/treeFilter";
 
 /**
  * Как derived, но оповещает подписчиков, только когда выбранное значение
@@ -64,6 +65,24 @@ export const projectTreeString = derived(projectTreeSource, ($source) =>
   $source ? buildTreeString($source.rootName, $source.nodes) : "",
 );
 
+// ═══ Фильтры выбора файлов дерева (этап 10.6) ═══
+
+/**
+ * Правила из .gitignore корня дерева: читаются асинхронно (ProjectTreeSection),
+ * матчер собирается синхронно в filteredTreePathSet.
+ */
+export const gitignoreFilterPatterns = writable<string[]>([]);
+
+/** Пути файлов, отсеянные фильтром: приглушены, не выбираются, не в токенах. */
+export const filteredTreePathSet = derived(
+  [projectTreeNodes, activeProject, gitignoreFilterPatterns],
+  ([$nodes, $project, $gitignore]) =>
+    collectFilteredPaths(
+      $nodes,
+      buildTreeMatcher($project?.treeFilter, $gitignore),
+    ),
+);
+
 // ═══ Вкладки и активный файл ═══
 
 export const activeFileId = writable<string | null>(null);
@@ -121,6 +140,17 @@ export const isExportMenuOpen = writable<boolean>(false);
 export const isQuickOpenOpen = writable<boolean>(false);
 /** Шпаргалка по горячим клавишам («?»). */
 export const isShortcutsOpen = writable<boolean>(false);
+/** История версий файла: id файла, если модалка открыта (этап 10.3). */
+export const historyFileId = writable<string | null>(null);
+/**
+ * Внешняя замена текста активного файла (восстановление версии):
+ * PromptEditor подхватывает и показывает без сохранения старого pending-текста.
+ */
+export const contentRestore = writable<{
+  fileId: string;
+  html: string;
+  nonce: number;
+} | null>(null);
 
 // ═══ Теги ═══
 

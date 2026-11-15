@@ -49,6 +49,38 @@ export interface PromptFile {
   updatedAt: string;
 }
 
+/**
+ * Снапшот файла промпта (этап 10.3). Живут в проекте по fileId,
+ * старейшие вытесняются при превышении лимита.
+ */
+export interface PromptFileVersion {
+  id: string;
+  content: string;
+  createdAt: string;
+}
+
+/** Сколько версий одного файла храним. */
+export const MAX_FILE_VERSIONS = 20;
+
+/**
+ * Фильтры выбора файлов дерева (этап 10.6): .gitignore + пресеты + свои
+ * правила. Отсеянные файлы приглушены в дереве и не попадают в выбор,
+ * экспорт и подсчёт токенов.
+ */
+export interface TreeFilterSettings {
+  useGitignore: boolean;
+  presets: string[];
+  /** Свои правила, по одному на строку. */
+  custom: string[];
+}
+
+/** Фильтр по умолчанию: .gitignore учитываем, пресеты и правила пусты. */
+export const DEFAULT_TREE_FILTER: TreeFilterSettings = {
+  useGitignore: true,
+  presets: [],
+  custom: [],
+};
+
 /** Источник дерева проекта (локальная папка или GitHub) */
 export interface ProjectTreeSource {
   rootName: string;
@@ -64,6 +96,10 @@ export interface Project {
   attachments: AttachedFile[];
   projectTreeSource?: ProjectTreeSource;
   githubConfig?: GithubRepoConfig;
+  /** Снапшоты файлов: fileId → версии, от старых к новым. */
+  fileVersions?: Record<string, PromptFileVersion[]>;
+  /** Фильтры выбора файлов дерева (этап 10.6). */
+  treeFilter?: TreeFilterSettings;
   totalSize: number;
   createdAt: string;
   updatedAt: string;

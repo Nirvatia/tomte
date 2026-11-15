@@ -4,7 +4,7 @@ import { translate } from "./i18n";
 
 import type { PromptFile } from "../types";
 import type { ContextMenuItem } from "../stores/contextMenu";
-import { openFileIds } from "../stores";
+import { historyFileId, openFileIds } from "../stores";
 import {
   closeOtherTabs,
   closePromptFileTab,
@@ -43,6 +43,10 @@ export function promptFileMenu(
   }
   items.push(
     { label: translate("common.rename"), onSelect: onRename },
+    {
+      label: translate("history.open"),
+      onSelect: () => historyFileId.set(file.id),
+    },
     {
       label: translate("common.duplicate"),
       onSelect: () => void duplicatePromptFile(file.id),

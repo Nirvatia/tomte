@@ -21,6 +21,7 @@
     activeFile,
     activeFileId,
     activeProject,
+    contentRestore,
     editorHtml,
     pendingSaveController,
   } from "../../stores";
@@ -159,6 +160,19 @@
 
   $effect(() => {
     editorHtml.set(currentHtml);
+  });
+
+  // Восстановление версии (10.3): база уже записана в projectActions,
+  // здесь только показываем текст в редакторе, сбросив недосохранённый.
+  let appliedRestoreNonce = $state(0);
+  $effect(() => {
+    const request = $contentRestore;
+    if (!request || request.nonce === appliedRestoreNonce) return;
+    appliedRestoreNonce = request.nonce;
+    if (request.fileId !== loadedFileId) return;
+    pendingSave = null;
+    saveStatus = "saved";
+    currentHtml = request.html;
   });
 
   function handleUpdate(data: {
