@@ -215,6 +215,7 @@
           }}
           role="menu"
           aria-label={$t("export.menu")}
+          data-tour="export-menu"
           class="menu-panel absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in"
         >
           <button

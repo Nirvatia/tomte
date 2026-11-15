@@ -293,6 +293,7 @@
           }}
           role="dialog"
           aria-label={$t("tokens.panel")}
+          data-tour="tokens-panel"
           tabindex="-1"
           class="menu-panel absolute right-0 bottom-full z-50 mb-2 w-72 animate-fade-in p-3 text-[12px]"
         >

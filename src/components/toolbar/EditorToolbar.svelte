@@ -236,6 +236,7 @@
 
 <!-- @container: подписи прячутся, когда тулбару не хватает ширины (длинные языки). -->
 <div
+  data-tour="toolbar"
   class="@container flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
 >
   <button

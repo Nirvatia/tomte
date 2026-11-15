@@ -9,6 +9,7 @@
 </script>
 
 <div
+  data-tour="activity"
   class="hidden w-[52px] shrink-0 flex-col items-center gap-2 border-r border-[var(--border)] bg-[var(--bg-dark)] py-3 lg:flex"
 >
   <button

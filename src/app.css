@@ -956,3 +956,302 @@
   text-decoration: line-through;
   cursor: help;
 }
+
+/* ═══════════════════════════════════════════
+   ОБУЧАЮЩИЙ ТУР (этап 5.8)
+   Слой поверх интерфейса: «окно» вокруг цели, подсказка со стрелкой,
+   метка «Нажмите сюда». Разметка — src/components/tour/OnboardingTour.svelte
+   ═══════════════════════════════════════════ */
+
+.tour-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  /* Сам слой прозрачен для кликов: их ловят только блокеры и подсказка,
+     а «окно» вокруг цели пропускает клики в интерфейс. */
+  pointer-events: none;
+}
+.tour-layer.is-suspended {
+  /* Пользователь открыл модалку прямо из тура: уступаем ей экран. */
+  visibility: hidden;
+}
+
+.tour-blocker {
+  position: absolute;
+  pointer-events: auto;
+}
+.tour-dim {
+  background: rgba(5, 8, 9, 0.62);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.tour-spot {
+  position: absolute;
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 9999px rgba(5, 8, 9, 0.62);
+  transition:
+    top 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* Шаг-действие: кольцо пульсирует, зовёт нажать. */
+.tour-spot.is-action::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  animation: tourPulse 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.tour-popover {
+  position: absolute;
+  pointer-events: auto;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-light);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px rgba(20, 184, 166, 0.08);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  transition:
+    top 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    left 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tour-popover.is-sheet {
+  max-width: none;
+  transition: none;
+}
+.tour-popover.is-nudging {
+  animation: tourNudge 0.32s ease-in-out;
+}
+
+.tour-popover-body {
+  padding: 16px 18px 0;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.tour-progress {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--accent-hover);
+}
+.tour-title {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+.tour-text {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.tour-done {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--success);
+  animation: scaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tour-meter {
+  height: 3px;
+  margin: 14px 18px 0;
+  border-radius: 999px;
+  background: var(--bg-lighter);
+  overflow: hidden;
+}
+.tour-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 12px 10px;
+}
+
+/* Стрелка подсказки: квадрат того же фона, повёрнутый на 45°.
+   data-side — с какой стороны цели стоит подсказка, стрелка на противоположном краю. */
+.tour-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--bg-light);
+  border: 1px solid var(--border-light);
+  transform: rotate(45deg);
+}
+.tour-arrow[data-side="bottom"] {
+  top: -7px;
+  margin-left: -6px;
+  border-right: none;
+  border-bottom: none;
+}
+.tour-arrow[data-side="top"] {
+  bottom: -7px;
+  margin-left: -6px;
+  border-left: none;
+  border-top: none;
+}
+.tour-arrow[data-side="right"] {
+  left: -7px;
+  margin-top: -6px;
+  border-top: none;
+  border-right: none;
+}
+.tour-arrow[data-side="left"] {
+  right: -7px;
+  margin-top: -6px;
+  border-bottom: none;
+  border-left: none;
+}
+
+/* Метка «Нажмите сюда» у цели. */
+.tour-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg-darkest);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}
+.tour-badge::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+.tour-badge[data-side="top"] {
+  animation: tourBounceDown 1.2s ease-in-out infinite;
+}
+.tour-badge[data-side="top"]::after {
+  bottom: -4px;
+  left: calc(50% - 4px);
+}
+.tour-badge[data-side="bottom"] {
+  animation: tourBounceUp 1.2s ease-in-out infinite;
+}
+.tour-badge[data-side="bottom"]::after {
+  top: -4px;
+  left: calc(50% - 4px);
+}
+.tour-badge[data-side="left"] {
+  animation: tourBounceRight 1.2s ease-in-out infinite;
+}
+.tour-badge[data-side="left"]::after {
+  right: -4px;
+  top: calc(50% - 4px);
+}
+.tour-badge[data-side="right"] {
+  animation: tourBounceLeft 1.2s ease-in-out infinite;
+}
+.tour-badge[data-side="right"]::after {
+  left: -4px;
+  top: calc(50% - 4px);
+}
+.tour-badge[data-side="inside"]::after {
+  display: none;
+}
+
+/* Волна от кольца наружу: тенью, а не scale — у большой цели (редактор)
+   масштаб растянул бы кольцо на полэкрана. */
+@keyframes tourPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.75);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(45, 212, 191, 0);
+  }
+}
+@keyframes tourNudge {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -6px 0;
+  }
+  75% {
+    translate: 6px 0;
+  }
+}
+@keyframes tourBounceDown {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 4px;
+  }
+}
+@keyframes tourBounceUp {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -4px;
+  }
+}
+@keyframes tourBounceRight {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 4px 0;
+  }
+}
+@keyframes tourBounceLeft {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: -4px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot,
+  .tour-popover,
+  .tour-meter > span {
+    transition: none;
+  }
+  .tour-spot.is-action::after,
+  .tour-badge,
+  .tour-popover.is-nudging,
+  .tour-popover-body,
+  .tour-done,
+  .tour-dim {
+    animation: none;
+  }
+}

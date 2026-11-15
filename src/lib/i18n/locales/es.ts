@@ -601,42 +601,70 @@ export const es: Dict = {
     undoHint: "Deshacer (Ctrl+Z)",
   },
   tour: {
+    actionDone: "¡Hecho!",
     back: "Atrás",
+    close: "Cerrar el recorrido",
     done: "Listo",
+    hint: {
+      click: "Haz clic aquí",
+      type: "Escribe aquí",
+    },
     next: "Siguiente",
+    progress: "Paso {current} de {total}",
     restart: "Mostrar el recorrido",
     skip: "Saltar",
+    skipStep: "Saltar paso",
     step: {
+      activity: {
+        text: "Gestor de proyectos (con copia de seguridad en .tomte.zip), gestor de etiquetas y mapa de código: firmas de funciones y clases del árbol conectado, para que el modelo entienda el proyecto sin gastar tokens de más.",
+        title: "Barra lateral",
+      },
       attachments: {
-        text: "Archivos que necesita el prompt: documentos, logs, capturas. Márcalos y saldrán en la exportación con sus números.",
+        text: "Capturas, logs y documentos para el prompt. Sube o arrastra un archivo, o pega una imagen directamente en el texto con Ctrl+V. Al hacer clic en un adjunto se inserta la etiqueta [FILE_1] para que el modelo sepa de qué archivo hablas.",
         title: "Adjuntos",
       },
       editor: {
-        text: "Aquí se escribe el prompt. Las imágenes y archivos se insertan como marcadores [IMAGE_1] y [FILE_1] — la exportación incluye su contenido.",
+        text: "Escribe aquí unas palabras, por ejemplo qué debe hacer el modelo. El texto se guarda solo. Las variables como {{nombre}} se convierten en un formulario antes de exportar.",
         title: "Editor",
       },
       export: {
-        text: "Markdown, PDF, DOCX y DOCX con GOST — con adjuntos y árbol. La chuleta completa de atajos está en «?».",
+        text: "Cuando el prompt esté listo, expórtalo en un solo archivo junto con los adjuntos y el árbol. Haz clic en «Exportar».",
         title: "Exportar",
       },
+      exportMenu: {
+        text: "Markdown, PDF, DOCX, DOCX según GOST e imagen PNG. Elige un formato y el archivo se descarga al instante. También puedes cerrar el menú y volver más tarde.",
+        title: "Formatos",
+      },
       final: {
-        text: "Crea tu primer prompt — el texto se guarda solo en este navegador y la copia del proyecto sale desde el gestor de proyectos.",
+        text: "Pulsa «?» para ver los atajos de teclado; desde ahí también puedes repetir este recorrido. ¡Buenos prompts!",
         title: "Todo listo",
       },
-      prompts: {
-        text: "Los archivos de prompt a la izquierda. Clic: vista previa; doble clic: fijar como pestaña. El botón «+» crea uno nuevo.",
-        title: "Prompts",
+      newPrompt: {
+        text: "Haz clic en «+» para crear un archivo de prompt. Los archivos están en «Prompts»: clic para vista previa, doble clic para fijarlo en una pestaña, clic derecho para renombrar, duplicar o ver el historial de versiones.",
+        title: "Nuevo prompt",
+      },
+      tags: {
+        text: "Fragmentos de instrucciones listos. Un clic añade el texto de la etiqueta al final del prompt, el lápiz lo edita y «Nueva etiqueta» crea el tuyo.",
+        title: "Etiquetas",
       },
       tokens: {
-        text: "La barra de estado cuenta tokens: prompt, adjuntos, árbol. Clic para elegir modelo y su límite: amarillo al 80%, rojo al superarlo.",
-        title: "Tokens y modelo",
+        text: "Aquí ves cuántos tokens ocupa el prompt junto con los adjuntos y el árbol. Haz clic en el contador.",
+        title: "Tokens",
+      },
+      tokensPanel: {
+        text: "Cuánto ocupan el texto, los adjuntos y el árbol. Elige un modelo y el límite se ajusta: el contador se pone amarillo al 80 % y rojo al superarlo.",
+        title: "Desglose y modelo",
+      },
+      toolbar: {
+        text: "Formato, listas, tablas y deshacer. En «Herramientas» están la vista previa y el extractor: pega la respuesta del modelo y separará los bloques de código en archivos.",
+        title: "Barra de herramientas",
       },
       tree: {
-        text: "Partes del repositorio: conecta una carpeta o GitHub y marca los archivos. El filtro junto al buscador oculta node_modules, tests y más.",
+        text: "Conecta una carpeta o un repositorio de GitHub y marca los archivos que necesitas: su contenido irá en la exportación. Los filtros ocultan node_modules, tests y todo lo de .gitignore.",
         title: "Árbol del proyecto",
       },
       welcome: {
-        text: "Tomte te ayuda a armar prompts para LLM: escribes texto, adjuntas archivos y el árbol del proyecto, vigilas el límite de tokens y exportas el resultado. Te mostramos lo esencial en treinta segundos.",
+        text: "Tomte crea prompts para LLM: texto, archivos, árbol del proyecto, recuento de tokens y exportación. Te enseñamos lo esencial en la práctica; lleva un minuto.",
         title: "Bienvenido a Tomte",
       },
     },

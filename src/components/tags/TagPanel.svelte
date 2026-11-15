@@ -67,7 +67,7 @@
   }
 </script>
 
-<div class="mt-4 flex flex-wrap items-center gap-2">
+<div data-tour="tags" class="mt-4 flex flex-wrap items-center gap-2">
   {#each sortedTags as tag (tag.id)}
     <div
       class="group inline-flex select-none items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-all {tag.favorite

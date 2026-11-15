@@ -585,42 +585,70 @@ export const en: Dict = {
     undoHint: "Undo (Ctrl+Z)",
   },
   tour: {
+    actionDone: "Nice!",
     back: "Back",
+    close: "Close the tour",
     done: "Done",
+    hint: {
+      click: "Click here",
+      type: "Type here",
+    },
     next: "Next",
+    progress: "Step {current} of {total}",
     restart: "Show the tour",
     skip: "Skip",
+    skipStep: "Skip this step",
     step: {
+      activity: {
+        text: "Project manager (with a .tomte.zip project backup), tag manager and the code map — function and class signatures from the connected tree, so the model sees how the project is built without extra tokens.",
+        title: "Side bar",
+      },
       attachments: {
-        text: "Files the prompt needs: documents, logs, screenshots. Check them and they go to export with numbered captions.",
+        text: "Screenshots, logs and documents for the prompt. Upload or drop a file, or paste an image straight into the text with Ctrl+V. Clicking an attachment inserts a [FILE_1] label so the model knows which file you mean.",
         title: "Attachments",
       },
       editor: {
-        text: "The prompt text lives here. Images and files are inserted as [IMAGE_1] and [FILE_1] placeholders — export includes their contents.",
+        text: "Type a few words here — for example, what the model should do. The text saves itself. Variables like {{name}} turn into a fill-in form before export.",
         title: "Editor",
       },
       export: {
-        text: "Markdown, PDF, DOCX and GOST-styled DOCX — with attachments and the tree. The full hotkey cheat sheet is on “?”.",
+        text: "When the prompt is ready, export it as a single file together with attachments and the tree. Click “Export”.",
         title: "Export",
       },
+      exportMenu: {
+        text: "Markdown, PDF, DOCX, GOST-styled DOCX and a PNG image. Pick a format and the file downloads right away. You can also close the menu and come back later.",
+        title: "Formats",
+      },
       final: {
-        text: "Create your first prompt — the text auto-saves in this browser, and a project backup is available from the project manager.",
+        text: "Press “?” for the hotkey cheat sheet — you can restart this tour from there too. Happy prompting!",
         title: "All set",
       },
-      prompts: {
-        text: "Prompt files on the left. Click to preview, double-click to pin as a tab. The “+” button creates a new file.",
-        title: "Prompts",
+      newPrompt: {
+        text: "Click “+” to create a prompt file. Files are listed under “Prompts”: click to preview, double-click to pin as a tab, right-click to rename, duplicate or see version history.",
+        title: "New prompt",
+      },
+      tags: {
+        text: "Ready-made instruction snippets. A click appends the tag text to the prompt, the pencil edits it, “New tag” adds your own.",
+        title: "Tags",
       },
       tokens: {
-        text: "The status bar estimates tokens: prompt, attachments, tree. Click to pick a model and its limit: yellow at 80%, red when exceeded.",
-        title: "Tokens and model",
+        text: "This shows how many tokens the prompt takes together with attachments and the tree. Click the counter.",
+        title: "Tokens",
+      },
+      tokensPanel: {
+        text: "How much goes to text, attachments and the tree. Pick a model and the limit follows: the counter turns yellow at 80% and red when exceeded.",
+        title: "Breakdown and model",
+      },
+      toolbar: {
+        text: "Formatting, lists, tables and undo. “Tools” has a result preview and the extractor: paste a model reply and it splits the code blocks into files.",
+        title: "Toolbar",
       },
       tree: {
-        text: "Parts of the repository: connect a folder or GitHub and check the files you need. The filter next to search hides node_modules, tests and more.",
+        text: "Connect a folder or a GitHub repository and check the files you need — their contents go into the export. Filters hide node_modules, tests and everything in .gitignore.",
         title: "Project tree",
       },
       welcome: {
-        text: "Tomte helps you build prompts for LLMs: write text, attach files and the project tree, watch the token limit, and export the result. Let us show you around in thirty seconds.",
+        text: "Tomte builds prompts for LLMs: text, files, the project tree, token counting and export. Let us show you the essentials hands-on — it takes about a minute.",
         title: "Welcome to Tomte",
       },
     },

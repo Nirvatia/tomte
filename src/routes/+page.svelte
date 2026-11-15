@@ -33,6 +33,7 @@
   import { initializeActiveProject } from "../utils/projectDb";
   import { applyProjectToStores } from "../utils/projectActions";
   import { getLastProjectId } from "../utils/lastProject";
+  import { shouldShowTour } from "$lib/tour/steps";
 
   let editor = $state<Editor | null>(null);
   let isReady = $state(false);
@@ -55,14 +56,8 @@
     const project = await initializeActiveProject(getLastProjectId());
     applyProjectToStores(project);
     isReady = true;
-    // Этап 5.8: первый запуск встречает коротким туром по интерфейсу.
-    try {
-      if (!localStorage.getItem("tomte:onboarded")) {
-        isTourOpen.set(true);
-      }
-    } catch {
-      // без хранилища — без тура
-    }
+    // Этап 5.8: первый запуск встречает обучающим туром по интерфейсу.
+    if (shouldShowTour()) isTourOpen.set(true);
   });
 </script>
 

@@ -177,6 +177,7 @@
           type="button"
           onclick={() => void handleCreatePromptFile()}
           disabled={isCreatingPrompt}
+          data-tour="new-prompt"
           class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           title={$t("tabs.newFile")}
           aria-label={$t("tabs.newFile")}
