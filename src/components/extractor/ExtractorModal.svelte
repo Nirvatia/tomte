@@ -5,6 +5,7 @@
     Archive,
     Download,
     Eye,
+    FolderOutput,
     Pencil,
     Plus,
     Trash2,
@@ -19,13 +20,16 @@
     downloadFile,
     extractFilesFromMarkdown,
   } from "../../utils/extractor";
+  import { isFolderWriteSupported } from "../../utils/fileWriter";
   import { addAttachmentsToProject } from "../../utils/projectActions";
+  import ApplyToFolderModal from "./ApplyToFolderModal.svelte";
 
   let markdownInput = $state("");
   let extractedFiles = $state<ExtractedFile[]>([]);
   let previewFile = $state<ExtractedFile | null>(null);
   let editingIndex = $state<number | null>(null);
   let editName = $state("");
+  let applyOpen = $state(false);
 
   function close() {
     isExtractorOpen.set(false);
@@ -219,6 +223,17 @@
                 <Archive size={13} />
                 {$t("extractor.downloadZip")}
               </button>
+              <!-- Этап 10.5: запись в папку (File System Access API). -->
+              {#if isFolderWriteSupported()}
+                <button
+                  type="button"
+                  onclick={() => (applyOpen = true)}
+                  class="btn btn-outline btn-sm"
+                >
+                  <FolderOutput size={13} />
+                  {$t("extractor.apply")}
+                </button>
+              {/if}
               <button
                 type="button"
                 onclick={handleAddToAttachments}
@@ -399,4 +414,11 @@
       </div>
     </div>
   </div>
+{/if}
+
+{#if applyOpen}
+  <ApplyToFolderModal
+    files={extractedFiles}
+    onClose={() => (applyOpen = false)}
+  />
 {/if}
