@@ -2,7 +2,7 @@
   import { t } from "$lib/i18n";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
-  import { Plus, RefreshCw as RefreshIcon } from "@lucide/svelte";
+  import { Plus, RefreshCw as RefreshIcon, X } from "@lucide/svelte";
   import type { Editor } from "@tiptap/core";
   import type { AttachedFile } from "../../types";
   import FilePreviewModal from "../attachments/FilePreviewModal.svelte";
@@ -25,9 +25,18 @@
   interface Props {
     editor?: Editor | null;
     onInsertPlaceholder?: (file: AttachedFile) => void;
+    /** Этап 9: сайдбар поверх редактора (планшет/телефон). */
+    overlay?: boolean;
+    /** Закрыть оверлей (крестик, выбор файла, backdrop). */
+    onClose?: () => void;
   }
 
-  let { editor = null, onInsertPlaceholder = () => {} }: Props = $props();
+  let {
+    editor = null,
+    onInsertPlaceholder = () => {},
+    overlay = false,
+    onClose = () => {},
+  }: Props = $props();
 
   let isGithubModalOpen = $state(false);
   let treeStateInitialized = $state(false);
@@ -108,12 +117,17 @@
 
   onMount(() => {
     if (!browser) return;
-    const saved = localStorage.getItem("projectTreeOpen");
-    if (saved !== null) {
-      isProjectTreeOpen.set(saved === "true");
+    // Оверлей монтируется уже после открытия: читать localStorage нельзя —
+    // там лежит прошлое значение и он мгновенно закрыл бы панель.
+    if (!overlay) {
+      const saved = localStorage.getItem("projectTreeOpen");
+      if (saved !== null) {
+        isProjectTreeOpen.set(saved === "true");
+      }
     }
     treeStateInitialized = true;
 
+    if (overlay) return;
     const savedWidth = localStorage.getItem("projectTreeWidth");
     if (savedWidth) {
       const w = parseInt(savedWidth, 10);
@@ -130,14 +144,14 @@
 </script>
 
 <aside
-  class="relative shrink-0 overflow-hidden transition-[width] duration-200 ease-out {$isProjectTreeOpen
+  class="relative h-full shrink-0 overflow-hidden transition-[width] duration-200 ease-out {$isProjectTreeOpen
     ? ''
     : 'w-0'}"
-  style={$isProjectTreeOpen ? `width: ${sidebarWidth}px` : ""}
+  style={$isProjectTreeOpen && !overlay ? `width: ${sidebarWidth}px` : ""}
 >
   <div
     class="flex h-full flex-col border-r border-[var(--border)] bg-[var(--bg-medium)]"
-    style="width: {sidebarWidth}px"
+    style={overlay ? "" : `width: ${sidebarWidth}px`}
   >
     <div
       class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-4 py-3"
@@ -148,6 +162,17 @@
         {$t("sidebar.title")}
       </span>
       <div class="flex gap-3">
+        {#if overlay}
+          <button
+            type="button"
+            onclick={onClose}
+            class="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]"
+            title={$t("common.close")}
+            aria-label={$t("common.close")}
+          >
+            <X size={16} />
+          </button>
+        {/if}
         <button
           type="button"
           onclick={() => void handleCreatePromptFile()}
@@ -174,7 +199,7 @@
     </div>
 
     <div class="flex-1 overflow-y-auto py-2">
-      <PromptsSection />
+      <PromptsSection onFileOpen={overlay ? onClose : undefined} />
       <AttachmentsSection {onInsertPlaceholder} />
       <ProjectTreeSection
         {editor}
@@ -183,7 +208,7 @@
     </div>
   </div>
 
-  {#if $isProjectTreeOpen}
+  {#if $isProjectTreeOpen && !overlay}
     <button
       type="button"
       class="absolute right-0 top-0 bottom-0 z-10 w-[4px] cursor-col-resize bg-transparent transition-colors hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 focus:outline-none"

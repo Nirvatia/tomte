@@ -18,8 +18,15 @@
   import ContextMenuHost from "../components/ui/ContextMenuHost.svelte";
   import QuickOpenModal from "../components/shortcuts/QuickOpenModal.svelte";
   import ShortcutsModal from "../components/shortcuts/ShortcutsModal.svelte";
+  import HistoryModal from "../components/history/HistoryModal.svelte";
   import type { AttachedFile } from "../types";
-  import { attachedFiles, isCodeMapOpen } from "../stores";
+  import {
+    attachedFiles,
+    historyFileId,
+    isCodeMapOpen,
+    isProjectTreeOpen,
+  } from "../stores";
+  import { isDesktop } from "$lib/media";
   import { getPlaceholder } from "../utils/files";
   import { initializeActiveProject } from "../utils/projectDb";
   import { applyProjectToStores } from "../utils/projectActions";
@@ -53,7 +60,25 @@
   <AppHeader />
   <div class="flex flex-1 overflow-hidden">
     <ActivityBar />
-    <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
+    {#if $isDesktop}
+      <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
+    {:else if $isProjectTreeOpen}
+      <!-- Планшет и телефон (этап 9): сайдбар выезжает поверх редактора. -->
+      <div
+        class="fixed inset-0 z-40 bg-black/50 animate-fade-in"
+        onclick={() => isProjectTreeOpen.set(false)}
+        role="presentation"
+        aria-hidden="true"
+      ></div>
+      <div class="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-88">
+        <ProjectTreeSidebar
+          {editor}
+          onInsertPlaceholder={insertPlaceholder}
+          overlay
+          onClose={() => isProjectTreeOpen.set(false)}
+        />
+      </div>
+    {/if}
     <div class="flex flex-1 flex-col overflow-hidden bg-[var(--bg-darkest)]">
       <TabsBar />
       <EditorToolbar {editor} />
@@ -73,6 +98,9 @@
   />
   <QuickOpenModal />
   <ShortcutsModal />
+  {#if $historyFileId}
+    <HistoryModal />
+  {/if}
   <GlobalHotkeys />
   <ContextMenuHost />
 {:else}
