@@ -63,7 +63,7 @@
   tabindex="-1"
 >
   <div
-    class="w-full {width} animate-scale-in overflow-hidden rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+    class="w-full {width} animate-scale-in overflow-hidden rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
   >
     {@render children()}
   </div>

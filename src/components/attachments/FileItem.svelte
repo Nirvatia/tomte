@@ -66,9 +66,9 @@
 </script>
 
 <div
-  class="group flex items-center gap-3 rounded-[6px] border p-3 transition-all duration-150 {isSelected
+  class="group flex items-center gap-3 rounded-md border p-3 transition-all duration-150 {isSelected
     ? 'border-[var(--accent)]/50 bg-[var(--accent-dim)]'
-    : 'border-transparent bg-[var(--bg-light)] hover:border-[var(--border)] hover:bg-[var(--bg-lighter)] hover:shadow-[var(--shadow-sm)]'}"
+    : 'border-transparent bg-[var(--bg-light)] hover:border-[var(--border)] hover:bg-[var(--bg-lighter)] hover:shadow-sm'}"
 >
   <div class="shrink-0">
     <Checkbox
@@ -79,7 +79,7 @@
   </div>
 
   <div
-    class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[6px] border border-[var(--border)] bg-[var(--bg-darkest)]"
+    class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[var(--border)] bg-[var(--bg-darkest)]"
   >
     {#if file.type === "image" && file.dataUrl}
       <img
@@ -124,7 +124,7 @@
     <button
       type="button"
       onclick={handleInsertPlaceholderClick}
-      class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+      class="rounded-sm p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
       title={$t("tree.insertRef")}
       aria-label={$t("tree.insertRefTo", { name: file.name })}
     >
@@ -134,7 +134,7 @@
     <button
       type="button"
       onclick={handlePreviewClick}
-      class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+      class="rounded-sm p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
       title={$t("files.view")}
       aria-label={$t("files.viewNamed", { name: file.name })}
     >
@@ -144,7 +144,7 @@
     <button
       type="button"
       onclick={handleRemoveClick}
-      class="rounded-[4px] p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+      class="rounded-sm p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
       title={$t("files.delete")}
       aria-label={$t("files.deleteNamed", { name: file.name })}
     >

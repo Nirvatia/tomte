@@ -36,6 +36,13 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 
+  /* Radii: единая шкала (этап 8).
+     sm — чекбоксы, теги; md — кнопки, поля, пункты меню;
+     lg — модалки, блоки кода. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
   /* Typography */
   --font-ui: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
@@ -670,4 +677,251 @@
 }
 [data-dragging="true"] {
   opacity: 0.5;
+}
+
+/* ═══════════════════════════════════════════
+   UI-КОМПОНЕНТЫ (этап 8)
+   Классы вместо наборов утилит, собранных
+   вручную в каждом файле. Компоненты-обёртки —
+   src/components/ui/{Button,IconButton,Dropdown}.svelte
+   ═══════════════════════════════════════════ */
+
+/* — Кнопки — */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-md {
+  height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+.btn-sm {
+  height: 28px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-darkest);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-lighter);
+  color: var(--text-primary);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--bg-lighter);
+  border-color: var(--text-dim);
+}
+.btn-danger {
+  background: rgba(251, 113, 133, 0.12);
+  color: var(--error);
+  border-color: rgba(251, 113, 133, 0.35);
+}
+.btn-danger:hover:not(:disabled) {
+  background: rgba(251, 113, 133, 0.2);
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(11, 36, 34, 0.3);
+  border-top-color: var(--bg-darkest);
+  animation: btnSpin 0.8s linear infinite;
+}
+@keyframes btnSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* — Кнопка-иконка 28px — */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.icon-btn:hover {
+  background: var(--bg-lighter);
+  color: var(--text-primary);
+}
+.icon-btn.danger:hover {
+  background: rgba(251, 113, 133, 0.12);
+  color: var(--error);
+}
+
+/* — Поля: плоские, без видимой рамки и теней.
+      Акцент при фокусе — нижняя линия 2px (в покое прозрачна,
+      чтобы фокус не дёргал раскладку). — */
+.input {
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: var(--bg-darkest);
+  color: var(--text-primary);
+  caret-color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.input::placeholder {
+  color: var(--text-dim);
+}
+.input:hover:not(:disabled) {
+  background: var(--bg-light);
+}
+.input:focus {
+  outline: none;
+  background: var(--bg-light);
+  border-bottom-color: var(--accent);
+}
+.input:disabled {
+  opacity: 0.45;
+}
+.input.is-error,
+.input.is-error:focus {
+  border-bottom-color: var(--error);
+}
+
+/* — Кастомный dropdown: единственная замена нативного select
+     (выбор языка, модели). Триггер выглядит как поле. — */
+.dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: var(--bg-darkest);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.dropdown-trigger:hover {
+  background: var(--bg-light);
+}
+.dropdown-trigger[aria-expanded="true"] {
+  background: var(--bg-light);
+  border-bottom-color: var(--accent);
+}
+.dropdown-trigger .chev {
+  color: var(--text-tertiary);
+  transition: transform 0.15s ease;
+}
+.dropdown-trigger[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
+}
+
+/* — Меню: raised-поверхность (этап 8, выше панелей по высоте). — */
+.menu-panel {
+  background: var(--bg-light);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  outline: none;
+  background: var(--bg-lighter);
+  color: var(--text-primary);
+}
+.menu-item.danger {
+  color: var(--error);
+}
+.menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
+/* — Чипы (теги, маленькие подписи-плашки). — */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+.chip.accent {
+  background: var(--accent-dim);
+  border-color: rgba(20, 184, 166, 0.3);
+  color: var(--accent-hover);
 }

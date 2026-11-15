@@ -84,7 +84,7 @@
   >
     <!-- Диалоговое окно -->
     <div
-      class="flex w-full max-w-lg flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex w-full max-w-lg flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -101,7 +101,7 @@
         <button
           type="button"
           onclick={handleClose}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           aria-label={$t("common.close")}
         >
           <X size={20} />
@@ -123,7 +123,7 @@
             id="tag-name"
             type="text"
             placeholder={$t("tags.namePlaceholder")}
-            class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+            class="input w-full px-3.5"
             maxlength="50"
           />
           <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
@@ -142,7 +142,7 @@
             id="tag-value"
             placeholder={$t("tags.valuePlaceholder")}
             rows="6"
-            class="w-full resize-none rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+            class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
             maxlength="5000"></textarea>
           <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
             {$t("tags.valueHint")}
@@ -156,7 +156,7 @@
         <button
           type="button"
           onclick={handleClose}
-          class="rounded-md bg-[var(--bg-lighter)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]"
+          class="btn btn-outline btn-md"
         >
           {$t("common.cancel")}
         </button>
@@ -164,7 +164,7 @@
           type="button"
           onclick={handleSubmit}
           disabled={!tagName.trim() || !tagValue.trim()}
-          class="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-40"
+          class="btn btn-primary btn-md"
         >
           {editingTag ? $t("common.save") : $t("common.create")}
         </button>

@@ -1,12 +1,14 @@
 <script lang="ts">
   import { locale, t } from "$lib/i18n";
-  import { LoaderCircle } from "@lucide/svelte";
+  import { Check, LoaderCircle } from "@lucide/svelte";
   import type { AttachedFile } from "../../types";
   import type { TreeNode } from "../../utils/projectTree";
+  import Dropdown from "../ui/Dropdown.svelte";
   import {
     activeProject,
     attachedFiles,
     editorHtml,
+    filteredTreePathSet,
     promptFiles,
     projectTreeNodes,
     selectedFileIds,
@@ -24,6 +26,7 @@
     tokenLimitSetting,
     usageLevel,
   } from "$lib/tokenLimit";
+  import { excludeFilteredPaths } from "../../utils/treeFilter";
   import {
     estimateAttachmentTokens,
     estimateHtmlTokens,
@@ -93,6 +96,17 @@
   let isTreeLoading = $state(false);
   let computationId = 0;
 
+  // Подпись выбранной модели для триггера кастомного dropdown.
+  const currentModelLabel = $derived.by(() => {
+    if ($tokenLimitSetting.modelId === CUSTOM_MODEL_ID) {
+      return $t("tokens.customLimit");
+    }
+    const model = MODEL_PRESETS.find(
+      (m) => m.id === $tokenLimitSetting.modelId,
+    );
+    return model ? (model.labelKey ? $t(model.labelKey) : model.label) : "";
+  });
+
   // Любая замена дерева (подключение папки, обновление/восстановление
   // GitHub, смена проекта, очистка) инвалидирует кэш токенов:
   // содержимое файлов могло измениться.
@@ -102,16 +116,18 @@
   });
 
   // Пересчёт с дебаунсом: не на каждый клик/нажатие клавиши,
-  // а когда пользователь «успокоился».
+  // а когда пользователь «успокоился». Отсеянные фильтром (10.6) не считаем.
   $effect(() => {
     const html = $editorHtml;
     const files = $attachedFiles;
     const selectedIds = $selectedFileIds;
     const treeNodes = $projectTreeNodes;
     const selectedPaths = $selectedProjectFiles;
+    const filteredPaths = $filteredTreePathSet;
+    const effectivePaths = excludeFilteredPaths(selectedPaths, filteredPaths);
 
     const timer = setTimeout(() => {
-      void recompute(html, files, selectedIds, treeNodes, selectedPaths);
+      void recompute(html, files, selectedIds, treeNodes, effectivePaths);
     }, RECOMPUTE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   });
@@ -230,17 +246,17 @@
   class="flex h-[28px] shrink-0 items-center border-t border-[var(--border)] bg-[var(--bg-dark)] px-4 text-[12px] text-[var(--text-secondary)]"
 >
   <span
-    class="flex max-w-[300px] items-center gap-1.5 truncate font-medium text-[13px] text-[var(--text-secondary)]"
+    class="proj hidden items-center gap-1.5 truncate font-medium text-[13px] text-[var(--text-secondary)] md:flex"
   >
     <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]"></span>
     {$activeProject?.name ?? "—"}
   </span>
   <div class="ml-auto flex items-center gap-3">
-    <span>
+    <span class="hidden md:inline">
       {$t("projects.prompts", { count: $promptFiles.length })}
     </span>
-    <span>·</span>
-    <span>
+    <span class="hidden md:inline">·</span>
+    <span class="hidden md:inline">
       {$t("projects.attachments", { count: $attachedFiles.length })}
     </span>
     <span>·</span>
@@ -278,7 +294,7 @@
           role="dialog"
           aria-label={$t("tokens.panel")}
           tabindex="-1"
-          class="absolute right-0 bottom-full z-50 mb-2 w-72 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-3 text-[12px] shadow-[var(--shadow-md)]"
+          class="menu-panel absolute right-0 bottom-full z-50 mb-2 w-72 animate-fade-in p-3 text-[12px]"
         >
           <dl class="space-y-1 font-mono tabular-nums">
             {#each [{ label: $t("tokens.prompt"), value: breakdown.prompt }, { label: $t("tokens.attachments"), value: breakdown.attachments }, { label: $t("tokens.tree"), value: breakdown.tree }] as row (row.label)}
@@ -318,25 +334,54 @@
             </p>
           {/if}
 
-          <label
-            class="mt-3 block text-[var(--text-secondary)]"
-            for="token-model">{$t("tokens.model")}</label
+          <span class="mt-3 block text-[var(--text-secondary)]">
+            {$t("tokens.model")}
+          </span>
+          <Dropdown
+            label={$t("tokens.model")}
+            fullWidth
+            widthClass="w-full"
+            triggerClass="mt-1"
           >
-          <select
-            id="token-model"
-            value={$tokenLimitSetting.modelId}
-            onchange={(event) => setModel(event.currentTarget.value)}
-            class="mt-1 w-full rounded border border-[var(--border)] bg-[var(--bg-darkest)] px-2 py-1 text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
-          >
+            {#snippet trigger()}
+              <span class="truncate"
+                >{currentModelLabel} — {formatTokensShort(
+                  $tokenLimit.tokens,
+                )}</span
+              >
+            {/snippet}
             {#each MODEL_PRESETS as model (model.id)}
-              <option value={model.id}>
-                {model.labelKey ? $t(model.labelKey) : model.label} — {formatTokensShort(
-                  model.contextTokens,
-                )}
-              </option>
+              <button
+                type="button"
+                role="menuitem"
+                class="menu-item"
+                aria-current={$tokenLimitSetting.modelId === model.id}
+                onclick={() => setModel(model.id)}
+              >
+                <span class="flex-1"
+                  >{model.labelKey ? $t(model.labelKey) : model.label} — {formatTokensShort(
+                    model.contextTokens,
+                  )}</span
+                >
+                {#if $tokenLimitSetting.modelId === model.id}
+                  <Check size={14} class="text-[var(--accent)]" />
+                {/if}
+              </button>
             {/each}
-            <option value={CUSTOM_MODEL_ID}>{$t("tokens.customLimit")}</option>
-          </select>
+            <div class="menu-sep"></div>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              aria-current={$tokenLimitSetting.modelId === CUSTOM_MODEL_ID}
+              onclick={() => setModel(CUSTOM_MODEL_ID)}
+            >
+              <span class="flex-1">{$t("tokens.customLimit")}</span>
+              {#if $tokenLimitSetting.modelId === CUSTOM_MODEL_ID}
+                <Check size={14} class="text-[var(--accent)]" />
+              {/if}
+            </button>
+          </Dropdown>
 
           {#if $tokenLimitSetting.modelId === CUSTOM_MODEL_ID}
             <label
@@ -352,7 +397,7 @@
               step="1000"
               value={$tokenLimitSetting.customTokens}
               onchange={(event) => setCustomTokens(event.currentTarget.value)}
-              class="mt-1 w-full rounded border border-[var(--border)] bg-[var(--bg-darkest)] px-2 py-1 font-mono text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
+              class="input mt-1 w-full px-2 py-1 font-mono"
             />
           {/if}
 

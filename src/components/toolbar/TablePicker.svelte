@@ -76,7 +76,7 @@
   }
 
   const BTN_BASE =
-    "w-8 h-8 flex items-center justify-center rounded-[5px] text-[var(--text-secondary)] transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] relative";
+    "w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-secondary)] transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] relative";
 </script>
 
 <svelte:window onclick={handleClickOutside} onkeydown={handleKeydown} />
@@ -97,7 +97,7 @@
     <div
       role="dialog"
       aria-label={$t("table.pickSize")}
-      class="absolute left-0 top-full z-50 mt-2 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-3 shadow-[var(--shadow-md)]"
+      class="absolute left-0 top-full z-50 mt-2 animate-fade-in rounded-md border border-[var(--border-light)] bg-[var(--bg-medium)] p-3 shadow-md"
     >
       <div
         class="mb-2 px-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"

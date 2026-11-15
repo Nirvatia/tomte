@@ -220,7 +220,7 @@
     tabindex="-1"
   >
     <div
-      class="flex max-h-[90vh] w-full max-w-6xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex max-h-[90vh] w-full max-w-6xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       role="presentation"
       onclick={stopEventPropagation}
       onkeydown={preventEnterSpace}
@@ -255,7 +255,7 @@
           type="button"
           onclick={close}
           disabled={actionInProgress}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+          class="icon-btn disabled:opacity-40"
           aria-label={$t("attachments.manager.close")}
         >
           <X size={20} />
@@ -270,7 +270,7 @@
             type="button"
             onclick={selectAll}
             disabled={actionInProgress}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+            class="btn btn-outline btn-md flex-1"
           >
             <SquareCheck size={16} />
             {$t("attachments.manager.selectAll")}
@@ -280,7 +280,7 @@
             type="button"
             onclick={deselectAll}
             disabled={actionInProgress}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+            class="btn btn-outline btn-md flex-1"
           >
             <SquareX size={16} />
             {$t("common.deselect")}
@@ -290,7 +290,7 @@
             type="button"
             onclick={deleteSelected}
             disabled={$selectedFilesCount === 0 || actionInProgress}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-4 py-2.5 text-sm font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/20 disabled:pointer-events-none disabled:opacity-40"
+            class="btn btn-danger btn-md flex-1"
           >
             <Trash2 size={16} />
             {$t("prompts.deleteSelectedHint")}
@@ -300,7 +300,7 @@
             type="button"
             onclick={() => fileInput?.click()}
             disabled={actionInProgress}
-            class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--success)]/30 bg-[var(--success)]/10 px-4 py-2.5 text-sm font-medium text-[var(--success)] transition-colors hover:bg-[var(--success)]/20 disabled:pointer-events-none disabled:opacity-40"
+            class="btn btn-outline btn-md flex-1"
           >
             <Upload size={16} />
             {$t("attachments.uploadShort")}

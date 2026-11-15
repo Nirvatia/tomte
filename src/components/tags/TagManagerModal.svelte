@@ -228,7 +228,7 @@
   >
     <!-- Диалоговое окно -->
     <div
-      class="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       role="dialog"
       aria-modal="true"
       aria-labelledby="manager-modal-title"
@@ -260,7 +260,7 @@
         <button
           type="button"
           onclick={close}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           aria-label={$t("tags.closeManager")}
         >
           <X size={20} />
@@ -282,7 +282,7 @@
               id="tag-name"
               type="text"
               placeholder={$t("tags.namePlaceholder")}
-              class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+              class="input w-full px-3.5"
               maxlength="50"
             />
             <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
@@ -301,7 +301,7 @@
               id="tag-value"
               placeholder={$t("tags.valuePlaceholder")}
               rows="8"
-              class="w-full resize-none rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3.5 py-2.5 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+              class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
               maxlength="5000"></textarea>
             <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
               {$t("tags.valueHint")}
@@ -315,7 +315,7 @@
           <button
             type="button"
             onclick={closeForm}
-            class="rounded-md bg-[var(--bg-lighter)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]"
+            class="btn btn-outline btn-md"
           >
             {$t("common.cancel")}
           </button>
@@ -323,7 +323,7 @@
             type="button"
             onclick={handleFormSubmit}
             disabled={!formTagName.trim() || !formTagValue.trim()}
-            class="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-40"
+            class="btn btn-primary btn-md"
           >
             {formEditingId ? $t("common.save") : $t("common.create")}
           </button>
@@ -341,7 +341,7 @@
               type="text"
               bind:value={searchQuery}
               placeholder={$t("tags.searchPlaceholder")}
-              class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+              class="input w-full py-2 pl-9 pr-3"
               aria-label={$t("tags.search")}
             />
           </div>
@@ -367,7 +367,7 @@
             <button
               type="button"
               onclick={() => void handleDeleteSelected()}
-              class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-3 text-xs font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/20"
+              class="btn btn-danger btn-md"
             >
               <Trash2 size={14} />
               {$t("common.deleteCount", { count: selectedCount })}
@@ -375,7 +375,7 @@
             <button
               type="button"
               onclick={deselectAll}
-              class="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-3 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+              class="btn btn-outline btn-md"
             >
               {$t("common.deselect")}
             </button>
@@ -384,7 +384,7 @@
           <button
             type="button"
             onclick={openCreateForm}
-            class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)]"
+            class="btn btn-primary btn-md shrink-0"
           >
             <Plus size={14} />
             {$t("tags.new")}

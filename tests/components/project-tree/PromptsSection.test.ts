@@ -252,6 +252,13 @@ describe("PromptsSection", () => {
       { id: "3", name: "three", content: "<p>3</p>" },
     ];
 
+    // Режим выбора (этап 8): чекбоксы у файлов появляются только в нём.
+    async function enterManageMode() {
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Выбрать файлы" }),
+      );
+    }
+
     async function selectFiles(...names: string[]) {
       for (const name of names) {
         await fireEvent.click(
@@ -260,14 +267,19 @@ describe("PromptsSection", () => {
       }
     }
 
-    it("панель действий появляется только при выборе", async () => {
+    it("панель действий появляется в режиме выбора, кнопки неактивны без выбора", async () => {
       setProjectFiles(files);
       render(PromptsSection);
 
       expect(screen.queryByRole("toolbar")).toBeNull();
-      await selectFiles("one", "three");
+      await enterManageMode();
 
       expect(screen.getByRole("toolbar")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Удалить выбранные файлы" }),
+      ).toBeDisabled();
+
+      await selectFiles("one", "three");
       expect(screen.getByText("Выбрано 2")).toBeInTheDocument();
     });
 
@@ -277,6 +289,7 @@ describe("PromptsSection", () => {
       setProjectFiles(files);
       render(PromptsSection);
 
+      await enterManageMode();
       await selectFiles("one", "three");
       await fireEvent.click(
         screen.getByRole("button", { name: "Удалить выбранные файлы" }),
@@ -288,7 +301,9 @@ describe("PromptsSection", () => {
       expect(requestConfirm).toHaveBeenCalledWith(
         expect.objectContaining({ title: "Удалить 2 файла?" }),
       );
-      await waitFor(() => expect(screen.queryByRole("toolbar")).toBeNull());
+      // Выбор снят, режим выбора остался: панель на месте, счётчика нет.
+      await waitFor(() => expect(screen.queryByText("Выбрано 2")).toBeNull());
+      expect(screen.getByRole("toolbar")).toBeInTheDocument();
     });
 
     it("не удаляет, если подтверждение отменено", async () => {
@@ -296,6 +311,7 @@ describe("PromptsSection", () => {
       setProjectFiles(files);
       render(PromptsSection);
 
+      await enterManageMode();
       await selectFiles("two");
       await fireEvent.click(
         screen.getByRole("button", { name: "Удалить выбранные файлы" }),
@@ -309,6 +325,7 @@ describe("PromptsSection", () => {
       setProjectFiles(files);
       render(PromptsSection);
 
+      await enterManageMode();
       await selectFiles("two", "three");
       await fireEvent.click(
         screen.getByRole("button", { name: "Скачать выбранные файлы как ZIP" }),
@@ -326,12 +343,27 @@ describe("PromptsSection", () => {
       setProjectFiles(files);
       render(PromptsSection);
 
+      await enterManageMode();
       await selectFiles("one");
       await fireEvent.click(
         screen.getByRole("checkbox", { name: "Выбрать все файлы" }),
       );
 
       expect(screen.getByText("Выбрано 3")).toBeInTheDocument();
+    });
+
+    it("выход из режима снимает выбор и прячет панель", async () => {
+      setProjectFiles(files);
+      render(PromptsSection);
+
+      await enterManageMode();
+      await selectFiles("one");
+      await fireEvent.click(screen.getByRole("button", { name: "Готово" }));
+
+      expect(screen.queryByRole("toolbar")).toBeNull();
+      expect(
+        screen.queryByRole("checkbox", { name: "Выбрать файл one" }),
+      ).toBeNull();
     });
   });
 });

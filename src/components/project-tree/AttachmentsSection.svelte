@@ -286,9 +286,9 @@
             type="button"
             onclick={() => attachmentFileInput?.click()}
             disabled={actionInProgress}
-            class="mt-3 inline-flex items-center gap-1 rounded border border-[var(--border)] bg-[var(--bg-light)] px-2.5 py-1 text-[11px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+            class="btn btn-ghost btn-sm mt-3"
           >
-            <Upload size={11} />
+            <Upload size={14} />
             {$t("attachments.uploadShort")}
           </button>
         </div>

@@ -43,7 +43,7 @@
     tabindex="-1"
   >
     <div
-      class="relative w-full max-w-md animate-scale-in rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] p-6 shadow-[var(--shadow-lg)]"
+      class="relative w-full max-w-md animate-scale-in rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] p-6 shadow-lg"
       role="presentation"
       onclick={(event) => event.stopPropagation()}
       onkeydown={(event) => {
@@ -91,7 +91,7 @@
           <button
             type="button"
             onclick={() => closeConfirm(false)}
-            class="h-9 rounded-md border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
+            class="btn btn-outline btn-md"
           >
             {$confirmState.cancelText || $t("common.cancel")}
           </button>
@@ -99,9 +99,9 @@
         <button
           type="button"
           onclick={() => closeConfirm(true)}
-          class="h-9 rounded-md px-4 text-sm font-semibold transition-all focus:outline-none focus:ring-2 {$confirmState.danger
-            ? 'bg-[var(--error)] text-[var(--bg-darkest)] hover:bg-[var(--error)]/80 focus:ring-[var(--error)]/30'
-            : 'bg-[var(--accent)] text-[var(--bg-darkest)] hover:bg-[var(--accent-hover)] focus:ring-[var(--accent)]/30'}"
+          class="btn {$confirmState.danger
+            ? 'btn-danger'
+            : 'btn-primary'} btn-md"
         >
           {$confirmState.confirmText || $t("confirm.ok")}
         </button>

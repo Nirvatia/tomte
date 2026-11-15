@@ -42,7 +42,11 @@ describe("переводы", () => {
   it("в коде нет русского текста вне словаря (кроме комментариев)", () => {
     const offenders = walk(SRC)
       .filter((f) => /\.(ts|svelte)$/.test(f))
-      .filter((f) => !ALLOWED.some((allowed) => f.endsWith(allowed)))
+      .filter(
+        (f) =>
+          // на Windows в путях обратные слэши — сравниваем в posix-виде
+          !ALLOWED.some((allowed) => f.replace(/\\/g, "/").endsWith(allowed)),
+      )
       .flatMap((file) =>
         stripComments(readFileSync(file, "utf8"))
           .split("\n")

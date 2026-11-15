@@ -127,7 +127,7 @@
     tabindex="-1"
   >
     <div
-      class="w-full max-w-md rounded-xl border border-[var(--border-light)] bg-[var(--bg-medium)] p-6 shadow-[var(--shadow-lg)]"
+      class="w-full max-w-md rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] p-6 shadow-lg"
       role="presentation"
       onclick={stopEventPropagation}
     >
@@ -167,7 +167,7 @@
             id="github-url"
             bind:value={githubUrl}
             placeholder="https://github.com/owner/repo"
-            class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3 py-2 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+            class="input w-full px-3"
           />
         </div>
 
@@ -181,7 +181,7 @@
             id="github-branch"
             bind:value={githubBranch}
             placeholder="main"
-            class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3 py-2 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+            class="input w-full px-3"
           />
         </div>
 
@@ -201,7 +201,7 @@
             bind:value={githubToken}
             type="password"
             placeholder="ghp_xxxxxxxxxxxx"
-            class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] px-3 py-2 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+            class="input w-full px-3 font-mono"
           />
         </div>
 
@@ -209,7 +209,7 @@
           type="button"
           onclick={handleConnect}
           disabled={isLoading || !githubUrl}
-          class="flex w-full items-center justify-center gap-2 rounded-md bg-[var(--accent)] py-2.5 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-50"
+          class="btn btn-primary btn-md w-full"
         >
           {#if isLoading}
             <LoaderCircle size={15} class="animate-spin" />

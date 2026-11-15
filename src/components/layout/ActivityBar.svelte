@@ -9,12 +9,12 @@
 </script>
 
 <div
-  class="flex w-[52px] shrink-0 flex-col items-center gap-2 border-r border-[var(--border)] bg-[var(--bg-dark)] py-3"
+  class="hidden w-[52px] shrink-0 flex-col items-center gap-2 border-r border-[var(--border)] bg-[var(--bg-dark)] py-3 lg:flex"
 >
   <button
     type="button"
     onclick={() => isProjectManagerOpen.set(true)}
-    class="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded transition-colors {$isProjectManagerOpen
+    class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md transition-colors {$isProjectManagerOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
     aria-label={$t("activity.projects")}
@@ -25,13 +25,13 @@
         class="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r bg-[var(--accent)]"
       ></div>
     {/if}
-    <FolderKanban size={25} />
+    <FolderKanban size={18} />
   </button>
 
   <button
     type="button"
     onclick={() => isTagManagerOpen.set(true)}
-    class="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded transition-colors {$isTagManagerOpen
+    class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md transition-colors {$isTagManagerOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
     aria-label={$t("activity.tags")}
@@ -42,13 +42,13 @@
         class="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r bg-[var(--accent)]"
       ></div>
     {/if}
-    <Tag size={25} />
+    <Tag size={18} />
   </button>
 
   <button
     type="button"
     onclick={() => isCodeMapOpen.set(true)}
-    class="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded transition-colors {$isCodeMapOpen
+    class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-md transition-colors {$isCodeMapOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
     aria-label={$t("activity.codeMap")}
@@ -59,6 +59,6 @@
         class="absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-r bg-[var(--accent)]"
       ></div>
     {/if}
-    <Map size={25} />
+    <Map size={18} />
   </button>
 </div>

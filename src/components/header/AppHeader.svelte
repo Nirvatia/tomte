@@ -1,6 +1,7 @@
 <script lang="ts">
   import { t } from "$lib/i18n";
   import {
+    Check,
     ChevronDown,
     CircleAlert,
     Download,
@@ -8,11 +9,14 @@
     File as FileIcon,
     FileCode,
     FileText,
+    FolderKanban,
     Image,
     LoaderCircle,
   } from "@lucide/svelte";
 
   import Checkbox from "../ui/Checkbox.svelte";
+  import ModalShell from "../ui/ModalShell.svelte";
+  import TemplateFillModal from "../templates/TemplateFillModal.svelte";
   import AppLogo from "./AppLogo.svelte";
   import LanguageSwitcher from "./LanguageSwitcher.svelte";
 
@@ -22,14 +26,24 @@
     attachedFiles,
     editorHtml,
     exportFormat,
+    filteredTreePathSet,
     isExportMenuOpen,
+    isProjectManagerOpen,
     projectTreeNodes,
     selectedFileIds,
     selectedProjectFiles,
   } from "../../stores";
+  import { isDesktop } from "$lib/media";
 
   import { exportFile } from "../../utils/export";
   import { ExportLimitError } from "../../utils/export/limits";
+  import { excludeFilteredPaths } from "../../utils/treeFilter";
+  import {
+    findVariables,
+    rememberValues,
+    rememberedValues,
+    substituteVariables,
+  } from "../../utils/templates";
   import { menu } from "$lib/actions/menu";
   import { formatHotkey, hotkeyFor } from "$lib/hotkeys";
   import { labelAttachments } from "../../utils/files";
@@ -40,6 +54,11 @@
   let exportError = $state<string | null>(null);
   let openInNewTab = $state(false);
   let exportMenuContainer = $state<HTMLDivElement | null>(null);
+
+  // Этап 10.2: формат ждёт заполнения переменных шаблона.
+  let pendingTemplateFormat = $state<ExportFormat | null>(null);
+  let templateVariables = $state<string[]>([]);
+  let templateInitial = $state<Record<string, string>>({});
 
   function toggleExportMenu(event: MouseEvent) {
     event.stopPropagation();
@@ -60,18 +79,35 @@
     exportError = null;
   }
 
-  function handleModalBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-    }
-    if (event.key === "Escape") {
-      closeErrorModal();
-    }
-  }
-
   async function handleExport(format: ExportFormat) {
     exportFormat.set(format);
     isExportMenuOpen.set(false);
+    if (isExporting) return;
+
+    // Переменные шаблона: сначала форма заполнения, потом выгрузка.
+    const variables = findVariables($editorHtml);
+    if (variables.length > 0) {
+      templateVariables = variables;
+      templateInitial = rememberedValues(variables);
+      pendingTemplateFormat = format;
+      return;
+    }
+    await doExport(format, $editorHtml);
+  }
+
+  function handleTemplateSubmit(values: Record<string, string>) {
+    const format = pendingTemplateFormat;
+    pendingTemplateFormat = null;
+    if (!format) return;
+    rememberValues(values);
+    void doExport(format, substituteVariables($editorHtml, values));
+  }
+
+  function handleTemplateCancel() {
+    pendingTemplateFormat = null;
+  }
+
+  async function doExport(format: ExportFormat, html: string) {
     if (isExporting) return;
 
     isExporting = true;
@@ -86,7 +122,8 @@
       );
       const rawTreeFiles = await getSelectedTreeFilesAsAttachments(
         $projectTreeNodes,
-        $selectedProjectFiles,
+        // Отсеянные фильтром (10.6) в выгрузку не идут, даже если отмечены раньше.
+        excludeFilteredPaths($selectedProjectFiles, $filteredTreePathSet),
       );
       // У файлов дерева нет плейсхолдеров в тексте: подписываем их путём.
       const selectedTreeFiles = rawTreeFiles.map((f) => ({
@@ -96,14 +133,14 @@
       }));
       const filesToExport = [...selectedAttachments, ...selectedTreeFiles];
 
-      if (!$editorHtml.trim() && filesToExport.length === 0) {
+      if (!html.trim() && filesToExport.length === 0) {
         throw new Error($t("export.nothing"));
       }
 
       const rawName = $activeFile?.name ?? "prompt";
       const exportName = rawName.replace(/\.[^/.]+$/, "");
 
-      await exportFile(format, $editorHtml, filesToExport, exportName, {
+      await exportFile(format, html, filesToExport, exportName, {
         openInNewTab,
       });
     } catch (error) {
@@ -119,9 +156,6 @@
       isExporting = false;
     }
   }
-
-  const EXPORT_ITEM_BASE =
-    "flex w-full items-center gap-2.5 rounded-[5px] px-3 py-2 text-left text-[13px] font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]";
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -132,13 +166,25 @@
   <AppLogo size="compact" />
 
   <div class="flex items-center gap-3">
+    <!-- Этап 9: на планшете и телефоне activity bar спрятан, проекты открываются отсюда. -->
+    {#if !$isDesktop}
+      <button
+        type="button"
+        onclick={() => isProjectManagerOpen.set(true)}
+        class="icon-btn"
+        aria-label={$t("activity.projects")}
+        title={$t("projects.manager")}
+      >
+        <FolderKanban size={16} />
+      </button>
+    {/if}
     <LanguageSwitcher />
     <div bind:this={exportMenuContainer} class="relative">
       <button
         type="button"
         onclick={toggleExportMenu}
         disabled={isExporting}
-        class="flex h-7 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+        class="btn btn-primary btn-sm"
         bind:this={exportButton}
         aria-haspopup="menu"
         aria-expanded={$isExportMenuOpen}
@@ -154,8 +200,8 @@
         {/if}
         <span>{$t("export.button")}</span>
         <ChevronDown
-          size={12}
-          class="transition-transform duration-150 {$isExportMenuOpen
+          size={14}
+          class="chev transition-transform duration-150 {$isExportMenuOpen
             ? 'rotate-180'
             : ''}"
         />
@@ -169,18 +215,18 @@
           }}
           role="menu"
           aria-label={$t("export.menu")}
-          class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
+          class="menu-panel absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in"
         >
           <button
             type="button"
             role="menuitem"
             onclick={() => handleExport("md")}
-            class={EXPORT_ITEM_BASE}
+            class="menu-item"
           >
             <FileCode size={14} class="shrink-0" />
             <span class="flex-1">Markdown</span>
             {#if $exportFormat === "md"}
-              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+              <Check size={14} class="text-[var(--accent)]" />
             {/if}
           </button>
 
@@ -188,12 +234,12 @@
             type="button"
             role="menuitem"
             onclick={() => handleExport("pdf")}
-            class={EXPORT_ITEM_BASE}
+            class="menu-item"
           >
             <FileIcon size={14} class="shrink-0" />
             <span class="flex-1">{$t("export.pdf")}</span>
             {#if $exportFormat === "pdf"}
-              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+              <Check size={14} class="text-[var(--accent)]" />
             {/if}
           </button>
 
@@ -201,12 +247,12 @@
             type="button"
             role="menuitem"
             onclick={() => handleExport("docx")}
-            class={EXPORT_ITEM_BASE}
+            class="menu-item"
           >
             <FileText size={14} class="shrink-0" />
             <span class="flex-1">{$t("export.docxFormat")}</span>
             {#if $exportFormat === "docx"}
-              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+              <Check size={14} class="text-[var(--accent)]" />
             {/if}
           </button>
 
@@ -214,13 +260,13 @@
             type="button"
             role="menuitem"
             onclick={() => handleExport("docx-gost")}
-            class={EXPORT_ITEM_BASE}
+            class="menu-item"
             title={$t("export.gostHint")}
           >
             <FileText size={14} class="shrink-0" />
             <span class="flex-1">{$t("export.gost")}</span>
             {#if $exportFormat === "docx-gost"}
-              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+              <Check size={14} class="text-[var(--accent)]" />
             {/if}
           </button>
 
@@ -228,16 +274,16 @@
             type="button"
             role="menuitem"
             onclick={() => handleExport("png")}
-            class={EXPORT_ITEM_BASE}
+            class="menu-item"
           >
             <Image size={14} class="shrink-0" />
             <span class="flex-1">{$t("export.png")}</span>
             {#if $exportFormat === "png"}
-              <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)]"></span>
+              <Check size={14} class="text-[var(--accent)]" />
             {/if}
           </button>
 
-          <div class="mx-1 my-1.5 h-px bg-[var(--border)]"></div>
+          <div class="menu-sep"></div>
 
           <div class="px-3 py-1.5">
             <Checkbox
@@ -259,25 +305,12 @@
 </header>
 
 {#if exportError}
-  <div
-    class="fixed inset-0 z-100 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
-    onclick={closeErrorModal}
-    onkeydown={handleModalBackdropKeydown}
-    role="dialog"
-    aria-modal="true"
-    aria-label={$t("export.errorDialog")}
-    tabindex="-1"
+  <ModalShell
+    label={$t("export.errorDialog")}
+    onClose={closeErrorModal}
+    width="max-w-md"
   >
-    <div
-      class="relative w-full max-w-md animate-scale-in rounded-xl border border-[var(--error)]/40 bg-[var(--bg-dark)] p-6 shadow-[var(--shadow-lg)]"
-      role="presentation"
-      onclick={(event) => event.stopPropagation()}
-      onkeydown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-        }
-      }}
-    >
+    <div class="p-6">
       <span
         class="absolute left-0 top-6 h-9 w-0.75 rounded-r bg-[var(--error)]"
         aria-hidden="true"
@@ -303,11 +336,20 @@
         <button
           type="button"
           onclick={closeErrorModal}
-          class="h-9 rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--bg-darkest)] transition-all hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
+          class="btn btn-primary btn-md"
         >
           {$t("common.ok")}
         </button>
       </div>
     </div>
-  </div>
+  </ModalShell>
+{/if}
+
+{#if pendingTemplateFormat}
+  <TemplateFillModal
+    variables={templateVariables}
+    initial={templateInitial}
+    onSubmit={handleTemplateSubmit}
+    onCancel={handleTemplateCancel}
+  />
 {/if}

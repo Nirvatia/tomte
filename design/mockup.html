@@ -1,0 +1,2809 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Томте — концепт дизайна (этап 8)</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    />
+    <style>
+      /* ═══════════════════════════════════════════
+         ТОКЕНЫ КОНЦЕПТА
+         ═══════════════════════════════════════════ */
+      :root {
+        /* Поверхности: чем ближе к пользователю, тем светлее.
+           page < panel < modal < raised (поповеры, меню). */
+        --bg-page: #141819;
+        --bg-panel: #1a1e20;
+        --bg-modal: #1f2426;
+        --bg-raised: #262c2e;
+        --bg-hover: #2e3538;
+
+        --border: #363e41;
+        --border-light: #454e52;
+
+        --text-primary: #e0f2f1;
+        --text-secondary: #a7c4c2;
+        --text-tertiary: #82a6a3;
+        --text-dim: #6a8b88;
+
+        --accent: #14b8a6;
+        --accent-hover: #2dd4bf;
+        --accent-dim: rgba(20, 184, 166, 0.15);
+        --on-accent: #0b2422;
+
+        --success: #34d399;
+        --warning: #fbbf24;
+        --error: #fb7185;
+        --info: #38bdf8;
+
+        /* Радиусы: всего три значения. */
+        --r-sm: 4px; /* теги, чипы, мелкие контролы */
+        --r-md: 6px; /* кнопки, поля, пункты меню, вкладки */
+        --r-lg: 10px; /* модалки, блоки кода, карточки */
+
+        --shadow-pop: 0 6px 20px rgba(0, 0, 0, 0.45);
+        --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
+
+        /* Типографика: роли, не размеры. */
+        --fs-caption: 11px;
+        --fs-ui: 13px;
+        --fs-editor: 15px;
+
+        --font-ui: "Inter", system-ui, -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #0e1112;
+        color: var(--text-primary);
+        font-family: var(--font-ui);
+        font-size: var(--fs-ui);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 48px 32px 96px;
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+      }
+
+      h2 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 56px 0 16px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+      }
+
+      .lead {
+        color: var(--text-secondary);
+        max-width: 720px;
+        margin: 0;
+      }
+
+      .lead code {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        background: var(--bg-raised);
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        padding: 1px 5px;
+      }
+
+      section > .note {
+        color: var(--text-tertiary);
+        font-size: var(--fs-ui);
+        margin: -8px 0 16px;
+        max-width: 720px;
+      }
+
+      /* ═══════════════════════════════════════════
+         ИКОНКИ (stroke 2, сетка 14/16/18)
+         ═══════════════════════════════════════════ */
+      .ic {
+        display: inline-block;
+        vertical-align: middle;
+        flex-shrink: 0;
+      }
+      .ic svg {
+        display: block;
+      }
+      .i14 {
+        width: 14px;
+        height: 14px;
+      }
+      .i16 {
+        width: 16px;
+        height: 16px;
+      }
+      .i18 {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* ═══════════════════════════════════════════
+         1. ТОКЕНЫ
+         ═══════════════════════════════════════════ */
+      .token-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+      }
+
+      .token-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 16px;
+      }
+
+      .token-card h3 {
+        margin: 0 0 12px;
+        font-size: var(--fs-ui);
+        font-weight: 600;
+      }
+
+      .swatch-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 0;
+        font-size: var(--fs-ui);
+        color: var(--text-secondary);
+      }
+
+      .swatch {
+        width: 40px;
+        height: 24px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border-light);
+        flex-shrink: 0;
+      }
+
+      .swatch.hex {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-tertiary);
+        background: var(--bg-page);
+      }
+
+      .type-sample {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 5px 0;
+        border-bottom: 1px dashed var(--border);
+      }
+      .type-sample:last-child {
+        border-bottom: none;
+      }
+      .type-sample .role {
+        color: var(--text-tertiary);
+        font-size: var(--fs-caption);
+        white-space: nowrap;
+      }
+
+      .radius-sample {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+      }
+      .radius-item {
+        text-align: center;
+        color: var(--text-tertiary);
+        font-size: var(--fs-caption);
+      }
+      .radius-box {
+        width: 48px;
+        height: 48px;
+        background: var(--bg-raised);
+        border: 1px solid var(--border-light);
+        margin-bottom: 6px;
+      }
+
+      /* ═══════════════════════════════════════════
+         КНОПКИ
+         ═══════════════════════════════════════════ */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: none;
+        border-radius: var(--r-md);
+        font-family: var(--font-ui);
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .btn:focus-visible,
+      .icon-btn:focus-visible,
+      .dropdown-trigger:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .btn-md {
+        height: 36px;
+        padding: 0 16px;
+        font-size: 13px;
+      }
+      .btn-sm {
+        height: 28px;
+        padding: 0 12px;
+        font-size: 12px;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: var(--accent-hover);
+      }
+      .btn-primary:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--text-secondary);
+      }
+      .btn-ghost:hover:not(:disabled) {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      .btn-danger {
+        background: rgba(251, 113, 133, 0.12);
+        color: var(--error);
+        border: 1px solid rgba(251, 113, 133, 0.35);
+      }
+      .btn-danger:hover:not(:disabled) {
+        background: rgba(251, 113, 133, 0.2);
+      }
+
+      .btn-outline {
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-light);
+      }
+      .btn-outline:hover:not(:disabled) {
+        background: var(--bg-hover);
+        border-color: var(--text-dim);
+      }
+
+      .spinner {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid rgba(11, 36, 34, 0.3);
+        border-top-color: var(--on-accent);
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: var(--text-tertiary);
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+      }
+      .icon-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .icon-btn.danger:hover {
+        background: rgba(251, 113, 133, 0.12);
+        color: var(--error);
+      }
+
+      /* ═══════════════════════════════════════════
+         ПОЛЯ
+         ═══════════════════════════════════════════ */
+      /* Поля: плоские, без видимой рамки. Фон отличается от панели,
+         акцент при фокусе — нижняя линия 2px (в покое прозрачна,
+         чтобы фокус не дёргал раскладку). Никаких теней. */
+      .input,
+      .select {
+        height: 32px;
+        padding: 0 10px;
+        border-radius: 0;
+        border: 1px solid transparent;
+        border-bottom: 2px solid transparent;
+        background: var(--bg-page);
+        color: var(--text-primary);
+        caret-color: var(--accent);
+        font-family: var(--font-ui);
+        font-size: var(--fs-ui);
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease;
+      }
+      .input::placeholder {
+        color: var(--text-dim);
+      }
+      .input:hover:not(:disabled),
+      .select:hover {
+        background: var(--bg-raised);
+      }
+      .input:focus,
+      .select:focus {
+        outline: none;
+        background: var(--bg-raised);
+        border-bottom-color: var(--accent);
+      }
+      .input:disabled {
+        opacity: 0.45;
+      }
+      .input.is-error,
+      .input.is-error:focus {
+        border-bottom-color: var(--error);
+      }
+
+      /* Кастомный dropdown: единственная замена нативного select
+         (язык, выбор модели). Выглядит как поле, раскрывается в Menu. */
+      .dropdown-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        height: 32px;
+        padding: 0 10px;
+        border-radius: 0;
+        border: 1px solid transparent;
+        border-bottom: 2px solid transparent;
+        background: var(--bg-page);
+        color: var(--text-primary);
+        font-family: var(--font-ui);
+        font-size: var(--fs-ui);
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease;
+      }
+      .dropdown-trigger:hover {
+        background: var(--bg-raised);
+      }
+      .dropdown-trigger[aria-expanded="true"] {
+        background: var(--bg-raised);
+        border-bottom-color: var(--accent);
+      }
+      .dropdown-trigger .chev {
+        color: var(--text-tertiary);
+        transition: transform 0.15s ease;
+      }
+      .dropdown-trigger[aria-expanded="true"] .chev {
+        transform: rotate(180deg);
+      }
+
+      .checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .checkbox .box {
+        width: 15px;
+        height: 15px;
+        border-radius: 0;
+        border: 1px solid var(--text-tertiary);
+        background: var(--bg-page);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--on-accent);
+        transition: all 0.15s ease;
+      }
+      .checkbox:hover .box {
+        border-color: var(--accent-hover);
+      }
+      .checkbox.on .box {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .checkbox.some .box {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .checkbox.disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      /* ═══════════════════════════════════════════
+         МЕНЮ
+         ═══════════════════════════════════════════ */
+      .menu {
+        background: var(--bg-raised);
+        border: 1px solid var(--border-light);
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow-pop);
+        padding: 4px;
+        min-width: 220px;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 7px 10px;
+        border: none;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: var(--text-secondary);
+        font-family: var(--font-ui);
+        font-size: var(--fs-ui);
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+      }
+      .menu-item:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .menu-item .tail {
+        margin-left: auto;
+        color: var(--text-tertiary);
+        font-size: var(--fs-caption);
+      }
+      .menu-item .check {
+        color: var(--accent);
+      }
+      .menu-sep {
+        height: 1px;
+        margin: 4px 6px;
+        background: var(--border);
+      }
+
+      /* ═══════════════════════════════════════════
+         ЧИПЫ, ТЕГИ, ТОСТ
+         ═══════════════════════════════════════════ */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: var(--r-sm);
+        background: var(--bg-raised);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: var(--fs-caption);
+        font-weight: 500;
+      }
+      .chip.accent {
+        background: var(--accent-dim);
+        border-color: rgba(20, 184, 166, 0.3);
+        color: var(--accent-hover);
+      }
+
+      .toast {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-raised);
+        border: 1px solid var(--border-light);
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow-pop);
+        padding: 10px 12px;
+        font-size: var(--fs-ui);
+        color: var(--text-primary);
+      }
+      .toast .undo {
+        border: none;
+        background: none;
+        color: var(--accent-hover);
+        font-weight: 600;
+        font-family: var(--font-ui);
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: var(--r-sm);
+      }
+      .toast .undo:hover {
+        background: var(--accent-dim);
+      }
+
+      .meter {
+        width: 160px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--bg-hover);
+        overflow: hidden;
+      }
+      .meter > div {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+      .meter.warn > div {
+        background: var(--warning);
+      }
+      .meter.over > div {
+        background: var(--error);
+      }
+
+      /* ═══════════════════════════════════════════
+         2. ДО / ПОСЛЕ (шапка + меню)
+         ═══════════════════════════════════════════ */
+      .ba-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 900px) {
+        .ba-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .ba-col {
+        position: relative;
+      }
+
+      .ba-label {
+        display: inline-block;
+        font-size: var(--fs-caption);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+      .label-before {
+        color: var(--error);
+        background: rgba(251, 113, 133, 0.12);
+      }
+      .label-after {
+        color: var(--accent-hover);
+        background: var(--accent-dim);
+      }
+
+      .ba-frame {
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        background: var(--bg-page);
+      }
+
+      /* — «До»: текущая реализация, значения из кода — */
+      .old-header {
+        display: flex;
+        height: 48px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 16px;
+        background: #1a1e20;
+        border-bottom: 1px solid #363e41;
+        font-size: 13px;
+        color: #a7c4c2;
+      }
+      .old-logo {
+        font-weight: 800;
+        font-size: 15px;
+        color: #e0f2f1;
+        letter-spacing: -0.02em;
+      }
+      .old-logo span {
+        color: #14b8a6;
+      }
+      .old-export-btn {
+        display: flex;
+        height: 28px;
+        align-items: center;
+        gap: 6px;
+        padding: 0 12px;
+        border: none;
+        border-radius: 6px;
+        background: #14b8a6;
+        color: #141819;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .old-menu-wrap {
+        position: relative;
+        height: 210px;
+      }
+      .old-menu {
+        position: absolute;
+        right: 12px;
+        top: 8px;
+        width: 240px;
+        padding: 6px;
+        border-radius: 6px;
+        border: 1px solid #454e52;
+        background: #1f2426; /* темнее шапки — «плавающее проваливается» */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+      .old-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 5px; /* третий радиус рядом с 6px */
+        color: #a7c4c2;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .old-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #14b8a6;
+        margin-left: auto;
+      }
+      .old-sep {
+        height: 1px;
+        margin: 6px 8px;
+        background: #363e41;
+      }
+
+      .pin {
+        position: absolute;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .pin.bad {
+        background: var(--error);
+        color: #2a0d12;
+      }
+
+      .diff-list {
+        margin: 20px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 8px;
+        max-width: 760px;
+      }
+      .diff-list li {
+        display: flex;
+        gap: 10px;
+        color: var(--text-secondary);
+        font-size: var(--fs-ui);
+      }
+      .diff-list .n {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(251, 113, 133, 0.15);
+        color: var(--error);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      /* ═══════════════════════════════════════════
+         3. ГЛАВНЫЙ ЭКРАН (после)
+         ═══════════════════════════════════════════ */
+      .shell-wrap {
+        position: relative;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: 48px 1fr 28px;
+        height: 560px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        background: var(--bg-page);
+      }
+
+      .shell-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 16px;
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .logo {
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+      }
+      .logo em {
+        font-style: normal;
+        color: var(--accent);
+      }
+
+      .shell-body {
+        display: grid;
+        grid-template-columns: 52px 248px 1fr;
+        min-height: 0;
+      }
+
+      /* Activity bar */
+      .activity {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 0;
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border);
+      }
+      .act-btn {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: var(--text-tertiary);
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+      }
+      .act-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .act-btn.active {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .act-btn.active::before {
+        content: "";
+        position: absolute;
+        left: -6px;
+        top: 9px;
+        bottom: 9px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: var(--accent);
+      }
+
+      /* Сайдбар */
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border);
+        overflow: hidden;
+      }
+      .side-section {
+        padding: 10px 8px 4px;
+        border-bottom: 1px solid var(--border);
+        min-height: 0;
+      }
+      .side-section.grow {
+        flex: 1;
+        overflow: hidden;
+        border-bottom: none;
+      }
+      .side-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px 6px;
+        font-size: var(--fs-caption);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-tertiary);
+      }
+
+      .file-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: var(--r-md);
+        color: var(--text-secondary);
+        font-size: var(--fs-ui);
+        cursor: pointer;
+      }
+      .file-row:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .file-row.active {
+        background: var(--accent-dim);
+        color: var(--accent-hover);
+      }
+      .file-row .name {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .file-row .actions {
+        display: none;
+        gap: 2px;
+      }
+      .file-row:hover .actions,
+      .file-row:focus-within .actions {
+        display: flex;
+      }
+      .file-row .mini {
+        width: 22px;
+        height: 22px;
+      }
+
+      .search-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 28px;
+        margin: 0 8px 6px;
+        padding: 0 8px;
+        border-radius: 0;
+        background: var(--bg-page);
+        color: var(--text-dim);
+        font-size: 12px;
+      }
+
+      .tree-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 26px;
+        padding: 0 8px;
+        border-radius: 0;
+        color: var(--text-secondary);
+        font-size: 12.5px;
+        font-family: var(--font-mono);
+      }
+      .tree-row:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .tree-row .grow {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tree-indent {
+        padding-left: 22px;
+      }
+      .tree-indent2 {
+        padding-left: 38px;
+      }
+
+      .add-file {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 4px 8px 6px;
+        padding: 5px 8px;
+        border: none;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: var(--text-tertiary);
+        font-family: var(--font-ui);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .add-file:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      /* Редактор */
+      .editor-col {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: var(--bg-page);
+      }
+
+      .tabs {
+        display: flex;
+        align-items: stretch;
+        gap: 2px;
+        height: 37px;
+        padding: 0 8px;
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--border);
+        overflow: hidden;
+      }
+      /* Вкладки прямоугольные, без скруглений: это панельный элемент,
+         а не «папка». Активная сливается с холстом, полоса accent сверху. */
+      .tab {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 36px;
+        margin-bottom: -1px;
+        padding: 0 10px;
+        border: none;
+        border-top: 2px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        font-family: var(--font-ui);
+        font-size: var(--fs-ui);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .tab:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .tab.active {
+        background: var(--bg-page);
+        border-top-color: var(--accent);
+        color: var(--text-primary);
+      }
+      .tab .x {
+        display: inline-flex;
+        border-radius: var(--r-sm);
+        padding: 1px;
+        color: var(--text-dim);
+      }
+      .tab .x:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      .editor {
+        flex: 1;
+        overflow: hidden;
+        padding: 24px 32px;
+      }
+      .prose {
+        max-width: 780px;
+        font-size: var(--fs-editor);
+        line-height: 1.75;
+        color: var(--text-primary);
+      }
+      .prose h1.doc {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+      }
+      .prose p {
+        margin: 8px 0;
+        color: var(--text-primary);
+      }
+      .prose .muted {
+        color: var(--text-secondary);
+      }
+      .prose code.inline {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        background: var(--bg-raised);
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        padding: 1px 5px;
+        color: var(--warning);
+      }
+      .code-card {
+        margin: 12px 0;
+        background: var(--bg-modal);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.3));
+        overflow: hidden;
+      }
+      .code-card .code-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 12px;
+        background: var(--bg-raised);
+        border-bottom: 1px solid var(--border);
+        color: var(--text-tertiary);
+        font-size: var(--fs-caption);
+        font-weight: 600;
+      }
+      .code-card pre {
+        margin: 0;
+        padding: 12px 16px;
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--text-primary);
+        overflow: hidden;
+      }
+      .code-card .k {
+        color: var(--info);
+      }
+      .code-card .s {
+        color: var(--success);
+      }
+      .code-card .c {
+        color: var(--text-dim);
+      }
+
+      /* Статусбар */
+      .statusbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 28px;
+        padding: 0 16px;
+        background: var(--bg-panel);
+        border-top: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+      .statusbar .proj {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: var(--fs-ui);
+        font-weight: 500;
+      }
+      .statusbar .proj::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .statusbar .right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .token-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: var(--r-sm);
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        color: var(--warning);
+      }
+      .token-chip:hover {
+        background: var(--bg-hover);
+      }
+      .save-state {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-tertiary);
+      }
+      .save-state .ok {
+        color: var(--success);
+      }
+
+      /* Аннотации */
+      .anno {
+        position: absolute;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-size: 12px;
+        font-weight: 800;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.25);
+      }
+
+      .legend {
+        margin: 20px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 10px 24px;
+        max-width: 100%;
+      }
+      .legend li {
+        display: flex;
+        gap: 10px;
+        color: var(--text-secondary);
+        font-size: var(--fs-ui);
+      }
+      .legend .n {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--accent-dim);
+        color: var(--accent-hover);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .shell-toast {
+        position: absolute;
+        right: 20px;
+        bottom: 44px;
+        z-index: 9;
+      }
+
+      /* ═══════════════════════════════════════════
+         4. КОМПОНЕНТЫ
+         ═══════════════════════════════════════════ */
+      .comp-group {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .comp-group h3 {
+        margin: 0 0 4px;
+        font-size: var(--fs-ui);
+        font-weight: 700;
+      }
+      .comp-group .hint {
+        margin: 0 0 16px;
+        color: var(--text-tertiary);
+        font-size: 12px;
+      }
+      .comp-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .comp-row + .comp-row {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--border);
+      }
+      .sample {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      .sample .cap {
+        font-size: var(--fs-caption);
+        color: var(--text-dim);
+      }
+
+      .modal-backdrop {
+        position: relative;
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: var(--r-lg);
+        padding: 32px;
+        display: flex;
+        justify-content: center;
+      }
+      .modal {
+        width: 380px;
+        background: var(--bg-modal);
+        border: 1px solid var(--border-light);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-modal);
+        padding: 20px;
+      }
+      .modal h4 {
+        margin: 0 0 6px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .modal p {
+        margin: 0 0 16px;
+        color: var(--text-secondary);
+        font-size: var(--fs-ui);
+      }
+      .modal .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      /* ═══════════════════════════════════════════
+         5. ЧТО НЕ МЕНЯЕТСЯ
+         ═══════════════════════════════════════════ */
+      .keep-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 10px 24px;
+      }
+      .keep-list li {
+        display: flex;
+        gap: 10px;
+        color: var(--text-secondary);
+        font-size: var(--fs-ui);
+      }
+      .keep-list li::before {
+        content: "✓";
+        color: var(--success);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Томте — концепт дизайна</h1>
+      <p class="lead">
+        Макет для этапа 8. Акцент <code>#14b8a6</code> и тёмная тема
+        сохраняются. Три радиуса (<code>4 / 6 / 10</code>), три кегля (<code
+          >11 / 13 / 15</code
+        >), иконки <code>14 / 16 / 18</code>&nbsp;px, четыре поверхности по
+        высоте. Ниже — токены, сравнение «до/после» на шапке, главный экран с
+        аннотациями и все состояния компонентов.
+      </p>
+
+      <!-- 1. ТОКЕНЫ -->
+      <h2>1. Токены</h2>
+      <p class="note">
+        Поверхности выстроены по принципу elevation: чем ближе элемент к
+        пользователю, тем светлее фон. Поповеры и меню — самые светлые, модалки
+        крупнее и темнее, но отделены тенью и бэкдропом.
+      </p>
+      <div class="token-grid">
+        <div class="token-card">
+          <h3>Поверхности</h3>
+          <div class="swatch-row">
+            <span class="swatch" style="background: #141819"></span> page —
+            холст редактора <span class="swatch hex">141819</span>
+          </div>
+          <div class="swatch-row">
+            <span class="swatch" style="background: #1a1e20"></span> panel —
+            шапка, сайдбар, статусбар <span class="swatch hex">1a1e20</span>
+          </div>
+          <div class="swatch-row">
+            <span class="swatch" style="background: #1f2426"></span> modal — фон
+            модалок, блоки кода <span class="swatch hex">1f2426</span>
+          </div>
+          <div class="swatch-row">
+            <span class="swatch" style="background: #262c2e"></span> raised —
+            меню, поповеры, тосты <span class="swatch hex">262c2e</span>
+          </div>
+          <div class="swatch-row">
+            <span class="swatch" style="background: #2e3538"></span> hover —
+            наведение на строки <span class="swatch hex">2e3538</span>
+          </div>
+        </div>
+
+        <div class="token-card">
+          <h3>Радиусы</h3>
+          <div class="radius-sample">
+            <div class="radius-item">
+              <div class="radius-box" style="border-radius: 4px"></div>
+              4 · sm<br />теги, чипы
+            </div>
+            <div class="radius-item">
+              <div class="radius-box" style="border-radius: 6px"></div>
+              6 · md<br />кнопки, поля, меню
+            </div>
+            <div class="radius-item">
+              <div class="radius-box" style="border-radius: 10px"></div>
+              10 · lg<br />модалки, блоки кода
+            </div>
+          </div>
+          <p class="hint" style="margin: 14px 0 0">
+            Уходят: 5px и дубли 6px через arbitrary-значения. Чекбокс и поля —
+            квадратные.
+          </p>
+        </div>
+
+        <div class="token-card">
+          <h3>Типографика</h3>
+          <div class="type-sample">
+            <span class="role">caption 11 · подписи, заголовки секций</span
+            ><span style="font-size: 11px">ПРОМПТЫ</span>
+          </div>
+          <div class="type-sample">
+            <span class="role">ui 13 · интерфейс, кнопки, меню</span
+            ><span style="font-size: 13px">Сохранить проект</span>
+          </div>
+          <div class="type-sample">
+            <span class="role">editor 15 · текст промпта</span
+            ><span style="font-size: 15px">Разберись с логированием</span>
+          </div>
+          <div class="type-sample">
+            <span class="role">mono 12.5 · код, пути, токены</span
+            ><span style="font-family: var(--font-mono); font-size: 12.5px"
+              >src/lib/i18n.ts</span
+            >
+          </div>
+          <p class="hint" style="margin: 12px 0 0">
+            Inter + JetBrains Mono — без изменений. Уходят произвольные
+            12/12.5/13.5 вне ролей.
+          </p>
+        </div>
+
+        <div class="token-card">
+          <h3>Иконки</h3>
+          <div class="swatch-row">
+            <span class="i14 ic" style="color: var(--accent)"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" /></svg
+            ></span>
+            14 — в кнопках и пунктах меню
+          </div>
+          <div class="swatch-row">
+            <span class="i16 ic" style="color: var(--accent)"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" /></svg
+            ></span>
+            16 — автономные иконки
+          </div>
+          <div class="swatch-row">
+            <span class="i18 ic" style="color: var(--accent)"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" /></svg
+            ></span>
+            18 — activity bar, логотип
+          </div>
+          <p class="hint" style="margin: 12px 0 0">
+            Lucide, stroke-width 2. Уходят 12, 13 и 20 px (в соседних элементах
+            одной шапки). Значки 25px в activity bar заменяются на 18 — кнопка
+            40px.
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. ДО / ПОСЛЕ -->
+      <h2>2. Шапка и меню экспорта: до / после</h2>
+      <p class="note">
+        Самый показательный фрагмент: в текущем коде одно меню собирает три
+        разных радиуса, иконки трёх размеров и фон темнее шапки, на которой
+        висит.
+      </p>
+      <div class="ba-grid">
+        <div class="ba-col">
+          <span class="ba-label label-before">До — как в коде сейчас</span>
+          <div class="ba-frame">
+            <div class="old-header">
+              <span class="old-logo">томте<span>.</span></span>
+              <div style="display: flex; align-items: center; gap: 12px">
+                <span class="i16 ic" style="color: #6a8b88"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M2 12h20" />
+                    <path
+                      d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                    /></svg
+                ></span>
+                <button class="old-export-btn" type="button">
+                  <span style="width: 14px; height: 14px; display: inline-block"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      style="width: 14px; height: 14px"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="3" x2="12" y2="15" /></svg
+                  ></span>
+                  Экспорт
+                  <span style="width: 12px; height: 12px; display: inline-block"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      style="width: 12px; height: 12px"
+                    >
+                      <polyline points="6 9 12 15 18 9" /></svg
+                  ></span>
+                </button>
+              </div>
+            </div>
+            <div class="old-menu-wrap">
+              <div class="pin bad" style="right: 16px; top: 44px">1</div>
+              <div class="pin bad" style="right: 236px; top: 96px">2</div>
+              <div class="pin bad" style="right: 16px; top: 150px">3</div>
+              <div class="old-menu">
+                <div class="old-menu-item">
+                  <span style="width: 14px; height: 14px; display: inline-block"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      style="width: 14px; height: 14px"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" /></svg
+                  ></span>
+                  Markdown<span class="old-dot"></span>
+                </div>
+                <div class="old-menu-item">
+                  <span style="width: 14px; height: 14px; display: inline-block"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      style="width: 14px; height: 14px"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  PDF
+                </div>
+                <div class="old-menu-item">
+                  <span style="width: 14px; height: 14px; display: inline-block"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      style="width: 14px; height: 14px"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  DOCX
+                </div>
+                <div class="old-sep"></div>
+                <div class="old-menu-item" style="font-size: 12px">
+                  <span
+                    style="
+                      width: 13px;
+                      height: 13px;
+                      display: inline-block;
+                      border: 1px solid #82a6a3;
+                      border-radius: 0;
+                    "
+                  ></span>
+                  Открыть в новой вкладке
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ba-col">
+          <span class="ba-label label-after">После — концепт</span>
+          <div class="ba-frame">
+            <div class="shell-header">
+              <span class="logo">томте<em>.</em></span>
+              <div style="display: flex; align-items: center; gap: 12px">
+                <button
+                  class="dropdown-trigger"
+                  style="height: 28px; font-size: 12px"
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded="false"
+                  title="Язык"
+                >
+                  <span class="i14 ic" style="color: var(--text-tertiary)"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M2 12h20" />
+                      <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                      /></svg
+                  ></span>
+                  RU
+                  <span class="i14 ic chev"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="6 9 12 15 18 9" /></svg
+                  ></span>
+                </button>
+                <button class="btn btn-primary btn-sm" type="button">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="3" x2="12" y2="15" /></svg
+                  ></span>
+                  Экспорт
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="6 9 12 15 18 9" /></svg
+                  ></span>
+                </button>
+              </div>
+            </div>
+            <div
+              style="
+                position: relative;
+                height: 210px;
+                background: var(--bg-page);
+              "
+            >
+              <div
+                class="menu"
+                style="position: absolute; right: 12px; top: 8px; width: 240px"
+              >
+                <button class="menu-item" type="button">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" /></svg
+                  ></span>
+                  Markdown
+                  <span class="i14 ic check"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </button>
+                <button class="menu-item" type="button">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  PDF
+                </button>
+                <button class="menu-item" type="button">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  DOCX
+                  <span class="tail">Ctrl+Alt+E</span>
+                </button>
+                <div class="menu-sep"></div>
+                <div style="padding: 6px 10px">
+                  <span class="checkbox">
+                    <span class="box"
+                      ><span class="i14 ic"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                    ></span>
+                    Открыть в новой вкладке
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ul class="diff-list">
+        <li>
+          <span class="n">1</span>Меню темнее шапки — «плавающее» проваливается
+          вглубь. В концепте raised (#262c2e) светлее panel (#1a1e20): всплывший
+          слой читается как ближний.
+        </li>
+        <li>
+          <span class="n">2</span>Три радиуса рядом: 6px у контейнера, 5px у
+          радиуса рядом: 6px у контейнера, 5px у пунктов, 0 у чекбокса. В
+          концепте всё 6px (md), чекбокс и поля квадратные.
+        </li>
+        <li>
+          <span class="n">3</span>Иконки 12/13/14 px в одном меню и
+          точка-индикатор активного формата. В концепте — 14 px везде, активный
+          пункт отмечен галочкой accent и горячая клавиша уходит вправо.
+        </li>
+      </ul>
+
+      <!-- 3. ГЛАВНЫЙ ЭКРАН -->
+      <h2>3. Главный экран</h2>
+      <p class="note">
+        Мокап на реальную структуру приложения: activity bar, сайдбар с
+        промптами/вложениями/деревом, вкладки, редактор, статусбар. Цифры —
+        аннотации, расшифровка под макетом.
+      </p>
+      <div class="shell-wrap">
+        <div class="anno" style="right: 340px; top: 12px">1</div>
+        <div class="anno" style="left: 8px; top: 66px">2</div>
+        <div class="anno" style="left: 196px; top: 120px">3</div>
+        <div class="anno" style="left: 520px; top: 56px">4</div>
+        <div class="anno" style="left: 70%; top: 300px">5</div>
+        <div class="anno" style="right: 110px; bottom: 4px">6</div>
+        <div class="anno" style="right: 24px; bottom: 96px">7</div>
+
+        <div class="shell">
+          <!-- Шапка -->
+          <div class="shell-header">
+            <span class="logo">томте<em>.</em></span>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <button
+                class="dropdown-trigger"
+                style="height: 28px; font-size: 12px"
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded="false"
+                title="Язык интерфейса"
+              >
+                <span class="i14 ic" style="color: var(--text-tertiary)"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M2 12h20" />
+                    <path
+                      d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                    /></svg
+                ></span>
+                RU
+                <span class="i14 ic chev"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" /></svg
+                ></span>
+              </button>
+              <button class="btn btn-ghost btn-sm" type="button">
+                <span class="i14 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                    />
+                    <circle
+                      cx="7.5"
+                      cy="7.5"
+                      r="0.5"
+                      fill="currentColor"
+                    /></svg
+                ></span>
+                Теги
+              </button>
+              <button class="btn btn-primary btn-sm" type="button">
+                <span class="i14 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="3" x2="12" y2="15" /></svg
+                ></span>
+                Экспорт
+                <span class="i14 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" /></svg
+                ></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="shell-body">
+            <!-- Activity bar -->
+            <div class="activity">
+              <button class="act-btn" type="button" title="Проекты">
+                <span class="i18 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+                    />
+                    <path d="M9 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" /></svg
+                ></span>
+              </button>
+              <button class="act-btn active" type="button" title="Теги">
+                <span class="i18 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                    />
+                    <circle
+                      cx="7.5"
+                      cy="7.5"
+                      r="0.5"
+                      fill="currentColor"
+                    /></svg
+                ></span>
+              </button>
+              <button class="act-btn" type="button" title="Карта кода">
+                <span class="i18 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"
+                    />
+                    <path d="M15 5.764v15" />
+                    <path d="M9 3.236v15" /></svg
+                ></span>
+              </button>
+            </div>
+
+            <!-- Сайдбар -->
+            <div class="sidebar">
+              <div class="side-section">
+                <div class="side-title">Промпты</div>
+                <div class="file-row active">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  <span class="name">main</span>
+                  <span class="actions">
+                    <button
+                      class="icon-btn mini"
+                      type="button"
+                      title="Переименовать"
+                    >
+                      <span class="i14 ic"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                          /></svg
+                      ></span>
+                    </button>
+                    <button
+                      class="icon-btn mini danger"
+                      type="button"
+                      title="Удалить"
+                    >
+                      <span class="i14 ic"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                          <path
+                            d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                          /></svg
+                      ></span>
+                    </button>
+                  </span>
+                </div>
+                <div class="file-row">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  <span class="name">prompt-1</span>
+                </div>
+                <button class="add-file" type="button">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="M12 5v14" /></svg
+                  ></span>
+                  Новый файл
+                </button>
+              </div>
+
+              <div class="side-section">
+                <div class="side-title">
+                  Вложения
+                  <span
+                    style="
+                      font-weight: 500;
+                      text-transform: none;
+                      letter-spacing: 0;
+                    "
+                    >2</span
+                  >
+                </div>
+                <div class="file-row">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <path d="m21 15-5-5L5 21" /></svg
+                  ></span>
+                  <span class="name">screenshot.png</span>
+                  <span class="i14 ic" style="color: var(--accent)"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+                <div class="file-row">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                      /></svg
+                  ></span>
+                  <span class="name">errors.log</span>
+                </div>
+              </div>
+
+              <div class="side-section grow">
+                <div class="side-title">Дерево</div>
+                <div class="search-box">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" /></svg
+                  ></span>
+                  Поиск по имени и пути…
+                </div>
+                <div class="tree-row">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+                      /></svg
+                  ></span>
+                  <span class="grow">tomte/</span>
+                </div>
+                <div class="tree-row tree-indent">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+                      /></svg
+                  ></span>
+                  <span class="grow">src/</span>
+                  <span class="i14 ic" style="color: var(--accent)"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+                <div class="tree-row tree-indent2">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" /></svg
+                  ></span>
+                  <span class="grow">app.html</span>
+                </div>
+                <div class="tree-row tree-indent2">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" /></svg
+                  ></span>
+                  <span class="grow">routes/+page.svelte</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Редактор -->
+            <div class="editor-col">
+              <div class="tabs">
+                <button class="tab active" type="button">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  main
+                  <span class="x"
+                    ><span class="i14 ic"
+                      ><svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" /></svg></span
+                  ></span>
+                </button>
+                <button class="tab" type="button">
+                  <span class="i14 ic"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" /></svg
+                  ></span>
+                  prompt-1
+                  <span class="x"
+                    ><span class="i14 ic"
+                      ><svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" /></svg></span
+                  ></span>
+                </button>
+              </div>
+
+              <div class="editor">
+                <div class="prose">
+                  <h1 class="doc">Ревью: потеря правок при автосохранении</h1>
+                  <p class="muted">
+                    Проект: томте · теги: <span class="chip accent">bug</span>
+                    <span class="chip">storage</span>
+                  </p>
+                  <p>
+                    Разбери баг с автосохранением. Симптомы на скриншоте
+                    <code class="inline">[IMAGE_1: screenshot.png]</code>, логи
+                    в <code class="inline">errors.log</code>.
+                  </p>
+                  <div class="code-card">
+                    <div class="code-head">
+                      <span>src/utils/index.ts</span
+                      ><span>createFlushableAsync</span>
+                    </div>
+                    <pre><span class="k">export function</span> createFlushableAsync(fn) {
+  <span class="c">// flush() во время идущего сохранения ждёт его и выходит</span>
+  <span class="k">let</span> dirty = <span class="s">false</span>;
+  <span class="k">return</span> { flush, schedule };
+}</pre>
+                  </div>
+                  <p>
+                    Проверь сценарий: правка → закрыть вкладку → открыть снова.
+                    Ожидание: текст на месте.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Статусбар -->
+          <div class="statusbar">
+            <span class="proj">томте</span>
+            <span style="color: var(--text-tertiary)"
+              >3 промпта · 2 вложения</span
+            >
+            <div class="right">
+              <span class="save-state">
+                <span class="i14 ic ok"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 6 9 17l-5-5" /></svg
+                ></span>
+                Сохранено
+              </span>
+              <button class="token-chip" type="button" title="Разбивка токенов">
+                ≈ 41 502 / 200K · 21%
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="shell-toast">
+          <div class="toast">
+            <span class="i14 ic" style="color: var(--text-tertiary)"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg
+            ></span>
+            Файл «draft-2» удалён
+            <button class="undo" type="button">Отменить</button>
+          </div>
+        </div>
+      </div>
+
+      <ol class="legend">
+        <li>
+          <span class="n">1</span>Кнопки шапки — единый компонент: primary sm
+          (28px) и ghost. Выбор языка — кастомный dropdown-триггер (глобус + код
+          + шеврон), раскрывается в Menu, см. компоненты. Нативного select нет.
+        </li>
+        <li>
+          <span class="n">2</span>Activity bar: значки 18px в кнопках 40px,
+          активный пункт — accent-заливка dim + индикатор слева. Вместо
+          25px-значков.
+        </li>
+        <li>
+          <span class="n">3</span>Строки сайдбара: hover-фон, действия
+          (переименовать/удалить) появляются по hover и focus-within. Удаление
+          краснеет. Заголовки секций — caption 11.
+        </li>
+        <li>
+          <span class="n">4</span>Вкладки прямоугольные, без скруглений
+          «папочек» — панельный элемент. Активная сливается с холстом и получает
+          accent-полосу сверху.
+        </li>
+        <li>
+          <span class="n">5</span>Блоки кода — карточки radius 10 с шапкой (путь
+          + символ), mono 12.5. Теги — чипы: accent для активных, нейтральные
+          для остальных.
+        </li>
+        <li>
+          <span class="n">6</span>Статусбар: слева проект и счётчики, справа
+          честный статус сохранения и моноширинный чип токенов (клик — панель
+          разбивки).
+        </li>
+        <li>
+          <span class="n">7</span>Тост undo — поверхность raised, radius 6, тень
+          popover. Единый компонент для всех уведомлений.
+        </li>
+      </ol>
+
+      <!-- 4. КОМПОНЕНТЫ -->
+      <h2>4. Компоненты и состояния</h2>
+      <p class="note">
+        Наведите курсор — hover-состояния живые. Каждый сэмпл подписан.
+      </p>
+
+      <div class="comp-group">
+        <h3>Кнопки</h3>
+        <p class="hint">
+          Варианты: primary · ghost · outline · danger. Размеры: sm 28px · md
+          36px. Состояния: hover, active (translateY), disabled, loading. Фокус
+          — outline 2px accent с отступом, без теней.
+        </p>
+        <div class="comp-row">
+          <div class="sample">
+            <button class="btn btn-primary btn-md" type="button">
+              Сохранить</button
+            ><span class="cap">primary md</span>
+          </div>
+          <div class="sample">
+            <button class="btn btn-primary btn-sm" type="button">
+              <span class="i14 ic"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="3" x2="12" y2="15" /></svg></span
+              >Экспорт</button
+            ><span class="cap">primary sm + иконка</span>
+          </div>
+          <div class="sample">
+            <button class="btn btn-ghost btn-md" type="button">Отмена</button
+            ><span class="cap">ghost md</span>
+          </div>
+          <div class="sample">
+            <button class="btn btn-outline btn-md" type="button">
+              Свой лимит</button
+            ><span class="cap">outline md</span>
+          </div>
+          <div class="sample">
+            <button class="btn btn-danger btn-md" type="button">
+              Удалить проект</button
+            ><span class="cap">danger md</span>
+          </div>
+          <div class="sample">
+            <button class="btn btn-primary btn-md" type="button" disabled>
+              Недоступно</button
+            ><span class="cap">disabled</span>
+          </div>
+          <div class="sample">
+            <button class="btn btn-primary btn-md" type="button">
+              <span class="spinner"></span>Сохранение…</button
+            ><span class="cap">loading</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-group">
+        <h3>IconButton и чекбокс</h3>
+        <p class="hint">
+          IconButton 28px: нейтральный hover; вариант danger краснеет на hover.
+          Чекбокс квадратный, три состояния.
+        </p>
+        <div class="comp-row">
+          <div class="sample">
+            <button class="icon-btn" type="button">
+              <span class="i16 ic"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                  /></svg
+              ></span></button
+            ><span class="cap">переименовать</span>
+          </div>
+          <div class="sample">
+            <button class="icon-btn danger" type="button">
+              <span class="i16 ic"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg
+              ></span></button
+            ><span class="cap">danger на hover</span>
+          </div>
+          <div class="sample">
+            <span class="checkbox"><span class="box"></span>Не выбран</span
+            ><span class="cap">off</span>
+          </div>
+          <div class="sample">
+            <span class="checkbox on"
+              ><span class="box"
+                ><span class="i14 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 6 9 17l-5-5" /></svg></span></span
+              >Выбран</span
+            ><span class="cap">on</span>
+          </div>
+          <div class="sample">
+            <span class="checkbox some"
+              ><span class="box"
+                ><span class="i14 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  >
+                    <path d="M5 12h14" /></svg></span></span
+              >Частично</span
+            ><span class="cap">indeterminate</span>
+          </div>
+          <div class="sample">
+            <span class="checkbox disabled"
+              ><span class="box"></span>Заблокирован</span
+            ><span class="cap">disabled</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-group">
+        <h3>Поля ввода и dropdown</h3>
+        <p class="hint">
+          Поля плоские: без рамки и теней, фон отличается от панели. Фокус —
+          нижняя линия 2px accent, ошибка — красная линия и подпись. Нативный
+          select не используется: вместо него кастомный dropdown (язык, модель).
+        </p>
+        <div class="comp-row">
+          <div class="sample">
+            <input
+              class="input"
+              style="width: 200px"
+              placeholder="Название проекта"
+            /><span class="cap">default</span>
+          </div>
+          <div class="sample">
+            <input
+              class="input"
+              style="
+                width: 200px;
+                border-bottom-color: var(--accent);
+                background: var(--bg-raised);
+              "
+              value="томте"
+            /><span class="cap">focus — линия снизу</span>
+          </div>
+          <div class="sample">
+            <input
+              class="input is-error"
+              style="width: 200px"
+              value="owner/"
+            /><span class="cap">error</span>
+          </div>
+          <div class="sample">
+            <input
+              class="input"
+              style="width: 200px"
+              placeholder="Заблокировано"
+              disabled
+            /><span class="cap">disabled</span>
+          </div>
+          <div class="sample">
+            <button
+              class="dropdown-trigger"
+              style="width: 230px"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded="false"
+            >
+              Claude Sonnet 4.5 — 200K
+              <span class="i14 ic chev"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" /></svg
+              ></span>
+            </button>
+            <span class="cap">dropdown (закрыт)</span>
+          </div>
+          <div class="sample" style="align-items: flex-start">
+            <div>
+              <button
+                class="dropdown-trigger"
+                style="
+                  width: 230px;
+                  border-bottom-color: var(--accent);
+                  background: var(--bg-raised);
+                "
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded="true"
+              >
+                Русский
+                <span class="i14 ic chev"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" /></svg
+                ></span>
+              </button>
+              <div class="menu" style="width: 230px; margin-top: 4px">
+                <button class="menu-item" type="button">
+                  Русский<span class="i14 ic check" style="margin-left: auto"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </button>
+                <button class="menu-item" type="button">English</button>
+                <button class="menu-item" type="button">Español</button>
+              </div>
+            </div>
+            <span class="cap">dropdown (открыт) — язык</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-group">
+        <h3>Меню и вкладки</h3>
+        <p class="hint">
+          Меню: raised-поверхность, пункты 6px, галочка accent для активного,
+          горячие клавиши справа, разделитель. Вкладки прямоугольные: активная
+          сливается с холстом, полоса accent сверху.
+        </p>
+        <div class="comp-row" style="align-items: flex-start">
+          <div class="sample" style="align-items: flex-start">
+            <div class="menu" style="width: 230px">
+              <button class="menu-item" type="button">
+                Открыть <span class="tail">↵</span>
+              </button>
+              <button class="menu-item" type="button">Закрепить</button>
+              <button class="menu-item" type="button">
+                Переименовать <span class="tail">F2</span>
+              </button>
+              <button class="menu-item" type="button">Дублировать</button>
+              <div class="menu-sep"></div>
+              <button
+                class="menu-item"
+                type="button"
+                style="color: var(--error)"
+              >
+                Удалить <span class="tail">Del</span>
+              </button>
+            </div>
+            <span class="cap">контекстное меню файла</span>
+          </div>
+          <div class="sample" style="align-items: flex-start">
+            <div
+              style="
+                background: var(--bg-panel);
+                border: 1px solid var(--border);
+                border-radius: var(--r-md);
+                padding: 6px 8px 0;
+                display: flex;
+                gap: 2px;
+              "
+            >
+              <button class="tab active" type="button">
+                <span class="i14 ic"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                    />
+                    <polyline points="14 2 14 8 20 8" /></svg></span
+                >main
+              </button>
+              <button class="tab" type="button">prompt-1</button>
+              <button class="tab" type="button">draft-2 ·</button>
+            </div>
+            <div
+              style="
+                width: 100%;
+                height: 40px;
+                background: var(--bg-page);
+                border: 1px solid var(--border);
+                border-top: none;
+                border-radius: 0 0 var(--r-md) var(--r-md);
+              "
+            ></div>
+            <span class="cap">вкладки над холстом</span>
+          </div>
+          <div class="sample" style="align-items: flex-start">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="meter"><div style="width: 21%"></div></div>
+              <div class="meter warn"><div style="width: 82%"></div></div>
+              <div class="meter over"><div style="width: 100%"></div></div>
+            </div>
+            <span class="cap">метер токенов: ok / warn / over</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-group">
+        <h3>Модалка и тост</h3>
+        <p class="hint">
+          Модалка: поверхность modal, радиус 10, тень modal + бэкдроп. Действия
+          справа, danger — контурная. Тост — единый для уведомлений и undo.
+        </p>
+        <div class="comp-row" style="align-items: flex-start">
+          <div class="sample" style="flex: 1; align-items: stretch">
+            <div class="modal-backdrop">
+              <div class="modal">
+                <h4>Удалить проект «томте»?</h4>
+                <p>
+                  3 промпта и 2 вложения будут удалены безвозвратно. Это
+                  действие нельзя отменить.
+                </p>
+                <div class="modal-actions">
+                  <button class="btn btn-ghost btn-md" type="button">
+                    Отмена
+                  </button>
+                  <button class="btn btn-danger btn-md" type="button">
+                    Удалить
+                  </button>
+                </div>
+              </div>
+            </div>
+            <span class="cap" style="text-align: center">ConfirmModal</span>
+          </div>
+          <div
+            class="sample"
+            style="flex-direction: column; justify-content: center; gap: 16px"
+          >
+            <div class="toast">
+              <span class="i16 ic" style="color: var(--success)"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="m9 12 2 2 4-4" /></svg
+              ></span>
+              Проект сохранён
+            </div>
+            <div class="toast">
+              <span class="i16 ic" style="color: var(--error)"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4" />
+                  <path d="M12 16h.01" /></svg
+              ></span>
+              Не удалось вставить файл
+              <button class="undo" type="button">Повторить</button>
+            </div>
+            <span class="cap">тосты: success · error+действие</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. ЧТО НЕ МЕНЯЕТСЯ -->
+      <h2>5. Что не меняется</h2>
+      <ul class="keep-list">
+        <li>Акцент #14b8a6 и его hover #2dd4bf.</li>
+        <li>
+          Тёмная тема как единственная (светлая — только переопределение токенов
+          для экспорта).
+        </li>
+        <li>Шрифты Inter + JetBrains Mono.</li>
+        <li>
+          Фокус — outline 2px accent с отступом (не тень-кольцо), как в
+          приложении сейчас; у полей дополнительно нижняя линия.
+        </li>
+        <li>Палитра статусов: success/warning/error/info.</li>
+        <li>
+          Контрасты: tertiary ≥ 4.5:1, dim — только иконки ≥ 3:1 (достижения
+          этапа 3).
+        </li>
+        <li>Tailwind 4 + CSS-переменные, без SCSS — как решено в roadmap.</li>
+      </ul>
+    </div>
+  </body>
+</html>

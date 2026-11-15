@@ -1,25 +1,39 @@
 <script lang="ts">
-  import { Languages } from "@lucide/svelte";
+  import { Check, Languages } from "@lucide/svelte";
 
-  import { LOCALES, locale, t, type Locale } from "$lib/i18n";
+  import Dropdown from "../ui/Dropdown.svelte";
+
+  import { LOCALES, locale, t } from "$lib/i18n";
 </script>
 
-<!-- Нативный select: доступен с клавиатуры и скринридеров без доработок. -->
-<label
-  class="flex h-7 items-center gap-1.5 rounded-md border border-[var(--border)] px-2 text-xs text-[var(--text-secondary)] transition-colors focus-within:border-[var(--accent)] hover:border-[var(--border-light)] hover:text-[var(--text-primary)]"
-  title={$t("settings.language")}
+<!-- Кастомный dropdown (этап 8): в теме, единый с остальными меню. -->
+<Dropdown
+  label={$t("settings.language")}
+  widthClass="w-36"
+  align="right"
+  triggerClass="h-7 text-xs"
 >
-  <Languages size={14} aria-hidden="true" />
-  <select
-    value={$locale}
-    onchange={(event) => locale.set(event.currentTarget.value as Locale)}
-    aria-label={$t("settings.language")}
-    class="cursor-pointer bg-transparent text-xs outline-none"
-  >
-    {#each LOCALES as option (option.id)}
-      <option value={option.id} class="bg-[var(--bg-medium)]"
-        >{option.label}</option
-      >
-    {/each}
-  </select>
-</label>
+  {#snippet trigger()}
+    <Languages
+      size={14}
+      class="text-[var(--text-tertiary)]"
+      aria-hidden="true"
+    />
+    <span>{$locale.toUpperCase()}</span>
+  {/snippet}
+
+  {#each LOCALES as option (option.id)}
+    <button
+      type="button"
+      role="menuitem"
+      class="menu-item"
+      aria-current={$locale === option.id}
+      onclick={() => locale.set(option.id)}
+    >
+      <span class="flex-1">{option.label}</span>
+      {#if $locale === option.id}
+        <Check size={14} class="text-[var(--accent)]" aria-hidden="true" />
+      {/if}
+    </button>
+  {/each}
+</Dropdown>

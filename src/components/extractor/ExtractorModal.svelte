@@ -136,7 +136,7 @@
     tabindex="-1"
   >
     <div
-      class="flex h-[90vh] w-full max-w-5xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex h-[90vh] w-full max-w-5xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       role="presentation"
       onclick={stopEventPropagation}
       onkeydown={(event) => {
@@ -162,7 +162,7 @@
         <button
           type="button"
           onclick={close}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           aria-label={$t("common.close")}
         >
           <X size={20} />
@@ -182,7 +182,7 @@
             type="button"
             onclick={handleExtract}
             disabled={!markdownInput.trim()}
-            class="inline-flex h-8 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-40"
+            class="btn btn-primary btn-sm"
           >
             {$t("extractor.parse")}
           </button>
@@ -192,7 +192,7 @@
             id="markdown-input"
             bind:value={markdownInput}
             placeholder={$t("extractor.inputPlaceholder")}
-            class="min-h-0 w-full flex-1 resize-none rounded-lg border border-[var(--border)] bg-[var(--bg-darkest)] px-4 py-3 font-mono text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+            class="input min-h-0 w-full flex-1 resize-none px-4 py-3 font-mono"
             aria-label={$t("extractor.input")}></textarea>
         </div>
       </div>
@@ -214,7 +214,7 @@
               <button
                 type="button"
                 onclick={handleDownloadAll}
-                class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-3 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+                class="btn btn-outline btn-sm"
               >
                 <Archive size={13} />
                 {$t("extractor.downloadZip")}
@@ -222,7 +222,7 @@
               <button
                 type="button"
                 onclick={handleAddToAttachments}
-                class="inline-flex h-8 items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)]"
+                class="btn btn-primary btn-sm"
               >
                 <Plus size={13} />
                 {$t("extractor.addToAttachments")}
@@ -270,7 +270,7 @@
                           if (event.key === "Enter") saveRename();
                           if (event.key === "Escape") cancelRename();
                         }}
-                        class="w-full rounded border border-[var(--accent)]/60 bg-[var(--bg-darkest)] px-2 py-1 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
+                        class="input w-full px-2 py-1"
                       />
                     {:else}
                       <p
@@ -359,7 +359,7 @@
     tabindex="-1"
   >
     <div
-      class="flex max-h-[85vh] w-full max-w-4xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex max-h-[85vh] w-full max-w-4xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       role="presentation"
       onclick={stopEventPropagation}
       onkeydown={(event) => {
@@ -385,7 +385,7 @@
         <button
           type="button"
           onclick={closePreview}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           aria-label={$t("extractor.closePreview")}
         >
           <X size={20} />

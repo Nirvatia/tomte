@@ -100,7 +100,7 @@
     tabindex="-1"
   >
     <div
-      class="flex h-[80vh] w-full max-w-5xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-[var(--shadow-lg)]"
+      class="flex h-[80vh] w-full max-w-5xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
     >
       <div
         class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4"

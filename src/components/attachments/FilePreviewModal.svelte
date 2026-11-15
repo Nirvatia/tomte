@@ -51,7 +51,7 @@
     tabindex="-1"
   >
     <div
-      class="flex max-h-[85vh] w-full max-w-4xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex max-h-[85vh] w-full max-w-4xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       onclick={stopEventPropagation}
       onkeydown={preventEnterSpace}
       role="presentation"
@@ -92,7 +92,7 @@
         <button
           type="button"
           onclick={onClose}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           aria-label={$t("files.closePreview")}
         >
           <X size={20} />
@@ -105,7 +105,7 @@
             <img
               src={file.dataUrl}
               alt={file.name}
-              class="max-h-[70vh] max-w-full rounded-lg border border-[var(--border-light)] shadow-[var(--shadow-lg)]"
+              class="max-h-[70vh] max-w-full rounded-lg border border-[var(--border-light)] shadow-lg"
             />
           </div>
         {:else if file.type === "text" && typeof file.content === "string"}

@@ -52,7 +52,7 @@
   }
 
   const BTN_BASE =
-    "w-8 h-8 flex items-center justify-center rounded-[5px] text-[var(--text-secondary)] transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]";
+    "w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-secondary)] transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]";
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -71,12 +71,12 @@
     <div
       role="dialog"
       aria-label={$t("fontSize.pick")}
-      class="absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
+      class="absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in rounded-md border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-md"
     >
       <button
         type="button"
         onclick={resetSize}
-        class="flex w-full items-center gap-3 rounded-[5px] px-3 py-2 text-left transition-colors hover:bg-[var(--bg-lighter)]"
+        class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-[var(--bg-lighter)]"
       >
         <Type size={16} class="shrink-0 text-[var(--text-tertiary)]" />
         <span class="text-[13px] text-[var(--text-secondary)]"
@@ -88,13 +88,13 @@
         <button
           type="button"
           onclick={() => setSize(size.value)}
-          class="flex w-full items-center gap-3 rounded-[5px] px-3 py-2 text-left transition-colors hover:bg-[var(--bg-lighter)] {currentSize ===
+          class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-[var(--bg-lighter)] {currentSize ===
           size.value
             ? 'bg-[var(--accent-dim)]'
             : ''}"
         >
           <span
-            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-[var(--border)] bg-[var(--bg-darkest)] font-mono text-[10px] text-[var(--text-tertiary)]"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-[var(--border)] bg-[var(--bg-darkest)] font-mono text-[10px] text-[var(--text-tertiary)]"
           >
             {size.label}
           </span>

@@ -70,7 +70,7 @@
 <div class="mt-4 flex flex-wrap items-center gap-2">
   {#each sortedTags as tag (tag.id)}
     <div
-      class="group inline-flex select-none items-center gap-1 rounded-[5px] border px-3 py-1.5 text-xs font-medium transition-all {tag.favorite
+      class="group inline-flex select-none items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-all {tag.favorite
         ? 'border-[var(--accent)]/50 bg-[var(--accent-dim)] text-[var(--text-primary)] hover:border-[var(--accent-hover)]'
         : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-secondary)] hover:border-[var(--accent)]/50 hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
     >
@@ -103,7 +103,7 @@
   <button
     type="button"
     onclick={() => (isCreateModalOpen = true)}
-    class="inline-flex items-center gap-1.5 rounded-[5px] border border-dashed border-[var(--border-light)] px-3 py-1.5 text-xs font-medium text-[var(--text-tertiary)] transition-all hover:border-[var(--accent)]/60 hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
+    class="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[var(--border-light)] px-3 py-1.5 text-xs font-medium text-[var(--text-tertiary)] transition-all hover:border-[var(--accent)]/60 hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
   >
     <Plus size={14} />
     {$t("tags.new")}

@@ -223,15 +223,13 @@
   // Tailwind применяет тот, что позже в CSS, а не в атрибуте. Из-за этого
   // активная кнопка раньше получала светлую иконку на бирюзовом (1.3:1).
   const TOOLBAR_BTN_BASE =
-    "w-8 h-8 flex items-center justify-center rounded-[5px] transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed";
+    "w-8 h-8 flex items-center justify-center rounded-md transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed";
   const TOOLBAR_BTN_IDLE =
     "text-[var(--text-secondary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]";
   const TOOLBAR_BTN_ACTIVE =
     "bg-[var(--accent)] text-[var(--bg-darkest)] hover:bg-[var(--accent-hover)]";
   const ACTION_BTN_BASE =
-    "flex items-center gap-2 px-3.5 py-[7px] rounded-[5px] border border-[var(--border)] text-[var(--text-secondary)] text-[13px] font-medium transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] hover:border-[var(--border-light)]";
-  const MENU_ITEM_BASE =
-    "flex w-full items-center gap-2.5 rounded-[5px] px-3 py-2 text-left text-[13px] font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]";
+    "flex items-center gap-2 px-3.5 py-[7px] rounded-md border border-[var(--border)] text-[var(--text-secondary)] text-[13px] font-medium transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] hover:border-[var(--border-light)]";
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -243,7 +241,7 @@
   <button
     type="button"
     onclick={toggleProjectTree}
-    class="w-8 h-8 flex items-center justify-center rounded-[5px] transition-all duration-150 {$isProjectTreeOpen
+    class="w-8 h-8 flex items-center justify-center rounded-md transition-all duration-150 {$isProjectTreeOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
     aria-label={$t("toolbar.openTree")}
@@ -274,8 +272,10 @@
       <Redo2 size={18} />
     </button>
   </div>
-  <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
-  <div class="flex items-center gap-0.5">
+  <div
+    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @4xl:block"
+  ></div>
+  <div class="hidden items-center gap-0.5 @4xl:flex">
     <button
       type="button"
       onclick={() =>
@@ -297,8 +297,10 @@
       <Heading2 size={18} />
     </button>
   </div>
-  <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
-  <div class="flex items-center">
+  <div
+    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @4xl:block"
+  ></div>
+  <div class="hidden items-center @4xl:flex">
     <FontSizePicker {editor} />
   </div>
   <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
@@ -333,7 +335,7 @@
     <button
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleStrike().run())}
-      class={btnClass(isActive("strike"))}
+      class="{btnClass(isActive('strike'))} hidden @2xl:flex"
       aria-label={$t("toolbar.strike")}
       title={$t("toolbar.strike")}
     >
@@ -342,7 +344,7 @@
     <button
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleHighlight().run())}
-      class={btnClass(isActive("highlight"))}
+      class="{btnClass(isActive('highlight'))} hidden @2xl:flex"
       aria-label={$t("toolbar.highlight")}
       title={$t("toolbar.highlight")}
     >
@@ -351,15 +353,17 @@
     <button
       type="button"
       onclick={() => run(() => editor?.chain().focus().toggleCode().run())}
-      class={btnClass(isActive("code"))}
+      class="{btnClass(isActive('code'))} hidden @2xl:flex"
       aria-label={$t("toolbar.code")}
       title={$t("toolbar.code")}
     >
       <Code size={18} />
     </button>
   </div>
-  <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
-  <div class="flex items-center gap-0.5">
+  <div
+    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @3xl:block"
+  ></div>
+  <div class="hidden items-center gap-0.5 @3xl:flex">
     <button
       type="button"
       onclick={() =>
@@ -485,8 +489,10 @@
       </button>
     </div>
   {/if}
-  <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
-  <div class="flex items-center gap-0.5">
+  <div
+    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @5xl:block"
+  ></div>
+  <div class="hidden items-center gap-0.5 @5xl:flex">
     <button
       type="button"
       onclick={handleCopy}
@@ -529,14 +535,14 @@
         aria-label={$t("toolbar.toolsOpen")}
         title={$t("toolbar.tools")}
       >
-        <Wrench size={15} />
+        <Wrench size={14} />
         <span class="hidden @5xl:inline">{$t("toolbar.tools")}</span>
       </button>
       {#if isToolsMenuOpen}
         <div
           role="menu"
           aria-label={$t("toolbar.toolsMenu")}
-          class="absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-[var(--shadow-md)]"
+          class="menu-panel absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in"
         >
           <button
             type="button"
@@ -545,10 +551,23 @@
               isToolsMenuOpen = false;
               isPreviewOpen.set(true);
             }}
-            class={MENU_ITEM_BASE}
+            class="menu-item"
           >
-            <Eye size={15} class="shrink-0" />
+            <Eye size={14} class="shrink-0" />
             <span class="flex-1">{$t("toolbar.preview")}</span>
+          </button>
+          <!-- «Копировать» ниже @5xl живёт здесь: в широком тулбаре есть своя кнопка. -->
+          <button
+            type="button"
+            role="menuitem"
+            class="menu-item hidden @5xl:flex"
+            onclick={() => {
+              isToolsMenuOpen = false;
+              handleCopy();
+            }}
+          >
+            <Copy size={14} class="shrink-0" />
+            <span class="flex-1">{$t("toolbar.copyText")}</span>
           </button>
           <button
             type="button"
@@ -557,12 +576,12 @@
               isToolsMenuOpen = false;
               isExtractorOpen.set(true);
             }}
-            class={MENU_ITEM_BASE}
+            class="menu-item"
           >
-            <Brain size={15} class="shrink-0" />
+            <Brain size={14} class="shrink-0" />
             <span class="flex-1">{$t("toolbar.extractor")}</span>
           </button>
-          <div class="mx-1 my-1.5 h-px bg-[var(--border)]"></div>
+          <div class="menu-sep"></div>
           <button
             type="button"
             role="menuitem"
@@ -570,9 +589,9 @@
               isToolsMenuOpen = false;
               handleApplyTestData();
             }}
-            class={MENU_ITEM_BASE}
+            class="menu-item"
           >
-            <FlaskConical size={15} class="shrink-0" />
+            <FlaskConical size={14} class="shrink-0" />
             <span class="flex-1">{$t("toolbar.testData")}</span>
           </button>
         </div>

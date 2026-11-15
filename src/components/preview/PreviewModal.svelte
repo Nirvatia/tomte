@@ -55,7 +55,7 @@
     tabindex="-1"
   >
     <div
-      class="flex max-h-[90vh] w-full max-w-5xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex max-h-[90vh] w-full max-w-5xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       role="presentation"
       onclick={stopEventPropagation}
       onkeydown={(event) => {
@@ -84,7 +84,7 @@
         <button
           type="button"
           onclick={close}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           aria-label={$t("extractor.closePreview")}
         >
           <X size={20} />

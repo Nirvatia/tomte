@@ -186,7 +186,7 @@
         )}
     >
       <FileText
-        size={15}
+        size={14}
         class="shrink-0 {isActive
           ? 'text-[var(--accent)]'
           : 'text-[var(--text-tertiary)]'}"
@@ -204,7 +204,7 @@
             if (event.key === "Escape") cancelRename();
           }}
           aria-label={$t("tabs.renameInput", { name: file.name })}
-          class="w-28 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
+          class="input h-7 w-28 px-1.5 text-[13px] font-medium"
           maxlength="50"
         />
       {:else}
@@ -235,7 +235,7 @@
       class="flex h-[39px] items-center gap-2.5 border-r border-[var(--border)] bg-[var(--bg-darkest)] px-5 whitespace-nowrap"
       style="border-top: 2px solid var(--accent); margin-top: -1px;"
     >
-      <FileText size={15} class="shrink-0 text-[var(--accent)]" />
+      <FileText size={14} class="shrink-0 text-[var(--accent)]" />
       <input
         use:autofocus
         bind:value={newFileName}
@@ -249,7 +249,7 @@
             cancelNewFile();
           }
         }}
-        class="w-28 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--text-primary)] focus:outline-none"
+        class="input h-7 w-28 px-1.5 text-[13px] font-medium"
         placeholder={$t("prompts.fileNamePlaceholder")}
         maxlength="50"
       />

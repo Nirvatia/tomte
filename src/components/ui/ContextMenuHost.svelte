@@ -51,21 +51,20 @@
     role="menu"
     aria-label={$t("common.actions")}
     tabindex="-1"
-    class="fixed z-[95] min-w-52 animate-fade-in rounded-[6px] border border-[var(--border-light)] bg-[var(--bg-medium)] p-1 shadow-[var(--shadow-md)]"
+    class="menu-panel fixed z-[95] min-w-52 animate-fade-in"
     style="left: {position.left}px; top: {position.top}px;"
   >
     {#each $contextMenu.items as item (item.label)}
       {#if item.separatorBefore}
-        <div class="mx-1 my-1 h-px bg-[var(--border)]" role="separator"></div>
+        <div class="menu-sep" role="separator"></div>
       {/if}
       <button
         type="button"
         role="menuitem"
         disabled={item.disabled}
         onclick={() => select(item.onSelect)}
-        class="flex w-full items-center justify-between gap-4 rounded px-2.5 py-1.5 text-left text-[13px] outline-none disabled:opacity-40 {item.danger
-          ? 'text-[var(--error)] hover:bg-[var(--error)]/10 focus:bg-[var(--error)]/10'
-          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] focus:bg-[var(--bg-lighter)] focus:text-[var(--text-primary)]'}"
+        class="menu-item justify-between gap-4 disabled:opacity-40"
+        class:danger={item.danger}
       >
         <span>{item.label}</span>
         {#if item.hint}

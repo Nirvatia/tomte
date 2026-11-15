@@ -1,14 +1,15 @@
 <script lang="ts">
   import { t } from "$lib/i18n";
   import {
+    Check,
     ChevronDown,
     ChevronRight,
     Download,
     FileText,
+    ListChecks,
     Pencil,
     Plus,
     Trash2,
-    X,
   } from "@lucide/svelte";
 
   import Checkbox from "../ui/Checkbox.svelte";
@@ -47,8 +48,16 @@
   let newFileName = $state("");
   let isCreatingFile = $state(false);
   let actionInProgress = $state(false);
+  let isManaging = $state(false);
   let selectedIds = $state<string[]>([]);
   let bulkError = $state<string | null>(null);
+
+  interface Props {
+    /** Этап 9: оверлей-сайдбар закрывается после выбора файла. */
+    onFileOpen?: () => void;
+  }
+
+  let { onFileOpen = () => {} }: Props = $props();
 
   // Выбор живёт, пока файлы существуют: удалённые и чужие (после смены проекта) отбрасываем.
   const selectedFiles = $derived(
@@ -57,6 +66,11 @@
   const allSelected = $derived(
     $promptFiles.length > 0 && selectedFiles.length === $promptFiles.length,
   );
+
+  function toggleManaging() {
+    isManaging = !isManaging;
+    if (!isManaging) clearSelection();
+  }
 
   function toggleSelected(fileId: string) {
     bulkError = null;
@@ -161,6 +175,7 @@
   }
 
   function handleSelectFile(fileId: string) {
+    onFileOpen();
     void previewPromptFile(fileId);
   }
 
@@ -218,24 +233,40 @@
 </script>
 
 <div class="tree-section mb-1">
-  <button
-    type="button"
-    onclick={() => (isPromptsSectionOpen = !isPromptsSectionOpen)}
-    class="tree-section-header flex w-full items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
-  >
-    {#if isPromptsSectionOpen}
-      <ChevronDown size={12} />
-    {:else}
-      <ChevronRight size={12} />
-    {/if}
-    <span>{$t("prompts.section")}</span>
-    <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
-      {$promptFiles.length}
-    </span>
-  </button>
+  <div class="flex items-center">
+    <button
+      type="button"
+      onclick={() => (isPromptsSectionOpen = !isPromptsSectionOpen)}
+      class="tree-section-header flex flex-1 items-center gap-1.5 px-4 py-1.5 text-left text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
+    >
+      {#if isPromptsSectionOpen}
+        <ChevronDown size={12} />
+      {:else}
+        <ChevronRight size={12} />
+      {/if}
+      <span>{$t("prompts.section")}</span>
+      <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
+        {$promptFiles.length}
+      </span>
+    </button>
+    <!-- Режим выбора: чекбоксы у файлов и панель действий — только в нём,
+         чтобы обычный список оставался чистым (ревизия этапа 8). -->
+    <button
+      type="button"
+      onclick={toggleManaging}
+      aria-pressed={isManaging}
+      aria-label={$t("prompts.manage")}
+      title={$t("prompts.manage")}
+      class="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors {isManaging
+        ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
+        : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
+    >
+      <ListChecks size={13} />
+    </button>
+  </div>
 
   {#if isPromptsSectionOpen}
-    {#if selectedFiles.length > 0}
+    {#if isManaging}
       <div
         class="flex items-center gap-2 border-y border-[var(--border)] bg-[var(--bg-light)] py-1 pr-2 pl-[28px] text-[12px] text-[var(--text-secondary)]"
         role="toolbar"
@@ -250,13 +281,15 @@
             : $t("prompts.selectAll")}
         />
         <span class="mr-auto">
-          {$t("prompts.selectedCount", { count: selectedFiles.length })}
+          {selectedFiles.length > 0
+            ? $t("prompts.selectedCount", { count: selectedFiles.length })
+            : $t("prompts.manage")}
         </span>
         <button
           type="button"
           onclick={handleExportSelected}
-          disabled={actionInProgress}
-          class="rounded p-1 transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:opacity-40"
+          disabled={actionInProgress || selectedFiles.length === 0}
+          class="rounded p-1 transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
           title={$t("prompts.downloadZipHint")}
           aria-label={$t("prompts.downloadZip")}
         >
@@ -265,8 +298,8 @@
         <button
           type="button"
           onclick={handleDeleteSelected}
-          disabled={actionInProgress}
-          class="rounded p-1 transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:opacity-40"
+          disabled={actionInProgress || selectedFiles.length === 0}
+          class="rounded p-1 transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-40"
           title={$t("prompts.deleteSelectedHint")}
           aria-label={$t("prompts.deleteSelected")}
         >
@@ -274,12 +307,12 @@
         </button>
         <button
           type="button"
-          onclick={clearSelection}
+          onclick={toggleManaging}
           class="rounded p-1 transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
-          title={$t("common.clearSelection")}
-          aria-label={$t("common.clearSelection")}
+          title={$t("prompts.manageDone")}
+          aria-label={$t("prompts.manageDone")}
         >
-          <X size={14} />
+          <Check size={14} />
         </button>
       </div>
       {#if bulkError}
@@ -298,10 +331,14 @@
             onDrop: (dragged, target, place) =>
               void movePromptFile(dragged, target, place),
           }}
-          class="group flex items-center gap-2 border-l-2 border-transparent py-[5px] pr-4 pl-[28px] text-[13px] transition-all hover:bg-[var(--bg-light)] {$activeFileId ===
-          file.id
+          class="group flex items-center gap-2 border-l-2 py-[5px] pr-4 text-[13px] transition-all hover:bg-[var(--bg-light)] {isManaging &&
+          selectedIds.includes(file.id)
+            ? 'border-l-[var(--accent)] bg-[var(--accent-dim)]'
+            : 'border-l-transparent'} {$activeFileId === file.id && !isManaging
             ? 'border-l-[var(--accent)] bg-[var(--accent-dim)] font-medium text-[var(--accent)]'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
+            : isManaging
+              ? 'text-[var(--text-secondary)]'
+              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
         >
           {#if editingFileId === file.id}
             <input
@@ -317,15 +354,31 @@
                   cancelRename();
                 }
               }}
-              class="flex-1 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-0.5 text-[13px] text-[var(--text-primary)] focus:outline-none"
+              class="input ml-[28px] h-6 flex-1 px-2 text-[13px]"
               use:autofocus
             />
+          {:else if isManaging}
+            <div class="flex flex-1 items-center gap-2 pl-[28px]">
+              <Checkbox
+                checked={selectedIds.includes(file.id)}
+                onToggle={() => toggleSelected(file.id)}
+                ariaLabel={$t("prompts.selectFile", { name: file.name })}
+              />
+              <button
+                type="button"
+                onclick={() => toggleSelected(file.id)}
+                class="flex flex-1 items-center gap-2 truncate text-left"
+                title={file.name}
+              >
+                <FileText size={14} class="shrink-0" />
+                <span
+                  class="truncate {isFileInPreview(file.id) ? 'italic' : ''}"
+                >
+                  {file.name}
+                </span>
+              </button>
+            </div>
           {:else}
-            <Checkbox
-              checked={selectedIds.includes(file.id)}
-              onToggle={() => toggleSelected(file.id)}
-              ariaLabel={$t("prompts.selectFile", { name: file.name })}
-            />
             <button
               type="button"
               onclick={() => handleSelectFile(file.id)}
@@ -354,7 +407,7 @@
                     handleStartRename(file.id, file.name),
                   ),
                 )}
-              class="flex flex-1 items-center gap-2 truncate text-left"
+              class="ml-[28px] flex flex-1 items-center gap-2 truncate text-left"
               title={$t("prompts.rowHint", { name: file.name })}
             >
               <FileText size={14} class="shrink-0" />
@@ -411,7 +464,7 @@
               }
             }}
             placeholder={$t("prompts.fileNamePlaceholder")}
-            class="flex-1 rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-0.5 text-[13px] text-[var(--text-primary)] focus:outline-none"
+            class="input h-6 flex-1 px-2 text-[13px]"
           />
         </div>
       {/if}
@@ -425,9 +478,9 @@
             type="button"
             onclick={handleCreateNewFile}
             disabled={actionInProgress}
-            class="mt-2 inline-flex items-center gap-1 rounded border border-[var(--border)] bg-[var(--bg-light)] px-2.5 py-1 text-[11px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+            class="btn btn-ghost btn-sm mt-2"
           >
-            <Plus size={11} />
+            <Plus size={14} />
             {$t("prompts.createFile")}
           </button>
         </div>

@@ -81,9 +81,11 @@ describe("StatusBar: токены", () => {
     render(StatusBar);
     await fireEvent.click(tokenButton());
 
-    await fireEvent.change(screen.getByLabelText("Модель"), {
-      target: { value: "claude-haiku" },
-    });
+    // Кастомный dropdown (этап 8): открываем триггер и выбираем пункт меню.
+    await fireEvent.click(screen.getByRole("button", { name: "Модель" }));
+    await fireEvent.click(
+      screen.getByRole("menuitem", { name: /Claude Haiku/ }),
+    );
 
     expect(tokenButton()).toHaveTextContent("/ 200K");
   });
