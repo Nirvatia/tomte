@@ -241,6 +241,29 @@ export async function getSelectedTreeFilesAsAttachments(
 }
 
 /**
+ * Содержимое файла дерева: из fileRef (папка) или через GitHub API.
+ * null, если прочитать не удалось (файл без источника или сеть сбоила).
+ */
+export async function readTreeFileContent(
+  node: TreeNode,
+): Promise<string | null> {
+  try {
+    if (node.fileRef instanceof File) return await node.fileRef.text();
+    if (node.fileRef) {
+      const file = await (node.fileRef as FileSystemFileHandle).getFile();
+      return await file.text();
+    }
+    if (node.githubRef) {
+      const githubFile = await fetchGithubFileContent(node);
+      return githubFile.content;
+    }
+  } catch (error) {
+    console.warn(`Could not read ${node.path}:`, error);
+  }
+  return null;
+}
+
+/**
  * Возвращает GitHub-конфиг, с которым было построено дерево,
  * если дерево действительно из GitHub (у узлов есть githubRef).
  * Для локального или пустого дерева вернёт undefined.

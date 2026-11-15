@@ -27,9 +27,17 @@
     editor?: Editor | null;
     /** Раскрыть папку независимо от того, что выбрал пользователь (при поиске). */
     forceOpen?: boolean;
+    /** Пути, отсеянные фильтром (10.6): видны, но не выбираются. */
+    filteredPaths?: ReadonlySet<string> | null;
   }
 
-  let { node, depth = 0, editor = null, forceOpen = false }: Props = $props();
+  let {
+    node,
+    depth = 0,
+    editor = null,
+    forceOpen = false,
+    filteredPaths = null,
+  }: Props = $props();
 
   // Читается только для папок (все проверки идут через node.type), поэтому просто true:
   // папки по умолчанию раскрыты.
@@ -46,29 +54,44 @@
     node.type === "file" ? [node.path] : getAllFilePaths(node),
   );
 
+  // Отсеянные фильтром файлы не участвуют в выборе папки, но остаются видны.
+  const selectablePaths = $derived(
+    filteredPaths
+      ? filePaths.filter((path) => !filteredPaths.has(path))
+      : filePaths,
+  );
+
+  const isFilteredFile = $derived(
+    node.type === "file" && (filteredPaths?.has(node.path) ?? false),
+  );
+
+  const isSelectable = $derived(selectablePaths.length > 0);
+
   const isSelected = $derived(
     node.type === "file"
-      ? $selectedProjectFiles.includes(node.path)
-      : filePaths.length > 0 &&
-          filePaths.every((path) => $selectedProjectFiles.includes(path)),
+      ? !isFilteredFile && $selectedProjectFiles.includes(node.path)
+      : isSelectable &&
+          selectablePaths.every((path) => $selectedProjectFiles.includes(path)),
   );
 
   const isPartial = $derived(
     node.type === "directory" &&
+      isSelectable &&
       !isSelected &&
-      filePaths.some((path) => $selectedProjectFiles.includes(path)),
+      selectablePaths.some((path) => $selectedProjectFiles.includes(path)),
   );
 
   function toggleSelect(event: Event) {
     event.stopPropagation();
+    if (!isSelectable) return;
     if (isSelected) {
       selectedProjectFiles.update((current) =>
-        current.filter((path) => !filePaths.includes(path)),
+        current.filter((path) => !selectablePaths.includes(path)),
       );
     } else {
       selectedProjectFiles.update((current) => {
         const set = new Set(current);
-        for (const path of filePaths) {
+        for (const path of selectablePaths) {
           set.add(path);
         }
         return Array.from(set);
@@ -156,13 +179,14 @@
 <div
   class="group flex items-center gap-2 border-l-2 border-transparent py-[5px] pr-4 pl-[28px] text-[13px] text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] {isSelected
     ? 'border-l-[var(--accent)] bg-[var(--accent-dim)] font-medium text-[var(--accent)]'
-    : ''}"
+    : ''} {isFilteredFile ? 'opacity-45' : ''}"
   style="padding-left: {depth * 16 + 28}px"
 >
   <Checkbox
     checked={isSelected}
     indeterminate={isPartial}
     onToggle={toggleSelect}
+    disabled={!isSelectable || isFilteredFile}
     ariaLabel={$t("tree.selectNode", { name: node.name })}
   />
 
@@ -235,7 +259,13 @@
 {#if node.type === "directory" && isOpen && node.children.length > 0}
   <div class="ml-4 border-l border-[var(--border)]">
     {#each node.children as child (child.path)}
-      <TreeNodeItem node={child} depth={depth + 1} {editor} {forceOpen} />
+      <TreeNodeItem
+        node={child}
+        depth={depth + 1}
+        {editor}
+        {forceOpen}
+        {filteredPaths}
+      />
     {/each}
   </div>
 {/if}

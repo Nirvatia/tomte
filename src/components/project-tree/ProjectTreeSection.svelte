@@ -12,6 +12,7 @@
     FolderGit,
     FolderOpen,
     FolderTree,
+    Funnel,
     LoaderCircle,
     RefreshCw,
   } from "@lucide/svelte";
@@ -23,6 +24,8 @@
 
   import {
     activeProject,
+    filteredTreePathSet,
+    gitignoreFilterPatterns,
     projectTreeNodes,
     projectTreeRootName,
     projectTreeString,
@@ -33,6 +36,7 @@
     clearGithubConfig,
     restoreGithubTree,
     setProjectTreeSource,
+    setTreeFilter,
   } from "../../utils/projectActions";
   import {
     calculateStats,
@@ -40,7 +44,11 @@
     hasFileSystemAccess,
     readDirectoryRecursive,
     readDirectoryViaInput,
+    readTreeFileContent,
   } from "../../utils/projectTree";
+  import { excludeFilteredPaths, parseGitignore } from "../../utils/treeFilter";
+  import type { TreeFilterSettings } from "../../types";
+  import { DEFAULT_TREE_FILTER } from "../../types";
 
   import { SECTION_TOOL_BTN } from "./constants";
   import { getErrorMessage } from "../../utils";
@@ -79,16 +87,21 @@
   const visibleNodes = $derived(filtered?.nodes ?? $projectTreeNodes);
   const visiblePaths = $derived(getAllFilePaths(visibleNodes));
 
+  // Фильтр выбора (10.6): отсеянные не участвуют в выборе.
+  const selectablePaths = $derived(
+    excludeFilteredPaths(visiblePaths, $filteredTreePathSet),
+  );
+
   const totalFiles = $derived(stats?.totalFiles ?? 0);
   const selectedCount = $derived($selectedProjectFiles.length);
   const selectedVisible = $derived(
-    visiblePaths.filter((p) => $selectedProjectFiles.includes(p)).length,
+    selectablePaths.filter((p) => $selectedProjectFiles.includes(p)).length,
   );
   const isAllSelected = $derived(
-    visiblePaths.length > 0 && selectedVisible === visiblePaths.length,
+    selectablePaths.length > 0 && selectedVisible === selectablePaths.length,
   );
   const isPartialSelected = $derived(
-    selectedVisible > 0 && selectedVisible < visiblePaths.length,
+    selectedVisible > 0 && selectedVisible < selectablePaths.length,
   );
 
   function toggleSelectAll() {
@@ -116,7 +129,7 @@
 
   function selectAll() {
     selectedProjectFiles.update((current) => [
-      ...new Set([...current, ...visiblePaths]),
+      ...new Set([...current, ...selectablePaths]),
     ]);
   }
 
@@ -126,6 +139,70 @@
       current.filter((path) => !visible.has(path)),
     );
   }
+
+  // ── Фильтр выбора (10.6) ──
+
+  const treeFilter = $derived(
+    $activeProject?.treeFilter ?? DEFAULT_TREE_FILTER,
+  );
+  const filterActive = $derived(
+    treeFilter.presets.length > 0 || treeFilter.custom.length > 0,
+  );
+  let isFilterOpen = $state(false);
+  /** Черновик своих правил: в проект уходит по change (потеря фокуса). */
+  let customDraft = $state("");
+
+  $effect(() => {
+    if (isFilterOpen) {
+      customDraft = treeFilter.custom.join("\n");
+    }
+  });
+
+  function openFilter() {
+    customDraft = treeFilter.custom.join("\n");
+    isFilterOpen = !isFilterOpen;
+  }
+
+  async function patchTreeFilter(patch: Partial<TreeFilterSettings>) {
+    await setTreeFilter({ ...treeFilter, ...patch });
+  }
+
+  function togglePreset(id: string) {
+    const presets = treeFilter.presets.includes(id)
+      ? treeFilter.presets.filter((p) => p !== id)
+      : [...treeFilter.presets, id];
+    void patchTreeFilter({ presets });
+  }
+
+  function commitCustom() {
+    const custom = customDraft
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (custom.join("\n") !== treeFilter.custom.join("\n")) {
+      void patchTreeFilter({ custom });
+    }
+  }
+
+  // Правила .gitignore корня дерева: перечитываем при смене дерева.
+  $effect(() => {
+    const nodes = $projectTreeNodes;
+    const gitignoreNode = nodes.find(
+      (node) => node.type === "file" && node.path === ".gitignore",
+    );
+    let cancelled = false;
+    if (!gitignoreNode) {
+      gitignoreFilterPatterns.set([]);
+      return;
+    }
+    void readTreeFileContent(gitignoreNode).then((content) => {
+      if (cancelled) return;
+      gitignoreFilterPatterns.set(content ? parseGitignore(content) : []);
+    });
+    return () => {
+      cancelled = true;
+    };
+  });
 
   async function handlePickDirectory() {
     error = null;
@@ -368,19 +445,84 @@
         {$projectTreeRootName}
       </div>
       <div class="border-b border-[var(--border)] px-3 py-1.5">
-        <input
-          type="search"
-          bind:value={treeQuery}
-          onkeydown={(event) => {
-            if (event.key === "Escape" && treeQuery) {
-              event.stopPropagation();
-              treeQuery = "";
-            }
-          }}
-          placeholder={$t("tree.searchPlaceholder")}
-          aria-label={$t("tree.search")}
-          class="w-full rounded border border-[var(--border)] bg-[var(--bg-darkest)] px-2 py-1 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)] focus:outline-none"
-        />
+        <div class="flex items-center gap-1.5">
+          <input
+            type="search"
+            bind:value={treeQuery}
+            onkeydown={(event) => {
+              if (event.key === "Escape" && treeQuery) {
+                event.stopPropagation();
+                treeQuery = "";
+              }
+            }}
+            placeholder={$t("tree.searchPlaceholder")}
+            aria-label={$t("tree.search")}
+            class="input h-7 flex-1 px-2 text-[12px]"
+          />
+          <!-- Фильтр выбора (10.6): .gitignore + пресеты + свои правила. -->
+          <div class="relative">
+            <button
+              type="button"
+              onclick={openFilter}
+              aria-expanded={isFilterOpen}
+              aria-label={$t("treeFilter.button")}
+              title={$t("treeFilter.button")}
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors {filterActive
+                ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
+                : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
+            >
+              <Funnel size={14} />
+            </button>
+            {#if isFilterOpen}
+              <div
+                class="menu-panel absolute right-0 top-full z-50 mt-1 w-72 space-y-3 p-3 animate-fade-in"
+                role="dialog"
+                aria-label={$t("treeFilter.title")}
+              >
+                <p class="text-[11px] leading-snug text-[var(--text-tertiary)]">
+                  {$t("treeFilter.hint")}
+                </p>
+                <Checkbox
+                  checked={treeFilter.useGitignore}
+                  onToggle={() =>
+                    void patchTreeFilter({
+                      useGitignore: !treeFilter.useGitignore,
+                    })}
+                >
+                  <span class="text-[12px] text-[var(--text-secondary)]">
+                    {$t("treeFilter.gitignore")}
+                  </span>
+                </Checkbox>
+                <div class="space-y-1.5">
+                  {#each [["only-src", $t("treeFilter.presetOnlySrc")], ["no-tests", $t("treeFilter.presetNoTests")], ["code-only", $t("treeFilter.presetCodeOnly")]] as [id, label] (id)}
+                    <Checkbox
+                      checked={treeFilter.presets.includes(id)}
+                      onToggle={() => togglePreset(id)}
+                    >
+                      <span class="text-[12px] text-[var(--text-secondary)]">
+                        {label}
+                      </span>
+                    </Checkbox>
+                  {/each}
+                </div>
+                <label class="block">
+                  <span
+                    class="mb-1 block text-[11px] text-[var(--text-tertiary)]"
+                  >
+                    {$t("treeFilter.customLabel")}
+                  </span>
+                  <textarea
+                    rows="3"
+                    bind:value={customDraft}
+                    onblur={commitCustom}
+                    placeholder={$t("treeFilter.customPlaceholder")}
+                    class="input h-auto w-full resize-none px-2 py-1.5 font-mono text-[12px]"
+                  ></textarea>
+                </label>
+              </div>
+            {/if}
+          </div>
+        </div>
         {#if filtered}
           <p class="mt-1 text-[11px] text-[var(--text-tertiary)]" role="status">
             {filtered.matches > 0
@@ -391,7 +533,13 @@
       </div>
       <div class="py-1">
         {#each visibleNodes as node (node.path)}
-          <TreeNodeItem {node} depth={0} {editor} forceOpen={!!filtered} />
+          <TreeNodeItem
+            {node}
+            depth={0}
+            {editor}
+            forceOpen={!!filtered}
+            filteredPaths={$filteredTreePathSet}
+          />
         {/each}
       </div>
     {/if}
