@@ -1,9 +1,20 @@
 <script lang="ts">
   import "../app.css";
+  import { onMount } from "svelte";
   import { Toaster } from "svelte-sonner";
   import ConfirmModal from "../components/ui/ConfirmModal.svelte";
 
   let { children } = $props();
+
+  // Этап 10.7 (PWA): кэшируем приложение для работы без сети.
+  // Только прод: в dev service worker мешал бы горячей перезагрузке.
+  onMount(() => {
+    if (import.meta.env.PROD && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js").catch((error) => {
+        console.error("Service worker registration failed:", error);
+      });
+    }
+  });
 </script>
 
 <svelte:head>
