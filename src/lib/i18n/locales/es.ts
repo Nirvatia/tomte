@@ -46,6 +46,21 @@ export const es: Dict = {
     upload: "Subir archivos",
     uploadShort: "Subir",
   },
+  backup: {
+    errors: {
+      corrupt: "Los archivos de la copia están dañados",
+      export: "No se pudo exportar la copia",
+      import: "No se pudo importar la copia",
+      notBackup:
+        "El archivo no contiene una copia (manifest.json y project.json)",
+      notZip: "El archivo no es un ZIP",
+      tooLarge: "El proyecto de la copia supera el límite de tamaño",
+      unsupported: "Versión de copia no compatible",
+    },
+    exportOne: "Descargar copia del proyecto",
+    imported: "Proyecto «{name}» importado",
+    import: "Importar copia",
+  },
   codeMap: {
     andMore: "{files} y {count} más",
     dialog: "Generador de mapa de código",
@@ -236,6 +251,27 @@ export const es: Dict = {
     quickOpen: "Buscar un archivo de prompt",
     save: "Guardar ahora",
   },
+  history: {
+    current: "actual",
+    deleteConfirm: "¿Eliminar esta versión? No hay vuelta atrás.",
+    deleteVersion: "Eliminar versión {n}",
+    diffLegend:
+      "En verde lo que apareció después de la versión, en rojo lo eliminado. Se compara con el texto actual del archivo.",
+    empty:
+      "Aún no hay versiones. Guarda el texto actual con el botón de arriba.",
+    errors: {
+      delete: "No se pudo eliminar la versión",
+      restore: "No se pudo restaurar la versión",
+      save: "No se pudo guardar la versión",
+    },
+    open: "Historial de versiones",
+    restored: "Versión restaurada",
+    restore: "Restaurar esta versión",
+    saved: "Versión guardada",
+    save: "Guardar versión",
+    title: "Historial: {name}",
+    version: "Versión {n}",
+  },
   limits: {
     addAsMetadata: "Añadir como metadatos",
     attachmentsMessage:
@@ -354,6 +390,8 @@ export const es: Dict = {
       export: "No se pudieron exportar los archivos",
     },
     fileNamePlaceholder: "Nombre del archivo...",
+    manage: "Seleccionar archivos",
+    manageDone: "Listo",
     renameFile: "Renombrar el archivo {name}",
     rowHint: "{name} (clic: vista previa, doble clic: fijar, F2: renombrar)",
     section: "Prompts",
@@ -458,6 +496,23 @@ export const es: Dict = {
       "Este texto se insertará en el editor al hacer clic en la etiqueta (máx. 5000 caracteres)",
     valuePlaceholder:
       "Escribe el texto completo de la instrucción que se insertará en el prompt...",
+  },
+  templates: {
+    export: "Exportar",
+    hint: "El texto tiene variables — complétalas antes de exportar. Las variables vacías se dejan tal cual.",
+    title: "Variables de la plantilla",
+    valuePlaceholder: "Escribe un valor…",
+  },
+  treeFilter: {
+    button: "Filtro de archivos",
+    customLabel: "Reglas propias (una por línea)",
+    customPlaceholder: "p. ej. **/*.log",
+    gitignore: "Respetar .gitignore",
+    hint: "Los archivos filtrados aparecen atenuados: no se pueden marcar y no entran en «seleccionar todo», la exportación ni el conteo de tokens.",
+    presetCodeOnly: "Solo código (sin multimedia, lockfiles ni bundles)",
+    presetNoTests: "Sin tests",
+    presetOnlySrc: "Solo src/",
+    title: "Filtros de archivos",
   },
   tokens: {
     attachments: "Adjuntos",

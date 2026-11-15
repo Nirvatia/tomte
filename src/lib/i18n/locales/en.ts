@@ -44,6 +44,21 @@ export const en: Dict = {
     upload: "Upload files",
     uploadShort: "Upload",
   },
+  backup: {
+    errors: {
+      corrupt: "Backup files are corrupted",
+      export: "Failed to export the backup",
+      import: "Failed to import the backup",
+      notBackup:
+        "The archive has no backup files (manifest.json and project.json)",
+      notZip: "The file is not a ZIP archive",
+      tooLarge: "The project in the backup exceeds the size limit",
+      unsupported: "Backup version is not supported",
+    },
+    exportOne: "Download project backup",
+    imported: 'Project "{name}" imported',
+    import: "Import backup",
+  },
   codeMap: {
     andMore: "{files} and {count} more",
     dialog: "Code map generator",
@@ -229,6 +244,26 @@ export const en: Dict = {
     quickOpen: "Find a prompt file",
     save: "Save now",
   },
+  history: {
+    current: "current",
+    deleteConfirm: "Delete this version? There is no undo.",
+    deleteVersion: "Delete version {n}",
+    diffLegend:
+      "Green is what appeared after the version, red is what was removed. Compared with the file's current text.",
+    empty: "No versions yet. Save the current text with the button above.",
+    errors: {
+      delete: "Failed to delete the version",
+      restore: "Failed to restore the version",
+      save: "Failed to save the version",
+    },
+    open: "Version history",
+    restored: "Version restored",
+    restore: "Restore this version",
+    saved: "Version saved",
+    save: "Save version",
+    title: "History: {name}",
+    version: "Version {n}",
+  },
   limits: {
     addAsMetadata: "Add as metadata",
     attachmentsMessage:
@@ -343,6 +378,8 @@ export const en: Dict = {
       export: "Could not export the files",
     },
     fileNamePlaceholder: "File name...",
+    manage: "Select files",
+    manageDone: "Done",
     renameFile: "Rename file {name}",
     rowHint: "{name} (click — preview, double click — pin, F2 — rename)",
     section: "Prompts",
@@ -444,6 +481,23 @@ export const en: Dict = {
       "This text is inserted into the editor when you click the tag (max 5000 characters)",
     valuePlaceholder:
       "Enter the full instruction text to insert into the prompt...",
+  },
+  templates: {
+    export: "Export",
+    hint: "The text has variables — fill them in before exporting. Empty variables are left as-is.",
+    title: "Template variables",
+    valuePlaceholder: "Enter a value…",
+  },
+  treeFilter: {
+    button: "File selection filter",
+    customLabel: "Custom rules (one per line)",
+    customPlaceholder: "e.g. **/*.log",
+    gitignore: "Respect .gitignore",
+    hint: "Filtered files are dimmed: they can't be checked and don't count toward select all, export, or token estimation.",
+    presetCodeOnly: "Code only (no media, lockfiles, bundles)",
+    presetNoTests: "Without tests",
+    presetOnlySrc: "Only src/",
+    title: "File filters",
   },
   tokens: {
     attachments: "Attachments",
