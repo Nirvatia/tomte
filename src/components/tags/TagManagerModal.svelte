@@ -498,7 +498,7 @@
                     <button
                       type="button"
                       onclick={() => handleApply(tag)}
-                      class="rounded-md p-1.5 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
+                      class="icon-btn hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
                       title={$t("tags.apply")}
                       aria-label={$t("tags.applyTag", { name: tag.name })}
                     >
@@ -507,7 +507,7 @@
                     <button
                       type="button"
                       onclick={() => openEditForm(tag)}
-                      class="rounded-md p-1.5 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+                      class="icon-btn"
                       title={$t("common.edit")}
                       aria-label={$t("tags.editTag", { name: tag.name })}
                     >
@@ -516,7 +516,7 @@
                     <button
                       type="button"
                       onclick={() => void handleDeleteOne(tag)}
-                      class="rounded-md p-1.5 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+                      class="icon-btn danger"
                       title={$t("common.delete")}
                       aria-label={$t("tags.deleteTag", { name: tag.name })}
                     >

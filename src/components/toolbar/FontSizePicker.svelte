@@ -71,7 +71,7 @@
     <div
       role="dialog"
       aria-label={$t("fontSize.pick")}
-      class="absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in rounded-md border border-[var(--border-light)] bg-[var(--bg-medium)] p-1.5 shadow-md"
+      class="menu-panel absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in"
     >
       <button
         type="button"

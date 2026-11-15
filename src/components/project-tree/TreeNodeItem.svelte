@@ -193,7 +193,7 @@
   <button
     type="button"
     onclick={toggle}
-    class="flex shrink-0 items-center justify-center rounded p-1 transition-colors hover:bg-[var(--bg-lighter)]"
+    class="icon-btn"
     aria-expanded={node.type === "directory" ? isOpen : undefined}
     aria-label={node.type === "directory"
       ? isOpen
@@ -232,7 +232,7 @@
     <button
       type="button"
       onclick={handleInsertLink}
-      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--accent)] group-hover:opacity-100 group-focus-within:opacity-100"
+      class="icon-btn opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:text-[var(--accent)]"
       title={$t("tree.insertRef")}
       aria-label={$t("tree.insertRefTo", { name: node.name })}
     >
@@ -243,7 +243,7 @@
       type="button"
       onclick={handlePreview}
       disabled={isPreviewLoading}
-      class="rounded p-1 text-[var(--text-secondary)] opacity-0 transition-all hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] group-hover:opacity-100 group-focus-within:opacity-100 disabled:pointer-events-none"
+      class="icon-btn opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 disabled:pointer-events-none disabled:opacity-40"
       title={$t("tree.viewContent")}
       aria-label={$t("tree.viewContentOf", { name: node.name })}
     >

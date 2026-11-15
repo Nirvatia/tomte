@@ -305,7 +305,7 @@
                       <button
                         type="button"
                         onclick={saveRename}
-                        class="rounded-md p-1.5 text-[var(--success)] transition-colors hover:bg-[var(--success)]/10"
+                        class="icon-btn text-[var(--success)] hover:bg-[var(--success)]/10"
                         title={$t("common.save")}
                       >
                         <Plus size={16} />
@@ -313,7 +313,7 @@
                       <button
                         type="button"
                         onclick={cancelRename}
-                        class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
+                        class="icon-btn"
                         title={$t("common.cancel")}
                       >
                         <X size={16} />
@@ -322,7 +322,7 @@
                       <button
                         type="button"
                         onclick={() => handlePreview(file)}
-                        class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
+                        class="icon-btn"
                         title={$t("common.view")}
                       >
                         <Eye size={16} />
@@ -330,7 +330,7 @@
                       <button
                         type="button"
                         onclick={() => handleRename(index)}
-                        class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
+                        class="icon-btn"
                         title={$t("common.rename")}
                       >
                         <Pencil size={16} />
@@ -338,7 +338,7 @@
                       <button
                         type="button"
                         onclick={() => handleDownload(index)}
-                        class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-medium)] hover:text-[var(--text-primary)]"
+                        class="icon-btn"
                         title={$t("common.download")}
                       >
                         <Download size={16} />
@@ -346,7 +346,7 @@
                       <button
                         type="button"
                         onclick={() => handleRemove(index)}
-                        class="rounded-md p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+                        class="icon-btn danger"
                         title={$t("common.delete")}
                       >
                         <Trash2 size={16} />

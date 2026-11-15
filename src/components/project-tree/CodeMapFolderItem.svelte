@@ -37,7 +37,7 @@
         tabindex="0"
         onclick={toggle}
         onkeydown={(e) => e.key === "Enter" && toggle(e)}
-        class="flex shrink-0 items-center justify-center rounded p-0.5 transition-colors hover:bg-[var(--bg-lighter)] cursor-pointer"
+        class="icon-btn"
       >
         {#if isOpen}
           <ChevronDown size={14} />

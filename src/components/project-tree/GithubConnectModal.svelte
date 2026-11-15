@@ -141,7 +141,7 @@
         <button
           type="button"
           onclick={onClose}
-          class="rounded p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           aria-label={$t("common.close")}
         >
           <X size={18} />

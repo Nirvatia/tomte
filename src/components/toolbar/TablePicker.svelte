@@ -97,7 +97,7 @@
     <div
       role="dialog"
       aria-label={$t("table.pickSize")}
-      class="absolute left-0 top-full z-50 mt-2 animate-fade-in rounded-md border border-[var(--border-light)] bg-[var(--bg-medium)] p-3 shadow-md"
+      class="menu-panel absolute left-0 top-full z-50 mt-2 animate-fade-in p-3"
     >
       <div
         class="mb-2 px-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"

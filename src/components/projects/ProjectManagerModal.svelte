@@ -371,7 +371,7 @@
               }}
               type="text"
               placeholder={$t("projects.newNamePlaceholder")}
-              class="w-full rounded-md border border-[var(--accent)] bg-[var(--bg-darkest)] px-3.5 py-2 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+              class="input w-full px-3.5"
               maxlength="100"
               aria-label={$t("projects.newName")}
             />

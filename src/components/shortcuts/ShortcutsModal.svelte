@@ -46,7 +46,7 @@
       <button
         type="button"
         onclick={close}
-        class="rounded p-1 text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+        class="icon-btn"
         aria-label={$t("common.close")}
       >
         <X size={16} />

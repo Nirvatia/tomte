@@ -290,7 +290,7 @@
           type="button"
           onclick={handleExportSelected}
           disabled={actionInProgress || selectedFiles.length === 0}
-          class="rounded p-1 transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+          class="icon-btn disabled:pointer-events-none disabled:opacity-40"
           title={$t("prompts.downloadZipHint")}
           aria-label={$t("prompts.downloadZip")}
         >
@@ -300,7 +300,7 @@
           type="button"
           onclick={handleDeleteSelected}
           disabled={actionInProgress || selectedFiles.length === 0}
-          class="rounded p-1 transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-40"
+          class="icon-btn danger disabled:pointer-events-none disabled:opacity-40"
           title={$t("prompts.deleteSelectedHint")}
           aria-label={$t("prompts.deleteSelected")}
         >
@@ -309,7 +309,7 @@
         <button
           type="button"
           onclick={toggleManaging}
-          class="rounded p-1 transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]"
+          class="icon-btn"
           title={$t("prompts.manageDone")}
           aria-label={$t("prompts.manageDone")}
         >
@@ -424,7 +424,7 @@
                 type="button"
                 onclick={() => handleStartRename(file.id, file.name)}
                 disabled={actionInProgress}
-                class="rounded p-1 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                class="icon-btn disabled:pointer-events-none disabled:opacity-40"
                 title={$t("common.rename")}
                 aria-label={$t("prompts.renameFile", { name: file.name })}
               >
@@ -434,7 +434,7 @@
                 type="button"
                 onclick={() => handleDeleteFile(file.id, file.name)}
                 disabled={actionInProgress}
-                class="rounded p-1 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-40"
+                class="icon-btn danger disabled:pointer-events-none disabled:opacity-40"
                 title={$t("common.delete")}
                 aria-label={$t("prompts.deleteFile", { name: file.name })}
               >
