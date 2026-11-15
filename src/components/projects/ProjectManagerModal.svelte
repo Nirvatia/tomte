@@ -3,6 +3,7 @@
   import {
     CircleAlert,
     Copy,
+    Download,
     FileText,
     FolderKanban,
     FolderTree,
@@ -12,14 +13,18 @@
     Plus,
     Search,
     Trash2,
+    Upload,
     X,
   } from "@lucide/svelte";
 
+  import { notifyError, notifyInfo } from "$lib/notify";
   import { activeProject, isProjectManagerOpen } from "../../stores";
   import { requestAlert, requestConfirm } from "../../stores/confirm";
 
   import { formatFileSize, getErrorMessage } from "../../utils";
+  import { exportProjectBackup, importProjectBackup } from "../../utils/backup";
   import {
+    loadProject,
     loadProjectSummaries,
     type ProjectSummary,
   } from "../../utils/projectDb";
@@ -43,6 +48,8 @@
   let isCreating = $state(false);
   let newProjectName = $state("");
   let createInput = $state<HTMLInputElement | null>(null);
+  let importInput = $state<HTMLInputElement | null>(null);
+  let isImporting = $state(false);
 
   $effect(() => {
     if ($isProjectManagerOpen) {
@@ -85,6 +92,44 @@
   function close() {
     if (actionInProgress) return;
     isProjectManagerOpen.set(false);
+  }
+
+  // Этап 10.1. Бэкап: выгрузка проекта целиком и импорт из .tomte.zip.
+  async function handleExportBackup(
+    project: ProjectSummary,
+    event: MouseEvent,
+  ) {
+    event.stopPropagation();
+    if (actionInProgress) return;
+    actionInProgress = true;
+    try {
+      const full = await loadProject(project.id);
+      if (full) exportProjectBackup(full);
+    } catch (error) {
+      console.error("Failed to export backup:", error);
+      notifyError(getErrorMessage(error, $t("backup.errors.export")));
+    } finally {
+      actionInProgress = false;
+    }
+  }
+
+  async function handleImportChange(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file || isImporting) return;
+    isImporting = true;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const project = await importProjectBackup(bytes);
+      notifyInfo($t("backup.imported", { name: project.name }));
+      await loadProjects();
+    } catch (error) {
+      console.error("Failed to import backup:", error);
+      notifyError(getErrorMessage(error, $t("backup.errors.import")));
+    } finally {
+      isImporting = false;
+    }
   }
 
   function handleBackdropClick(event: MouseEvent) {
@@ -275,7 +320,7 @@
     tabindex="-1"
   >
     <div
-      class="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl border border-[var(--border-light)] bg-[var(--bg-dark)] shadow-[var(--shadow-lg)]"
+      class="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
       role="presentation"
       onclick={(event) => event.stopPropagation()}
     >
@@ -300,7 +345,7 @@
           type="button"
           onclick={close}
           disabled={actionInProgress}
-          class="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+          class="icon-btn disabled:opacity-40"
           aria-label={$t("projects.closeManager")}
         >
           <X size={20} />
@@ -334,7 +379,7 @@
               type="button"
               onclick={() => void submitCreate()}
               disabled={actionInProgress || !newProjectName.trim()}
-              class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+              class="btn btn-primary btn-md shrink-0"
             >
               {#if actionInProgress}
                 <LoaderCircle size={14} class="animate-spin" />
@@ -347,7 +392,7 @@
               type="button"
               onclick={cancelCreate}
               disabled={actionInProgress}
-              class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-4 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+              class="btn btn-outline btn-md shrink-0"
             >
               {$t("common.cancel")}
             </button>
@@ -363,15 +408,37 @@
                 type="text"
                 bind:value={searchQuery}
                 placeholder={$t("projects.searchPlaceholder")}
-                class="w-full rounded-md border border-[var(--border)] bg-[var(--bg-darkest)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] transition-all placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/15"
+                class="input w-full py-2 pl-9 pr-3"
                 aria-label={$t("projects.search")}
               />
             </div>
             <button
               type="button"
+              onclick={() => importInput?.click()}
+              disabled={actionInProgress || isImporting}
+              class="btn btn-outline btn-md shrink-0"
+              title={$t("backup.import")}
+              aria-label={$t("backup.import")}
+            >
+              {#if isImporting}
+                <LoaderCircle size={14} class="animate-spin" />
+              {:else}
+                <Upload size={14} />
+              {/if}
+            </button>
+            <input
+              bind:this={importInput}
+              type="file"
+              accept=".zip,application/zip"
+              class="hidden"
+              onchange={(event) => void handleImportChange(event)}
+              aria-label={$t("backup.import")}
+            />
+            <button
+              type="button"
               onclick={startCreate}
               disabled={actionInProgress}
-              class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--bg-darkest)] transition-colors hover:bg-[var(--accent-hover)] disabled:pointer-events-none disabled:opacity-50"
+              class="btn btn-primary btn-md shrink-0"
             >
               <Plus size={14} />
               {$t("projects.new")}
@@ -528,6 +595,16 @@
                       })}
                     >
                       <Copy size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onclick={(event) => handleExportBackup(project, event)}
+                      disabled={actionInProgress}
+                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                      title={$t("backup.exportOne")}
+                      aria-label={$t("backup.exportOne")}
+                    >
+                      <Download size={13} />
                     </button>
                     <button
                       type="button"
