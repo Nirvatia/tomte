@@ -12,6 +12,9 @@ export default defineConfig({
     // Тесты написаны на русском: язык интерфейса берётся из браузера.
     locale: "ru-RU",
     trace: "on-first-retry",
+    // Этап 5.8: тур при первом запуске закрывает интерфейс — в тестах он
+    // отключён, сценарии тура живут в onboarding.spec.ts со своим контекстом.
+    storageState: "tests/e2e/.onboarded.json",
   },
   projects: [
     {

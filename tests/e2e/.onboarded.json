@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "tomte:onboarded",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

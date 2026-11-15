@@ -5,7 +5,7 @@
 
   import ModalShell from "../ui/ModalShell.svelte";
   import { HOTKEYS, formatHotkey } from "$lib/hotkeys";
-  import { isShortcutsOpen } from "../../stores";
+  import { isShortcutsOpen, isTourOpen } from "../../stores";
 
   /** Сочетания редактора: их обрабатывает Tiptap, здесь только для справки. */
   const EDITOR_KEYS = [
@@ -28,6 +28,11 @@
   ];
 
   const close = () => isShortcutsOpen.set(false);
+
+  function restartTour() {
+    isShortcutsOpen.set(false);
+    isTourOpen.set(true);
+  }
 </script>
 
 {#if $isShortcutsOpen}
@@ -78,6 +83,16 @@
           </dl>
         </section>
       {/each}
+    </div>
+    <!-- Этап 5.8: обучение можно перезапустить из шпаргалки. -->
+    <div class="border-t border-[var(--border)] px-5 py-3">
+      <button
+        type="button"
+        class="btn btn-outline btn-sm"
+        onclick={restartTour}
+      >
+        {$t("tour.restart")}
+      </button>
     </div>
   </ModalShell>
 {/if}

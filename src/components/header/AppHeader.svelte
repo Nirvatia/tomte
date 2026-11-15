@@ -179,7 +179,7 @@
       </button>
     {/if}
     <LanguageSwitcher />
-    <div bind:this={exportMenuContainer} class="relative">
+    <div data-tour="export" bind:this={exportMenuContainer} class="relative">
       <button
         type="button"
         onclick={toggleExportMenu}

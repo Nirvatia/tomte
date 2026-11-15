@@ -583,6 +583,48 @@ export const en: Dict = {
     underlineHint: "Underline (Ctrl+U)",
     undoHint: "Undo (Ctrl+Z)",
   },
+  tour: {
+    back: "Back",
+    done: "Done",
+    next: "Next",
+    restart: "Show the tour",
+    skip: "Skip",
+    step: {
+      attachments: {
+        text: "Files the prompt needs: documents, logs, screenshots. Check them and they go to export with numbered captions.",
+        title: "Attachments",
+      },
+      editor: {
+        text: "The prompt text lives here. Images and files are inserted as [IMAGE_1] and [FILE_1] placeholders — export includes their contents.",
+        title: "Editor",
+      },
+      export: {
+        text: "Markdown, PDF, DOCX and GOST-styled DOCX — with attachments and the tree. The full hotkey cheat sheet is on “?”.",
+        title: "Export",
+      },
+      final: {
+        text: "Create your first prompt — the text auto-saves in this browser, and a project backup is available from the project manager.",
+        title: "All set",
+      },
+      prompts: {
+        text: "Prompt files on the left. Click to preview, double-click to pin as a tab. The “+” button creates a new file.",
+        title: "Prompts",
+      },
+      tokens: {
+        text: "The status bar estimates tokens: prompt, attachments, tree. Click to pick a model and its limit: yellow at 80%, red when exceeded.",
+        title: "Tokens and model",
+      },
+      tree: {
+        text: "Parts of the repository: connect a folder or GitHub and check the files you need. The filter next to search hides node_modules, tests and more.",
+        title: "Project tree",
+      },
+      welcome: {
+        text: "Tomte helps you build prompts for LLMs: write text, attach files and the project tree, watch the token limit, and export the result. Let us show you around in thirty seconds.",
+        title: "Welcome to Tomte",
+      },
+    },
+    title: "Tour",
+  },
   tree: {
     collapse: "Collapse folder",
     connectGithub: "Connect GitHub",

@@ -142,6 +142,8 @@ export const isQuickOpenOpen = writable<boolean>(false);
 export const isShortcutsOpen = writable<boolean>(false);
 /** История версий файла: id файла, если модалка открыта (этап 10.3). */
 export const historyFileId = writable<string | null>(null);
+/** Обучение при первом запуске (этап 5.8): тур по интерфейсу. */
+export const isTourOpen = writable<boolean>(false);
 /**
  * Внешняя замена текста активного файла (восстановление версии):
  * PromptEditor подхватывает и показывает без сохранения старого pending-текста.

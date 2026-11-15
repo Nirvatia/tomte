@@ -19,12 +19,14 @@
   import QuickOpenModal from "../components/shortcuts/QuickOpenModal.svelte";
   import ShortcutsModal from "../components/shortcuts/ShortcutsModal.svelte";
   import HistoryModal from "../components/history/HistoryModal.svelte";
+  import OnboardingTour from "../components/tour/OnboardingTour.svelte";
   import type { AttachedFile } from "../types";
   import {
     attachedFiles,
     historyFileId,
     isCodeMapOpen,
     isProjectTreeOpen,
+    isTourOpen,
   } from "../stores";
   import { isDesktop } from "$lib/media";
   import { getPlaceholder } from "../utils/files";
@@ -53,6 +55,14 @@
     const project = await initializeActiveProject(getLastProjectId());
     applyProjectToStores(project);
     isReady = true;
+    // Этап 5.8: первый запуск встречает коротким туром по интерфейсу.
+    try {
+      if (!localStorage.getItem("tomte:onboarded")) {
+        isTourOpen.set(true);
+      }
+    } catch {
+      // без хранилища — без тура
+    }
   });
 </script>
 
@@ -100,6 +110,9 @@
   <ShortcutsModal />
   {#if $historyFileId}
     <HistoryModal />
+  {/if}
+  {#if $isTourOpen}
+    <OnboardingTour />
   {/if}
   <GlobalHotkeys />
   <ContextMenuHost />

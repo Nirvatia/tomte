@@ -251,7 +251,10 @@
 <svelte:window onbeforeunload={handleBeforeUnload} />
 
 {#if $activeFile}
-  <div class="editor-canvas flex h-full flex-col overflow-hidden p-3">
+  <div
+    data-tour="editor"
+    class="editor-canvas flex h-full flex-col overflow-hidden p-3"
+  >
     <div
       use:dropzone={handleFilesDropped}
       class="relative flex-1 overflow-hidden bg-[var(--bg-darkest)] transition-all duration-300 {dropZoneActive

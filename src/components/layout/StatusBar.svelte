@@ -260,7 +260,7 @@
       {$t("projects.attachments", { count: $attachedFiles.length })}
     </span>
     <span>·</span>
-    <div class="relative" bind:this={panelContainer}>
+    <div data-tour="tokens" class="relative" bind:this={panelContainer}>
       <button
         bind:this={panelButton}
         type="button"

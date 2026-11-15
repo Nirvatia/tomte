@@ -599,6 +599,48 @@ export const es: Dict = {
     underlineHint: "Subrayado (Ctrl+U)",
     undoHint: "Deshacer (Ctrl+Z)",
   },
+  tour: {
+    back: "Atrás",
+    done: "Listo",
+    next: "Siguiente",
+    restart: "Mostrar el recorrido",
+    skip: "Saltar",
+    step: {
+      attachments: {
+        text: "Archivos que necesita el prompt: documentos, logs, capturas. Márcalos y saldrán en la exportación con sus números.",
+        title: "Adjuntos",
+      },
+      editor: {
+        text: "Aquí se escribe el prompt. Las imágenes y archivos se insertan como marcadores [IMAGE_1] y [FILE_1] — la exportación incluye su contenido.",
+        title: "Editor",
+      },
+      export: {
+        text: "Markdown, PDF, DOCX y DOCX con GOST — con adjuntos y árbol. La chuleta completa de atajos está en «?».",
+        title: "Exportar",
+      },
+      final: {
+        text: "Crea tu primer prompt — el texto se guarda solo en este navegador y la copia del proyecto sale desde el gestor de proyectos.",
+        title: "Todo listo",
+      },
+      prompts: {
+        text: "Los archivos de prompt a la izquierda. Clic: vista previa; doble clic: fijar como pestaña. El botón «+» crea uno nuevo.",
+        title: "Prompts",
+      },
+      tokens: {
+        text: "La barra de estado cuenta tokens: prompt, adjuntos, árbol. Clic para elegir modelo y su límite: amarillo al 80%, rojo al superarlo.",
+        title: "Tokens y modelo",
+      },
+      tree: {
+        text: "Partes del repositorio: conecta una carpeta o GitHub y marca los archivos. El filtro junto al buscador oculta node_modules, tests y más.",
+        title: "Árbol del proyecto",
+      },
+      welcome: {
+        text: "Tomte te ayuda a armar prompts para LLM: escribes texto, adjuntas archivos y el árbol del proyecto, vigilas el límite de tokens y exportas el resultado. Te mostramos lo esencial en treinta segundos.",
+        title: "Bienvenido a Tomte",
+      },
+    },
+    title: "Recorrido",
+  },
   tree: {
     collapse: "Contraer la carpeta",
     connectGithub: "Conectar GitHub",

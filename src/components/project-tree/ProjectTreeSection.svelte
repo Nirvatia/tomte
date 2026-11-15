@@ -305,6 +305,7 @@
   <button
     type="button"
     onclick={() => (isTreeSectionOpen = !isTreeSectionOpen)}
+    data-tour="tree"
     class="tree-section-header flex w-full items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
   >
     {#if isTreeSectionOpen}
