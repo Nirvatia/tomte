@@ -45,6 +45,7 @@ export const es: Dict = {
     selectAll: "Seleccionar todos los adjuntos",
     upload: "Subir archivos",
     uploadShort: "Subir",
+    refMissing: "El adjunto de la etiqueta [{label}] se eliminó o falta",
   },
   backup: {
     errors: {

@@ -15,8 +15,11 @@ import type { Extensions } from "@tiptap/core";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { FontSize } from "./extensions/FontSize";
 import { ProjectTreeBlock } from "./extensions/ProjectTreeBlock";
+import { createAttachmentRefExtension } from "./extensions/AttachmentRef";
 
-export function buildExtensions(): Extensions {
+export function buildExtensions(
+  knownAttachmentLabels?: Set<string>,
+): Extensions {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
@@ -55,5 +58,8 @@ export function buildExtensions(): Extensions {
     TableHeader,
     CharacterCount,
     ProjectTreeBlock,
+    // Этап 5.9: подсветка меток вложений; известные метки нужны,
+    // чтобы отличать живые метки от битых.
+    createAttachmentRefExtension(knownAttachmentLabels ?? new Set()),
   ];
 }

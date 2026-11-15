@@ -17,19 +17,27 @@
 
   import { dropzone } from "$lib/actions/dropzone";
 
+  import { attachmentRefKey } from "$lib/tiptap/extensions/AttachmentRef";
+
   import {
     activeFile,
     activeFileId,
     activeProject,
+    attachedFiles,
     contentRestore,
     editorHtml,
     pendingSaveController,
+    previewFileFromTree,
   } from "../../stores";
 
   import { createFlushableAsync, getErrorMessage } from "../../utils";
   import { notifyError } from "$lib/notify";
   import type { Project } from "../../types";
-  import { getPlaceholder, processFile } from "../../utils/files";
+  import {
+    getPlaceholder,
+    labelAttachments,
+    processFile,
+  } from "../../utils/files";
   import {
     estimatePromptFileSize,
     saveProject,
@@ -204,6 +212,32 @@
     onEditorReady(editor);
   }
 
+  // Этап 5.9: клик по метке [IMAGE_n]/[FILE_n] — превью вложения,
+  // а если вложения уже нет — честное предупреждение.
+  function handleAttachmentRefClick(label: string) {
+    const files = get(attachedFiles);
+    const target = labelAttachments(files, files).find(
+      (file) => file.label === label,
+    );
+    if (target) {
+      previewFileFromTree.set(target);
+    } else {
+      notifyError($t("attachments.refMissing", { label }));
+    }
+  }
+
+  // Метки вложений меняются при добавлении/удалении: обновляем декорации
+  // (битые метки подсвечиваются иначе), сам текст не трогаем.
+  $effect(() => {
+    const files = $attachedFiles;
+    if (!editorInstance) return;
+    const known = new Set(
+      labelAttachments(files, files).map((file) => file.label),
+    );
+    const tr = editorInstance.state.tr.setMeta(attachmentRefKey, { known });
+    editorInstance.view.dispatch(tr);
+  });
+
   async function handleFilesDropped(files: File[]) {
     dropZoneActive = false;
     for (const file of files) {
@@ -270,6 +304,7 @@
           onUpdate={handleUpdate}
           onContentLoaded={(count) => (charCount = count)}
           onPasteImages={handlePasteImages}
+          onAttachmentRefClick={handleAttachmentRefClick}
         />
       </div>
 

@@ -43,6 +43,7 @@ export const ru = {
     selectAll: "Выбрать все вложения",
     upload: "Загрузить файлы",
     uploadShort: "Загрузить",
+    refMissing: "Вложение для метки [{label}] удалено или отсутствует",
   },
   backup: {
     errors: {

@@ -925,3 +925,34 @@
   border-color: rgba(20, 184, 166, 0.3);
   color: var(--accent-hover);
 }
+
+/* — Метки вложений в тексте промпта (этап 5.9): [IMAGE_1], [FILE_2].
+     Декорации ставит AttachmentRef; клик ловит TiptapEditor. — */
+.tiptap-prose .attachment-ref {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+  color: var(--accent-hover);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.tiptap-prose .attachment-ref:hover {
+  background: rgba(20, 184, 166, 0.25);
+  border-color: var(--accent);
+}
+
+/* Битая метка: вложения с таким номером больше нет. */
+.tiptap-prose .attachment-ref.is-broken {
+  background: rgba(251, 113, 133, 0.1);
+  border-color: rgba(251, 113, 133, 0.4);
+  border-style: dashed;
+  color: var(--error);
+  text-decoration: line-through;
+  cursor: help;
+}

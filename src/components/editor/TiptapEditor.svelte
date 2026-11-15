@@ -18,6 +18,8 @@
     onPasteImages?: (files: File[]) => void;
     /** Число символов после программной загрузки текста (смена файла), без сохранения. */
     onContentLoaded?: (charCount: number) => void;
+    /** Клик по метке вложения [IMAGE_n]/[FILE_n] (этап 5.9). */
+    onAttachmentRefClick?: (label: string) => void;
   }
 
   let {
@@ -27,6 +29,7 @@
     onUpdate = () => {},
     onContentLoaded = () => {},
     onPasteImages,
+    onAttachmentRefClick = () => {},
   }: Props = $props();
 
   let editor: Editor | null = $state(null);
@@ -44,6 +47,16 @@
         attributes: {
           class: "tiptap-prose",
           spellcheck: "true",
+        },
+        // Клик по метке вложения: открываем превью, курсор не трогаем.
+        handleClick: (_view, _pos, event) => {
+          const ref = (event.target as HTMLElement | null)?.closest?.(
+            ".attachment-ref",
+          );
+          if (!ref) return false;
+          const label = ref.getAttribute("data-label");
+          if (label) onAttachmentRefClick(label);
+          return true;
         },
         // Ловим только вставку в сам редактор: картинка, вставленная
         // в модалку или поле ввода, не должна становиться вложением.

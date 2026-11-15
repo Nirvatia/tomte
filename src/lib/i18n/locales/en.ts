@@ -43,6 +43,7 @@ export const en: Dict = {
     selectAll: "Select all attachments",
     upload: "Upload files",
     uploadShort: "Upload",
+    refMissing: "The attachment for [{label}] was deleted or is missing",
   },
   backup: {
     errors: {
