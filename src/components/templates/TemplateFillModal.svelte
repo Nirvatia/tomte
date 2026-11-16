@@ -48,7 +48,7 @@
           </span>
           <input
             type="text"
-            class="input w-full px-3"
+            class="input w-full"
             value={values[name] ?? ""}
             oninput={(event) => {
               edits = { ...edits, [name]: event.currentTarget.value };

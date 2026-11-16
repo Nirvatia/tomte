@@ -204,7 +204,7 @@
             if (event.key === "Escape") cancelRename();
           }}
           aria-label={$t("tabs.renameInput", { name: file.name })}
-          class="input h-7 w-28 px-1.5 text-ui font-medium"
+          class="input input-sm w-28 font-medium"
           maxlength="50"
         />
       {:else}
@@ -249,7 +249,7 @@
             cancelNewFile();
           }
         }}
-        class="input h-7 w-28 px-1.5 text-ui font-medium"
+        class="input input-sm w-28 font-medium"
         placeholder={$t("prompts.fileNamePlaceholder")}
         maxlength="50"
       />

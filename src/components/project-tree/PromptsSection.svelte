@@ -353,7 +353,7 @@
                   cancelRename();
                 }
               }}
-              class="input ml-[28px] h-6 flex-1 px-2 text-ui"
+              class="input input-sm ml-[28px] flex-1"
               use:autofocus
             />
           {:else if isManaging}
@@ -463,7 +463,7 @@
               }
             }}
             placeholder={$t("prompts.fileNamePlaceholder")}
-            class="input h-6 flex-1 px-2 text-ui"
+            class="input input-sm flex-1"
           />
         </div>
       {/if}

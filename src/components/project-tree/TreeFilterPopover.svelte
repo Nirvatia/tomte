@@ -133,8 +133,7 @@
           bind:value={customDraft}
           onblur={commitCustom}
           placeholder={$t("treeFilter.customPlaceholder")}
-          class="input h-auto w-full resize-none px-2 py-1.5 font-mono text-label"
-        ></textarea>
+          class="input w-full resize-none font-mono text-label"></textarea>
       </label>
     </div>
   {/if}

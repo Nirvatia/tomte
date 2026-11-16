@@ -904,7 +904,7 @@
   height: 36px;
   flex-shrink: 0;
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
+  border-radius: 2px;
   background: var(--bg-darkest);
   color: var(--text-secondary);
   cursor: pointer;
@@ -918,86 +918,99 @@
   color: var(--text-primary);
 }
 
-/* — Поля ввода. Видимая рамка 1px со всех четырёх сторон и малый радиус:
-      границу поля видно в покое, без декоративных «подчёркиваний».
-      Фокус — рамка акцентного цвета плюс такая же внутренняя тень
-      (итого 2px), поэтому размеры поля не меняются и раскладку не дёргает.
-      Одинаково для input и textarea. — */
-.input {
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  background: var(--bg-darkest);
-  color: var(--text-primary);
-  caret-color: var(--accent);
-  font-family: var(--font-ui);
-  font-size: var(--text-ui);
-  line-height: 1.5;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-textarea.input {
-  line-height: 1.55;
-}
-.input::placeholder {
-  color: var(--text-dim);
-}
-.input:hover:not(:disabled):not(:focus) {
-  border-color: var(--text-dim);
-}
-.input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-.input:disabled {
-  background: var(--bg-medium);
-  color: var(--text-tertiary);
-  cursor: not-allowed;
-}
-.input.is-error,
-.input.is-error:focus {
-  border-color: var(--error);
-}
-.input.is-error:focus {
-  box-shadow: inset 0 0 0 1px var(--error);
-}
+/* — Поля ввода и триггер выпадающего списка (вариант C, «плоское, как в IDE»).
+      Рамка 1px и радиус 2px; размеры: .input 32px, .input-sm 26px (строки
+      сайдбара, вкладки, поиск), textarea растёт по тексту. Фокус — линия
+      акцента 1px внутри рамки: ничего не светится, размеры не меняются.
+      В @layer components, чтобы утилиты (pl-9 под иконку, ml-*, w-*)
+      переопределяли отступы и ширину. — */
+@layer components {
+  .input {
+    display: block;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 2px;
+    background: var(--bg-darkest);
+    color: var(--text-primary);
+    caret-color: var(--accent);
+    font-family: var(--font-ui);
+    font-size: var(--text-ui);
+    line-height: 1.4;
+    transition:
+      border-color 0.12s ease,
+      background-color 0.12s ease,
+      outline-color 0.12s ease;
+  }
+  .input-sm {
+    height: 26px;
+    padding: 0 8px;
+    font-size: var(--text-label);
+  }
+  textarea.input {
+    height: auto;
+    padding: 7px 10px;
+    line-height: 1.55;
+  }
+  .input::placeholder {
+    color: var(--text-dim);
+    opacity: 1;
+  }
+  .input:hover:not(:disabled):not(:focus) {
+    border-color: var(--text-dim);
+  }
+  .input:focus {
+    outline: 1px solid var(--accent);
+    outline-offset: -2px;
+    border-color: var(--accent);
+  }
+  .input:disabled {
+    background: var(--bg-light);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+  }
+  .input.is-error {
+    border-color: var(--error);
+  }
+  .input.is-error:focus {
+    outline-color: var(--error);
+  }
 
-/* — Кастомный dropdown: единственная замена нативного select
-     (выбор языка, модели). Триггер выглядит как поле. — */
-.dropdown-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  background: var(--bg-darkest);
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: var(--text-ui);
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-.dropdown-trigger:hover {
-  border-color: var(--text-dim);
-}
-.dropdown-trigger[aria-expanded="true"] {
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-.dropdown-trigger .chev {
-  color: var(--text-tertiary);
-  transition: transform 0.15s ease;
-}
-.dropdown-trigger[aria-expanded="true"] .chev {
-  transform: rotate(180deg);
+  /* Кастомный dropdown: единственная замена нативного select (язык,
+     модель). Триггер выглядит как поле. */
+  .dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 2px;
+    background: var(--bg-darkest);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: var(--text-ui);
+    cursor: pointer;
+    transition:
+      border-color 0.12s ease,
+      outline-color 0.12s ease;
+  }
+  .dropdown-trigger:hover {
+    border-color: var(--text-dim);
+  }
+  .dropdown-trigger[aria-expanded="true"] {
+    border-color: var(--accent);
+    outline: 1px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .dropdown-trigger .chev {
+    color: var(--text-tertiary);
+    transition: transform 0.15s ease;
+  }
+  .dropdown-trigger[aria-expanded="true"] .chev {
+    transform: rotate(180deg);
+  }
 }
 
 /* — Меню: raised-поверхность (этап 8, выше панелей по высоте). — */

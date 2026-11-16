@@ -102,7 +102,7 @@
         if (event.key === "Escape") onCancelRename();
       }}
       onclick={(event) => event.stopPropagation()}
-      class="w-full rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-1 text-sm font-medium text-[var(--text-primary)] focus:outline-none"
+      class="input input-sm w-full font-medium"
       maxlength="100"
     />
   {:else}

@@ -231,7 +231,7 @@
                         if (event.key === "Enter") saveRename();
                         if (event.key === "Escape") cancelRename();
                       }}
-                      class="input w-full px-2 py-1"
+                      class="input input-sm w-full"
                     />
                   {:else}
                     <p

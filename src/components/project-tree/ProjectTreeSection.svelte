@@ -462,7 +462,7 @@
             }}
             placeholder={$t("tree.searchPlaceholder")}
             aria-label={$t("tree.search")}
-            class="input h-7 flex-1 px-2 text-label"
+            class="input input-sm flex-1"
           />
           <!-- Фильтр выбора (10.6): .gitignore + пресеты + свои правила. -->
           <TreeFilterPopover />

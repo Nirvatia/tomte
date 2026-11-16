@@ -265,7 +265,7 @@
             type="text"
             bind:value={searchQuery}
             placeholder={$t("tags.searchPlaceholder")}
-            class="input w-full py-2 pl-9 pr-3"
+            class="input w-full pl-9"
             aria-label={$t("tags.search")}
           />
         </div>

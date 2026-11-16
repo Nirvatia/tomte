@@ -59,7 +59,7 @@
       id="{uid}-name"
       type="text"
       placeholder={$t("tags.namePlaceholder")}
-      class="input w-full px-3.5"
+      class="input w-full"
       maxlength="50"
     />
     <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
@@ -73,7 +73,7 @@
       id="{uid}-value"
       placeholder={$t("tags.valuePlaceholder")}
       {rows}
-      class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
+      class="input w-full resize-none font-mono"
       maxlength="5000"></textarea>
     <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
       {$t("tags.valueHint")}

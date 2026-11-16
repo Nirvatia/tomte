@@ -399,7 +399,7 @@
               step="1000"
               value={$tokenLimitSetting.customTokens}
               onchange={(event) => setCustomTokens(event.currentTarget.value)}
-              class="input mt-1 w-full px-2 py-1 font-mono"
+              class="input input-sm mt-1 w-full font-mono"
             />
           {/if}
 

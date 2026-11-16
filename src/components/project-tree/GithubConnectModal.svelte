@@ -132,7 +132,7 @@
           id="github-url"
           bind:value={githubUrl}
           placeholder="https://github.com/owner/repo"
-          class="input w-full px-3"
+          class="input w-full"
         />
       </div>
 
@@ -146,7 +146,7 @@
           id="github-branch"
           bind:value={githubBranch}
           placeholder="main"
-          class="input w-full px-3"
+          class="input w-full"
         />
       </div>
 
@@ -166,7 +166,7 @@
           bind:value={githubToken}
           type="password"
           placeholder="ghp_xxxxxxxxxxxx"
-          class="input w-full px-3 font-mono"
+          class="input w-full font-mono"
         />
       </div>
 

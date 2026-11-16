@@ -328,7 +328,7 @@
             }}
             type="text"
             placeholder={$t("projects.newNamePlaceholder")}
-            class="input w-full px-3.5"
+            class="input w-full"
             maxlength="100"
             aria-label={$t("projects.newName")}
           />
@@ -365,7 +365,7 @@
               type="text"
               bind:value={searchQuery}
               placeholder={$t("projects.searchPlaceholder")}
-              class="input w-full py-2 pl-9 pr-3"
+              class="input w-full pl-9"
               aria-label={$t("projects.search")}
             />
           </div>
