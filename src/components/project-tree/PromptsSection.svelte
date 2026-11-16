@@ -357,7 +357,7 @@
               use:autofocus
             />
           {:else if isManaging}
-            <div class="flex flex-1 items-center gap-2 pl-[28px]">
+            <div class="flex flex-1 items-center gap-2 self-stretch pl-[28px]">
               <Checkbox
                 checked={selectedIds.includes(file.id)}
                 onToggle={() => toggleSelected(file.id)}
@@ -366,7 +366,7 @@
               <button
                 type="button"
                 onclick={() => toggleSelected(file.id)}
-                class="flex flex-1 items-center gap-2 truncate text-left"
+                class="-my-[5px] flex flex-1 items-center gap-2 self-stretch truncate py-[5px] text-left"
                 title={file.name}
               >
                 <FileText size={14} class="shrink-0" />
@@ -406,7 +406,7 @@
                     handleStartRename(file.id, file.name),
                   ),
                 )}
-              class="ml-[28px] flex flex-1 items-center gap-2 truncate text-left"
+              class="-my-[5px] flex flex-1 items-center gap-2 self-stretch truncate py-[5px] pl-[28px] text-left"
               title={$t("prompts.rowHint", { name: file.name })}
             >
               <FileText size={14} class="shrink-0" />

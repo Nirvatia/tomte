@@ -126,3 +126,45 @@ test("дерево проекта удаляется отдельной кноп
   await expect(sidebar.getByText("Дерево не создано")).toBeVisible();
   await expect(page.locator(".tiptap-prose")).toContainText("Текст остаётся");
 });
+
+test("файл промпта открывается кликом по любой точке плашки", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("projectTreeOpen", "true");
+  });
+  await page.goto("/");
+  await expect(page.locator(".tiptap-prose")).toBeEditable({
+    timeout: 15_000,
+  });
+
+  // Новый промпт становится активным; вернуться на «main» надо кликом по плашке.
+  await page.locator('[data-tour="new-prompt"]').click();
+  const tabs = page.getByRole("tablist");
+  await expect(tabs.getByRole("tab", { name: /prompt-1/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+
+  const sidebar = page.getByRole("complementary");
+  const label = sidebar.getByRole("button", { name: "main", exact: true });
+  // Плашка — строка вокруг кнопки: родитель с отступами и рамкой слева.
+  const row = label.locator("xpath=..");
+  const box = await row.boundingBox();
+  if (!box) throw new Error("плашка не найдена");
+
+  // Низ плашки, самая нижняя пара пикселей: раньше это были пустые отступы.
+  for (const [dx, dy] of [
+    [box.width / 2, box.height - 2],
+    [box.width / 2, 2],
+    [14, box.height / 2], // отступ слева от иконки
+  ]) {
+    await page.mouse.click(box.x + dx, box.y + dy);
+    await expect(tabs.getByRole("tab", { name: /main/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    // Снова уходим на другой файл, чтобы проверить следующую точку.
+    await tabs.getByRole("tab", { name: /prompt-1/ }).click();
+  }
+});
