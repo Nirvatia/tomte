@@ -177,7 +177,7 @@
 </script>
 
 <div
-  class="group flex items-center gap-2 border-l-2 border-transparent py-[5px] pr-4 pl-[28px] text-[13px] text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] {isSelected
+  class="group flex items-center gap-2 border-l-2 border-transparent py-[5px] pr-4 pl-[28px] text-ui text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] {isSelected
     ? 'border-l-[var(--accent)] bg-[var(--accent-dim)] font-medium text-[var(--accent)]'
     : ''} {isFilteredFile ? 'opacity-45' : ''}"
   style="padding-left: {depth * 16 + 28}px"

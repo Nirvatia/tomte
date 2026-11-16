@@ -97,7 +97,8 @@
       use:menu={{ onClose: close, returnFocus: triggerEl }}
       role="menu"
       aria-label={label}
-      class="menu-panel absolute z-50 mt-1 {widthClass} {align === 'right'
+      class="menu-panel absolute z-[var(--layer-dropdown)] mt-1 {widthClass} {align ===
+      'right'
         ? 'right-0'
         : 'left-0'} animate-fade-in"
     >

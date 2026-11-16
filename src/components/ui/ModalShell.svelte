@@ -57,7 +57,9 @@
   const isTop = () => stack[stack.length - 1] === id;
 
   // Подтверждения всегда выше модалок, вложенные — выше родительских.
-  const zIndex = $derived((role === "alertdialog" ? 100 : 90) + depth);
+  const zIndex = $derived(
+    `calc(var(${role === "alertdialog" ? "--layer-alert" : "--layer-modal"}) + ${depth})`,
+  );
 
   const previousFocus =
     typeof document !== "undefined"

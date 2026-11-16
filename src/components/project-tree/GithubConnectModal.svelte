@@ -124,7 +124,7 @@
       <div>
         <label
           for="github-url"
-          class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
+          class="mb-1.5 block text-caption font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
           >{$t("github.url")}</label
         >
         <input
@@ -138,7 +138,7 @@
       <div>
         <label
           for="github-branch"
-          class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
+          class="mb-1.5 block text-caption font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
           >{$t("github.branch")}</label
         >
         <input
@@ -152,7 +152,7 @@
       <div>
         <label
           for="github-token"
-          class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
+          class="mb-1.5 block text-caption font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
         >
           Personal Access Token
           <span

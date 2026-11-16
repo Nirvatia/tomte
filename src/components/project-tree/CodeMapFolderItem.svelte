@@ -27,7 +27,7 @@
     <button
       type="button"
       onclick={handleSelect}
-      class="flex w-full items-center gap-2 rounded px-2 py-1 text-[13px] transition-colors {node.path ===
+      class="flex w-full items-center gap-2 rounded px-2 py-1 text-ui transition-colors {node.path ===
       selectedPath
         ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
         : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"

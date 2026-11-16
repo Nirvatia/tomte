@@ -52,11 +52,11 @@
         <X size={16} />
       </button>
     </div>
-    <div class="grid gap-5 px-5 py-4 text-[13px] sm:grid-cols-2">
+    <div class="grid gap-5 px-5 py-4 text-ui sm:grid-cols-2">
       {#each [{ title: $t("shortcuts.app"), items: HOTKEYS }, { title: $t("shortcuts.editor"), items: EDITOR_KEYS }, { title: $t("shortcuts.lists"), items: LIST_KEYS }] as group (group.title)}
         <section>
           <h3
-            class="mb-2 text-[11px] font-semibold tracking-wide text-[var(--text-tertiary)] uppercase"
+            class="mb-2 text-caption font-semibold tracking-wide text-[var(--text-tertiary)] uppercase"
           >
             {group.title}
           </h3>
@@ -66,14 +66,14 @@
                 <dt class="text-[var(--text-secondary)]">
                   {$t(item.description)}
                   {#if "note" in item && item.note}
-                    <span class="block text-[11px] text-[var(--text-tertiary)]"
+                    <span class="block text-caption text-[var(--text-tertiary)]"
                       >{$t(item.note as MessageKey)}</span
                     >
                   {/if}
                 </dt>
                 <dd>
                   <kbd
-                    class="rounded border border-[var(--border-light)] bg-[var(--bg-medium)] px-1.5 py-0.5 font-mono text-[11px] whitespace-nowrap text-[var(--text-primary)]"
+                    class="rounded border border-[var(--border-light)] bg-[var(--bg-medium)] px-1.5 py-0.5 font-mono text-caption whitespace-nowrap text-[var(--text-primary)]"
                   >
                     {formatHotkey(item.keys)}
                   </kbd>

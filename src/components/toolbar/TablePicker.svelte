@@ -97,10 +97,10 @@
     <div
       role="dialog"
       aria-label={$t("table.pickSize")}
-      class="menu-panel absolute left-0 top-full z-50 mt-2 animate-fade-in p-3"
+      class="menu-panel absolute left-0 top-full z-[var(--layer-dropdown)] mt-2 animate-fade-in p-3"
     >
       <div
-        class="mb-2 px-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+        class="mb-2 px-1 font-mono text-micro font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
       >
         {$t("table.chooseSize")}
       </div>

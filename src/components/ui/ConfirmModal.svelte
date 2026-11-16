@@ -43,7 +43,7 @@
         {/if}
       </div>
       <div class="min-w-0 flex-1">
-        <h3 class="mb-1 text-[15px] font-bold text-[var(--text-primary)]">
+        <h3 class="mb-1 text-title font-bold text-[var(--text-primary)]">
           {$confirmState.title || $t("confirm.title")}
         </h3>
         <p

@@ -27,7 +27,7 @@ export const ru = {
     deleteSelected: "Удалить выбранные вложения",
     deleted: "Вложение «{name}» удалено",
     empty: "Нет вложений",
-    emptyHint: "Загрузите файлы или перетащите их сюда",
+    emptyHint: "перетащите файлы сюда",
     errors: {
       add: "Не удалось добавить файлы.",
       delete: "Не удалось удалить файл.",
@@ -38,7 +38,7 @@ export const ru = {
       close: "Закрыть менеджер файлов",
       deleteTitle: "Удалить выбранные файлы?",
       empty: "Нет загруженных файлов",
-      emptyHint: "Закройте это окно и загрузите файлы в правом сайдбаре",
+      emptyHint: "Закройте это окно и загрузите файлы в панели слева",
       selectAll: "Выбрать всё",
       title: "Менеджер файлов",
     },
@@ -427,6 +427,7 @@ export const ru = {
   },
   settings: {
     language: "Язык интерфейса",
+    title: "Настройки",
   },
   shortcuts: {
     alignCenter: "Выровнять по центру",
@@ -694,7 +695,6 @@ export const ru = {
     connectGithub: "Подключить GitHub",
     copy: "Копировать дерево",
     empty: "Дерево не создано",
-    emptyHint: "Откройте папку или подключите GitHub-репозиторий",
     errors: {
       loadRepo: "Не удалось загрузить репозиторий",
       readFolder: "Не удалось прочитать папку",
@@ -712,6 +712,7 @@ export const ru = {
     insertRef: "Вставить ссылку на файл",
     insertRefTo: "Вставить ссылку на файл {name}",
     openFolder: "Открыть папку",
+    openFolderShort: "Папка",
     readError: {
       message: "Не удалось прочитать файл «{name}».\n\n{reason}",
       title: "Ошибка чтения файла",

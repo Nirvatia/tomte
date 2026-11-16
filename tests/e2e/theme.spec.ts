@@ -28,13 +28,14 @@ test("переключатель меняет тему и запоминает �
     timeout: 15_000,
   });
 
-  await page.getByRole("button", { name: "Тема оформления" }).click();
-  await page.getByRole("menuitem", { name: "Светлая" }).click();
+  await page.getByRole("button", { name: "Настройки" }).click();
+  await page.getByRole("menuitemradio", { name: "Светлая" }).click();
   expect(await themeOf(page)).toBe("light");
-  // Меню закрылось после выбора.
+  // Переключатель темы оставляет меню открытым: эффект виден сразу.
   await expect(
-    page.getByRole("menu", { name: "Тема оформления" }),
-  ).toBeHidden();
+    page.getByRole("menuitemradio", { name: "Светлая" }),
+  ).toHaveAttribute("aria-checked", "true");
+  await page.keyboard.press("Escape");
 
   // Цвета действительно поменялись: фон редактора белый.
   const background = await page
@@ -45,8 +46,33 @@ test("переключатель меняет тему и запоминает �
   await page.reload();
   expect(await themeOf(page)).toBe("light");
 
-  await page.getByRole("button", { name: "Тема оформления" }).click();
-  await page.getByRole("menuitem", { name: "Как в системе" }).click();
+  await page.getByRole("button", { name: "Настройки" }).click();
+  await page.getByRole("menuitemradio", { name: "Как в системе" }).click();
   expect(await themeOf(page)).toBe("dark");
   await context.close();
+});
+
+test("настройки: язык, обучение и горячие клавиши", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".tiptap-prose")).toBeEditable({
+    timeout: 15_000,
+  });
+  const settings = page.getByRole("button", { name: "Настройки" });
+
+  await settings.click();
+  await page.getByRole("menuitemradio", { name: "English" }).click();
+  await expect(page.getByRole("button", { name: "Settings" })).toBeVisible();
+  await page.getByRole("menuitemradio", { name: "Русский" }).click();
+  await page.keyboard.press("Escape");
+
+  await settings.click();
+  await page.getByRole("menuitem", { name: "Горячие клавиши" }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Горячие клавиши" }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await settings.click();
+  await page.getByRole("menuitem", { name: "Обучение" }).click();
+  await expect(page.getByRole("dialog", { name: "Обучение" })).toBeVisible();
 });

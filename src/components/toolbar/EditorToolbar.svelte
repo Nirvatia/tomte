@@ -280,7 +280,7 @@
   ]);
 
   const ACTION_BTN_BASE =
-    "flex items-center gap-2 px-3.5 py-[7px] rounded-md border border-[var(--border)] text-[var(--text-secondary)] text-[13px] font-medium transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] hover:border-[var(--border-light)]";
+    "flex items-center gap-2 px-3.5 py-[7px] rounded-md border border-[var(--border)] text-[var(--text-secondary)] text-ui font-medium transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] hover:border-[var(--border-light)]";
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -560,7 +560,7 @@
         <div
           role="menu"
           aria-label={$t("toolbar.toolsMenu")}
-          class="menu-panel absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in"
+          class="menu-panel absolute right-0 top-full z-[var(--layer-dropdown)] mt-2 w-64 animate-fade-in"
         >
           <button
             type="button"

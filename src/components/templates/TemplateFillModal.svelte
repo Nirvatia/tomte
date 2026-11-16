@@ -42,7 +42,7 @@
       {#each variables as name, index (name)}
         <label class="block">
           <span
-            class="mb-1.5 block font-mono text-[12px] text-[var(--text-secondary)]"
+            class="mb-1.5 block font-mono text-label text-[var(--text-secondary)]"
           >
             <span class="chip accent">{variableLabel(name)}</span>
           </span>

@@ -72,12 +72,14 @@
     {:else if $isProjectTreeOpen}
       <!-- Планшет и телефон (этап 9): сайдбар выезжает поверх редактора. -->
       <div
-        class="fixed inset-0 z-40 bg-[var(--overlay)] animate-fade-in"
+        class="fixed inset-0 z-[var(--layer-drawer)] bg-[var(--overlay)] animate-fade-in"
         onclick={() => isProjectTreeOpen.set(false)}
         role="presentation"
         aria-hidden="true"
       ></div>
-      <div class="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-88">
+      <div
+        class="fixed inset-y-0 left-0 z-[var(--layer-drawer)] w-[85vw] max-w-88"
+      >
         <ProjectTreeSidebar
           {editor}
           onInsertPlaceholder={insertPlaceholder}

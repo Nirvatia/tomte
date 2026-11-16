@@ -14,7 +14,7 @@ export function menu(node: HTMLElement, options: MenuOptions) {
   const items = () =>
     Array.from(
       node.querySelectorAll<HTMLElement>(
-        '[role="menuitem"]:not([disabled]), [role="menuitemcheckbox"]:not([disabled])',
+        '[role="menuitem"]:not([disabled]), [role="menuitemcheckbox"]:not([disabled]), [role="menuitemradio"]:not([disabled])',
       ),
     );
 

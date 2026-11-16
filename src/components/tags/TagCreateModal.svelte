@@ -89,7 +89,7 @@
       <div>
         <label
           for="tag-name"
-          class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
         >
           {$t("tags.name")}
         </label>
@@ -110,7 +110,7 @@
       <div>
         <label
           for="tag-value"
-          class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
         >
           {$t("tags.value")}
         </label>

@@ -204,12 +204,12 @@
             if (event.key === "Escape") cancelRename();
           }}
           aria-label={$t("tabs.renameInput", { name: file.name })}
-          class="input h-7 w-28 px-1.5 text-[13px] font-medium"
+          class="input h-7 w-28 px-1.5 text-ui font-medium"
           maxlength="50"
         />
       {:else}
         <span
-          class="text-[13px] {isActive
+          class="text-ui {isActive
             ? 'font-medium text-[var(--text-primary)]'
             : 'text-[var(--text-tertiary)]'} {isPreviewTab(file.id)
             ? 'italic'
@@ -249,7 +249,7 @@
             cancelNewFile();
           }
         }}
-        class="input h-7 w-28 px-1.5 text-[13px] font-medium"
+        class="input h-7 w-28 px-1.5 text-ui font-medium"
         placeholder={$t("prompts.fileNamePlaceholder")}
         maxlength="50"
       />

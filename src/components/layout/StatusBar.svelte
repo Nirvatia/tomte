@@ -243,10 +243,10 @@
 <svelte:window onpointerdown={handlePointerDown} />
 
 <div
-  class="flex h-[28px] shrink-0 items-center border-t border-[var(--border)] bg-[var(--bg-dark)] px-4 text-[12px] text-[var(--text-secondary)]"
+  class="flex h-[28px] shrink-0 items-center border-t border-[var(--border)] bg-[var(--bg-dark)] px-4 text-label text-[var(--text-secondary)]"
 >
   <span
-    class="proj hidden items-center gap-1.5 truncate font-medium text-[13px] text-[var(--text-secondary)] md:flex"
+    class="proj hidden items-center gap-1.5 truncate font-medium text-ui text-[var(--text-secondary)] md:flex"
   >
     <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]"></span>
     {$activeProject?.name ?? "—"}
@@ -259,7 +259,8 @@
     <span class="hidden md:inline">
       {$t("projects.attachments", { count: $attachedFiles.length })}
     </span>
-    <span>·</span>
+    <!-- На узком экране счётчики слева скрыты — и разделитель вместе с ними. -->
+    <span class="hidden md:inline">·</span>
     <div data-tour="tokens" class="relative" bind:this={panelContainer}>
       <button
         bind:this={panelButton}
@@ -295,7 +296,7 @@
           aria-label={$t("tokens.panel")}
           data-tour="tokens-panel"
           tabindex="-1"
-          class="menu-panel absolute right-0 bottom-full z-50 mb-2 w-72 animate-fade-in p-3 text-[12px]"
+          class="menu-panel absolute right-0 bottom-full z-[var(--layer-dropdown)] mb-2 w-72 animate-fade-in p-3 text-label"
         >
           <dl class="space-y-1 font-mono tabular-nums">
             {#each [{ label: $t("tokens.prompt"), value: breakdown.prompt }, { label: $t("tokens.attachments"), value: breakdown.attachments }, { label: $t("tokens.tree"), value: breakdown.tree }] as row (row.label)}
@@ -402,7 +403,7 @@
             />
           {/if}
 
-          <p class="mt-2 text-[11px] leading-snug text-[var(--text-tertiary)]">
+          <p class="mt-2 text-caption leading-snug text-[var(--text-tertiary)]">
             {$t("tokens.note", { date: MODELS_CHECKED_AT })}
           </p>
         </div>

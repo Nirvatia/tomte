@@ -29,7 +29,7 @@ export const es: Dict = {
     deleteSelected: "Eliminar los adjuntos seleccionados",
     deleted: "Adjunto «{name}» eliminado",
     empty: "No hay adjuntos",
-    emptyHint: "Sube archivos o arrástralos aquí",
+    emptyHint: "arrastra archivos aquí",
     errors: {
       add: "No se pudieron añadir los archivos.",
       delete: "No se pudo eliminar el archivo.",
@@ -40,7 +40,7 @@ export const es: Dict = {
       close: "Cerrar el gestor de archivos",
       deleteTitle: "¿Eliminar los archivos seleccionados?",
       empty: "No hay archivos subidos",
-      emptyHint: "Cierra esta ventana y sube archivos en la barra lateral",
+      emptyHint: "Cierra esta ventana y sube archivos en el panel izquierdo",
       selectAll: "Seleccionar todo",
       title: "Gestor de archivos",
     },
@@ -427,6 +427,7 @@ export const es: Dict = {
   },
   settings: {
     language: "Idioma de la interfaz",
+    title: "Ajustes",
   },
   shortcuts: {
     alignCenter: "Centrar",
@@ -692,7 +693,6 @@ export const es: Dict = {
     connectGithub: "Conectar GitHub",
     copy: "Copiar el árbol",
     empty: "Aún no hay árbol",
-    emptyHint: "Abre una carpeta o conecta un repositorio de GitHub",
     errors: {
       loadRepo: "No se pudo cargar el repositorio",
       readFolder: "No se pudo leer la carpeta",
@@ -709,6 +709,7 @@ export const es: Dict = {
     insertRef: "Insertar una referencia al archivo",
     insertRefTo: "Insertar una referencia a {name}",
     openFolder: "Abrir carpeta",
+    openFolderShort: "Carpeta",
     readError: {
       message: "No se pudo leer «{name}».\n\n{reason}",
       title: "Error al leer el archivo",

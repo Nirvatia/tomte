@@ -507,7 +507,7 @@
                   </span>
                   {#if isActive}
                     <span
-                      class="shrink-0 rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)]"
+                      class="shrink-0 rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-micro font-semibold uppercase tracking-wider text-[var(--accent)]"
                     >
                       {$t("projects.active")}
                     </span>
@@ -516,7 +516,7 @@
               {/if}
 
               <div
-                class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--text-tertiary)]"
+                class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-[var(--text-tertiary)]"
               >
                 <span class="flex items-center gap-1">
                   <FileText size={12} />

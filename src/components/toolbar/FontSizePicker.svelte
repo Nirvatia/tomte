@@ -71,7 +71,7 @@
     <div
       role="dialog"
       aria-label={$t("fontSize.pick")}
-      class="menu-panel absolute left-0 top-full z-50 mt-2 w-56 animate-fade-in"
+      class="menu-panel absolute left-0 top-full z-[var(--layer-dropdown)] mt-2 w-56 animate-fade-in"
     >
       <button
         type="button"
@@ -79,7 +79,7 @@
         class="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-[var(--bg-lighter)]"
       >
         <Type size={16} class="shrink-0 text-[var(--text-tertiary)]" />
-        <span class="text-[13px] text-[var(--text-secondary)]"
+        <span class="text-ui text-[var(--text-secondary)]"
           >{$t("fontSize.default")}</span
         >
       </button>
@@ -94,7 +94,7 @@
             : ''}"
         >
           <span
-            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-[var(--border)] bg-[var(--bg-darkest)] font-mono text-[10px] text-[var(--text-tertiary)]"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-[var(--border)] bg-[var(--bg-darkest)] font-mono text-micro text-[var(--text-tertiary)]"
           >
             {size.label}
           </span>

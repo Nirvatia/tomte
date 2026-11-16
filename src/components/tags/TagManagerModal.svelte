@@ -258,7 +258,7 @@
         <div>
           <label
             for="tag-name"
-            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+            class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
             {$t("tags.name")}
           </label>
@@ -278,7 +278,7 @@
         <div>
           <label
             for="tag-value"
-            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+            class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
             {$t("tags.value")}
           </label>
@@ -396,7 +396,7 @@
           </div>
         {:else}
           <div
-            class="sticky top-0 z-10 flex items-center gap-3 border-b border-[var(--border)] bg-[var(--bg-light)] px-6 py-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+            class="sticky top-0 z-[var(--layer-raised)] flex items-center gap-3 border-b border-[var(--border)] bg-[var(--bg-light)] px-6 py-2 text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
             <button
               type="button"

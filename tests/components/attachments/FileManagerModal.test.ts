@@ -146,7 +146,7 @@ describe("FileManagerModal", () => {
 
       expect(
         await screen.findByText(
-          "Закройте это окно и загрузите файлы в правом сайдбаре",
+          "Закройте это окно и загрузите файлы в панели слева",
         ),
       ).toBeInTheDocument();
     });

@@ -91,8 +91,10 @@ describe("ProjectTreeSection", () => {
 
       expect(screen.getByText("Проект")).toBeInTheDocument();
       expect(screen.getByText("Дерево не создано")).toBeInTheDocument();
+      // Компактная пустая секция: действия прямо в строке.
+      expect(screen.getByRole("button", { name: "Папка" })).toBeInTheDocument();
       expect(
-        screen.getByText("Откройте папку или подключите GitHub-репозиторий"),
+        screen.getByRole("button", { name: "GitHub" }),
       ).toBeInTheDocument();
     });
 

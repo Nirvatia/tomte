@@ -124,7 +124,7 @@
         class="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-medium)] px-5 py-3"
       >
         <span
-          class="font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          class="font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
         >
           {$t("extractor.step1")}
         </span>
@@ -152,7 +152,7 @@
         class="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-medium)] px-5 py-3"
       >
         <span
-          class="font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          class="font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
         >
           {$t("extractor.step2")}
           <span class="text-[var(--accent-hover)]"

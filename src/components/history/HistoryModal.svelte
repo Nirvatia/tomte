@@ -132,11 +132,11 @@
                   onclick={() => (selectedId = version.id)}
                 >
                   <span
-                    class="block text-[13px] font-medium text-[var(--text-primary)]"
+                    class="block text-ui font-medium text-[var(--text-primary)]"
                   >
                     {$t("history.version", { n: number })}
                   </span>
-                  <span class="block text-[11px] text-[var(--text-tertiary)]">
+                  <span class="block text-caption text-[var(--text-tertiary)]">
                     {formatRelativeTime(version.createdAt)}
                   </span>
                 </button>
@@ -165,7 +165,7 @@
 
         <div class="flex min-h-0 flex-col">
           <p
-            class="border-b border-[var(--border)] px-4 py-2 text-[11px] text-[var(--text-tertiary)]"
+            class="border-b border-[var(--border)] px-4 py-2 text-caption text-[var(--text-tertiary)]"
           >
             {$t("history.diffLegend")}
             {#if changes.added + changes.removed > 0}
@@ -175,7 +175,7 @@
             {/if}
           </p>
           <pre
-            class="flex-1 overflow-auto px-4 py-3 font-mono text-[12px] leading-relaxed whitespace-pre-wrap"><code
+            class="flex-1 overflow-auto px-4 py-3 font-mono text-label leading-relaxed whitespace-pre-wrap"><code
               >{#each diff as line (line.text + line.type)}<span
                   class="block px-1 {line.type === 'add'
                     ? 'bg-[var(--success)]/10 text-[var(--success)]'

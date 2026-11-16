@@ -88,8 +88,10 @@ describe("AttachmentsSection", () => {
 
       expect(screen.getByText("Вложения")).toBeInTheDocument();
       expect(screen.getByText("Нет вложений")).toBeInTheDocument();
+      // Компактная пустая секция: одна строка с подсказкой и кнопкой.
+      expect(screen.getByText(/перетащите файлы сюда/)).toBeInTheDocument();
       expect(
-        screen.getByText("Загрузите файлы или перетащите их сюда"),
+        screen.getByRole("button", { name: /Загрузить$/ }),
       ).toBeInTheDocument();
     });
 

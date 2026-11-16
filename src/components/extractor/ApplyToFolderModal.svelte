@@ -115,7 +115,7 @@
       <FolderOutput size={18} class="text-[var(--accent)]" />
       {$t("extractor.applyTitle")}
     </h2>
-    <span class="font-mono text-[11px] text-[var(--text-tertiary)]">
+    <span class="font-mono text-caption text-[var(--text-tertiary)]">
       {folderName ? $t("extractor.applyFolder", { name: folderName }) : ""}
     </span>
   </div>
@@ -140,7 +140,7 @@
             />
           {/if}
           <span
-            class="min-w-0 flex-1 truncate font-mono text-[12px] text-[var(--text-primary)]"
+            class="min-w-0 flex-1 truncate font-mono text-label text-[var(--text-primary)]"
           >
             {item.path}
           </span>
@@ -166,7 +166,7 @@
         role="alert"
       >
         {#each failures as failure (failure.path)}
-          <li class="py-0.5 text-[11px] text-[var(--error)]">
+          <li class="py-0.5 text-caption text-[var(--error)]">
             {failure.path}: {failure.reason}
           </li>
         {/each}

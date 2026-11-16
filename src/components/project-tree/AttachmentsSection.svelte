@@ -188,7 +188,7 @@
   <button
     type="button"
     onclick={() => (isAttachmentsSectionOpen = !isAttachmentsSectionOpen)}
-    class="tree-section-header flex w-full items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
+    class="tree-section-header flex w-full items-center gap-1.5 px-4 py-1.5 text-label font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
   >
     {#if isAttachmentsSectionOpen}
       <ChevronDown size={12} />
@@ -196,7 +196,7 @@
       <ChevronRight size={12} />
     {/if}
     <span>{$t("attachments.section")}</span>
-    <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
+    <span class="ml-auto font-mono text-micro text-[var(--text-tertiary)]">
       {$totalFilesCount}
     </span>
   </button>
@@ -233,7 +233,7 @@
             type="button"
             onclick={deleteSelectedAttachments}
             disabled={actionInProgress}
-            class="flex h-7 cursor-pointer items-center gap-1 rounded px-2 text-[11px] font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/10 disabled:pointer-events-none disabled:opacity-40"
+            class="flex h-7 cursor-pointer items-center gap-1 rounded px-2 text-caption font-medium text-[var(--error)] transition-colors hover:bg-[var(--error)]/10 disabled:pointer-events-none disabled:opacity-40"
             title={$t("prompts.deleteSelectedHint")}
             aria-label={$t("attachments.deleteSelected")}
           >
@@ -272,21 +272,23 @@
       class="relative min-h-0 transition-colors"
     >
       {#if $attachedFiles.length === 0}
-        <div class="px-4 py-6 text-center">
-          <Paperclip size={24} class="mx-auto mb-2 text-[var(--text-dim)]" />
-          <p class="text-xs font-medium text-[var(--text-tertiary)]">
-            {$t("attachments.empty")}
-          </p>
+        <!-- Пустая секция — одна строка (этап 14.4). Пунктир подсказывает,
+             что сюда можно перетащить файлы. -->
+        <div
+          class="m-2 flex items-center gap-2 rounded-md border border-dashed border-[var(--border)] py-1.5 pr-1.5 pl-3"
+        >
+          <Paperclip size={14} class="shrink-0 text-[var(--text-dim)]" />
           <p
-            class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]"
+            class="min-w-0 flex-1 text-caption leading-snug text-[var(--text-tertiary)]"
           >
-            {$t("attachments.emptyHint")}
+            <span class="font-medium">{$t("attachments.empty")}</span>
+            — {$t("attachments.emptyHint")}
           </p>
           <button
             type="button"
             onclick={() => attachmentFileInput?.click()}
             disabled={actionInProgress}
-            class="btn btn-ghost btn-sm mt-3"
+            class="btn btn-ghost btn-sm shrink-0"
           >
             <Upload size={14} />
             {$t("attachments.uploadShort")}

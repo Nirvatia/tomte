@@ -305,7 +305,7 @@
   <button
     type="button"
     onclick={() => (isTreeSectionOpen = !isTreeSectionOpen)}
-    class="tree-section-header flex w-full items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
+    class="tree-section-header flex w-full items-center gap-1.5 px-4 py-1.5 text-label font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
   >
     {#if isTreeSectionOpen}
       <ChevronDown size={12} />
@@ -313,7 +313,7 @@
       <ChevronRight size={12} />
     {/if}
     <span>{$t("tree.section")}</span>
-    <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
+    <span class="ml-auto font-mono text-micro text-[var(--text-tertiary)]">
       {#if totalFiles > 0}
         {#if selectedCount > 0}
           {selectedCount}/{totalFiles}
@@ -379,7 +379,7 @@
           aria-label={$t("tree.copy")}
         >
           {#if copied}
-            <span class="text-[11px] font-bold">✓</span>
+            <span class="text-caption font-bold">✓</span>
           {:else}
             <Copy size={16} />
           {/if}
@@ -410,7 +410,7 @@
             ariaLabel={$t("tree.selectAll")}
           />
           <span
-            class="min-w-[1.25rem] text-right font-mono text-[10px] font-semibold text-[var(--text-tertiary)] tabular-nums"
+            class="min-w-[1.25rem] text-right font-mono text-micro font-semibold text-[var(--text-tertiary)] tabular-nums"
           >
             {selectedCount > 0 ? selectedCount : ""}
           </span>
@@ -428,18 +428,39 @@
     {/if}
 
     {#if $projectTreeNodes.length === 0}
-      <div class="px-4 py-6 text-center">
-        <FolderTree size={24} class="mx-auto mb-2 text-[var(--text-dim)]" />
-        <p class="text-xs font-medium text-[var(--text-tertiary)]">
+      <!-- Пустая секция — одна строка с действиями (этап 14.4). -->
+      <div
+        class="m-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-dashed border-[var(--border)] py-1.5 pr-1.5 pl-3"
+      >
+        <FolderTree size={14} class="shrink-0 text-[var(--text-dim)]" />
+        <p
+          class="min-w-0 flex-1 text-caption font-medium text-[var(--text-tertiary)]"
+        >
           {$t("tree.empty")}
         </p>
-        <p class="mt-1 text-[11px] leading-relaxed text-[var(--text-tertiary)]">
-          {$t("tree.emptyHint")}
-        </p>
+        <div class="flex shrink-0 items-center">
+          <button
+            type="button"
+            onclick={handlePickDirectory}
+            disabled={isLoading}
+            class="btn btn-ghost btn-sm"
+          >
+            <FolderOpen size={14} />
+            {$t("tree.openFolderShort")}
+          </button>
+          <button
+            type="button"
+            onclick={onOpenGithubModal}
+            class="btn btn-ghost btn-sm"
+          >
+            <FolderGit size={14} />
+            GitHub
+          </button>
+        </div>
       </div>
     {:else}
       <div
-        class="truncate border-b border-[var(--border)] bg-[var(--bg-light)] px-4 py-1.5 font-mono text-[12px] font-medium text-[var(--text-secondary)]"
+        class="truncate border-b border-[var(--border)] bg-[var(--bg-light)] px-4 py-1.5 font-mono text-label font-medium text-[var(--text-secondary)]"
         title={$projectTreeRootName}
       >
         {$projectTreeRootName}
@@ -457,7 +478,7 @@
             }}
             placeholder={$t("tree.searchPlaceholder")}
             aria-label={$t("tree.search")}
-            class="input h-7 flex-1 px-2 text-[12px]"
+            class="input h-7 flex-1 px-2 text-label"
           />
           <!-- Фильтр выбора (10.6): .gitignore + пресеты + свои правила. -->
           <div class="relative">
@@ -475,11 +496,13 @@
             </button>
             {#if isFilterOpen}
               <div
-                class="menu-panel absolute right-0 top-full z-50 mt-1 w-72 space-y-3 p-3 animate-fade-in"
+                class="menu-panel absolute right-0 top-full z-[var(--layer-dropdown)] mt-1 w-72 space-y-3 p-3 animate-fade-in"
                 role="dialog"
                 aria-label={$t("treeFilter.title")}
               >
-                <p class="text-[11px] leading-snug text-[var(--text-tertiary)]">
+                <p
+                  class="text-caption leading-snug text-[var(--text-tertiary)]"
+                >
                   {$t("treeFilter.hint")}
                 </p>
                 <Checkbox
@@ -489,7 +512,7 @@
                       useGitignore: !treeFilter.useGitignore,
                     })}
                 >
-                  <span class="text-[12px] text-[var(--text-secondary)]">
+                  <span class="text-label text-[var(--text-secondary)]">
                     {$t("treeFilter.gitignore")}
                   </span>
                 </Checkbox>
@@ -499,7 +522,7 @@
                       checked={treeFilter.presets.includes(id)}
                       onToggle={() => togglePreset(id)}
                     >
-                      <span class="text-[12px] text-[var(--text-secondary)]">
+                      <span class="text-label text-[var(--text-secondary)]">
                         {label}
                       </span>
                     </Checkbox>
@@ -507,7 +530,7 @@
                 </div>
                 <label class="block">
                   <span
-                    class="mb-1 block text-[11px] text-[var(--text-tertiary)]"
+                    class="mb-1 block text-caption text-[var(--text-tertiary)]"
                   >
                     {$t("treeFilter.customLabel")}
                   </span>
@@ -516,7 +539,7 @@
                     bind:value={customDraft}
                     onblur={commitCustom}
                     placeholder={$t("treeFilter.customPlaceholder")}
-                    class="input h-auto w-full resize-none px-2 py-1.5 font-mono text-[12px]"
+                    class="input h-auto w-full resize-none px-2 py-1.5 font-mono text-label"
                   ></textarea>
                 </label>
               </div>
@@ -524,7 +547,10 @@
           </div>
         </div>
         {#if filtered}
-          <p class="mt-1 text-[11px] text-[var(--text-tertiary)]" role="status">
+          <p
+            class="mt-1 text-caption text-[var(--text-tertiary)]"
+            role="status"
+          >
             {filtered.matches > 0
               ? $t("tree.found", { count: filtered.matches })
               : $t("common.nothingFound")}

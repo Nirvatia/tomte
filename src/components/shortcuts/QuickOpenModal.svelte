@@ -78,7 +78,7 @@
           id="quick-open-{file.id}"
           role="option"
           aria-selected={index === highlighted}
-          class="flex cursor-pointer items-center gap-2 px-4 py-2 text-[13px] {index ===
+          class="flex cursor-pointer items-center gap-2 px-4 py-2 text-ui {index ===
           highlighted
             ? 'bg-[var(--accent-dim)] text-[var(--text-primary)]'
             : 'text-[var(--text-secondary)]'}"
@@ -89,13 +89,13 @@
           <FileText size={14} class="shrink-0" />
           <span class="truncate">{file.name}</span>
           {#if file.id === $activeFileId}
-            <span class="ml-auto text-[11px] text-[var(--text-tertiary)]"
+            <span class="ml-auto text-caption text-[var(--text-tertiary)]"
               >{$t("quickOpen.open")}</span
             >
           {/if}
         </li>
       {:else}
-        <li class="px-4 py-3 text-[13px] text-[var(--text-tertiary)]">
+        <li class="px-4 py-3 text-ui text-[var(--text-tertiary)]">
           {$t("common.nothingFound")}
         </li>
       {/each}

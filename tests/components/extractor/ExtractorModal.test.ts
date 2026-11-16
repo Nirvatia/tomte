@@ -79,7 +79,7 @@ describe("ExtractorModal", () => {
       render(ExtractorModal);
 
       expect(
-        await screen.findByText("Smart Code Extractor"),
+        await screen.findByText("Экстрактор кода"),
       ).toBeInTheDocument();
     });
 

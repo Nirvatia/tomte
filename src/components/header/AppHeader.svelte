@@ -18,8 +18,7 @@
   import ModalShell from "../ui/ModalShell.svelte";
   import TemplateFillModal from "../templates/TemplateFillModal.svelte";
   import AppLogo from "./AppLogo.svelte";
-  import LanguageSwitcher from "./LanguageSwitcher.svelte";
-  import ThemeSwitcher from "./ThemeSwitcher.svelte";
+  import SettingsMenu from "./SettingsMenu.svelte";
 
   import type { ExportFormat } from "../../types";
   import {
@@ -162,7 +161,7 @@
 <svelte:window onclick={handleClickOutside} />
 
 <header
-  class="flex h-[48px] shrink-0 items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--bg-dark)] px-4 text-[13px] text-[var(--text-secondary)]"
+  class="flex h-[48px] shrink-0 items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--bg-dark)] px-4 text-ui text-[var(--text-secondary)]"
 >
   <AppLogo size="compact" />
 
@@ -179,8 +178,7 @@
         <FolderKanban size={16} />
       </button>
     {/if}
-    <ThemeSwitcher />
-    <LanguageSwitcher />
+    <SettingsMenu />
     <div data-tour="export" bind:this={exportMenuContainer} class="relative">
       <button
         type="button"
@@ -218,7 +216,7 @@
           role="menu"
           aria-label={$t("export.menu")}
           data-tour="export-menu"
-          class="menu-panel absolute right-0 top-full z-50 mt-2 w-64 animate-fade-in"
+          class="menu-panel absolute right-0 top-full z-[var(--layer-dropdown)] mt-2 w-64 animate-fade-in"
         >
           <button
             type="button"
@@ -294,7 +292,7 @@
               onToggle={() => (openInNewTab = !openInNewTab)}
             >
               <span
-                class="flex items-center gap-1.5 text-[12px] text-[var(--text-secondary)]"
+                class="flex items-center gap-1.5 text-label text-[var(--text-secondary)]"
               >
                 <ExternalLink size={13} />
                 {$t("export.openInNewTab")}
@@ -325,7 +323,7 @@
           <CircleAlert size={20} class="text-[var(--error)]" />
         </div>
         <div class="min-w-0 flex-1">
-          <h3 class="mb-1 text-[15px] font-bold text-[var(--text-primary)]">
+          <h3 class="mb-1 text-title font-bold text-[var(--text-primary)]">
             {$t("export.errorTitle")}
           </h3>
           <p

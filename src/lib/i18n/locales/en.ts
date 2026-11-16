@@ -27,7 +27,7 @@ export const en: Dict = {
     deleteSelected: "Delete selected attachments",
     deleted: "Attachment “{name}” deleted",
     empty: "No attachments",
-    emptyHint: "Upload files or drop them here",
+    emptyHint: "drop files here",
     errors: {
       add: "Could not add files.",
       delete: "Could not delete the file.",
@@ -38,7 +38,7 @@ export const en: Dict = {
       close: "Close file manager",
       deleteTitle: "Delete selected files?",
       empty: "No uploaded files",
-      emptyHint: "Close this window and upload files in the sidebar",
+      emptyHint: "Close this window and upload files in the left panel",
       selectAll: "Select all",
       title: "File manager",
     },
@@ -415,6 +415,7 @@ export const en: Dict = {
   },
   settings: {
     language: "Interface language",
+    title: "Settings",
   },
   shortcuts: {
     alignCenter: "Align center",
@@ -676,7 +677,6 @@ export const en: Dict = {
     connectGithub: "Connect GitHub",
     copy: "Copy tree",
     empty: "No tree yet",
-    emptyHint: "Open a folder or connect a GitHub repository",
     errors: {
       loadRepo: "Could not load the repository",
       readFolder: "Could not read the folder",
@@ -692,6 +692,7 @@ export const en: Dict = {
     insertRef: "Insert a file reference",
     insertRefTo: "Insert a reference to {name}",
     openFolder: "Open folder",
+    openFolderShort: "Folder",
     readError: {
       message: "Could not read “{name}”.\n\n{reason}",
       title: "File read error",

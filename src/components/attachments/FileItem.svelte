@@ -93,16 +93,16 @@
   </div>
 
   <div class="min-w-0 flex-1">
-    <p class="truncate text-[13px] font-medium text-[var(--text-primary)]">
+    <p class="truncate text-ui font-medium text-[var(--text-primary)]">
       {file.name}
     </p>
 
     <div class="mt-[3px] flex items-center gap-2">
-      <p class="text-[11px] text-[var(--text-tertiary)]">
+      <p class="text-caption text-[var(--text-tertiary)]">
         {formatFileSize(file.size)}
       </p>
 
-      <span class="rounded px-1.5 py-0.5 font-mono text-[11px] {badgeColor}">
+      <span class="rounded px-1.5 py-0.5 font-mono text-caption {badgeColor}">
         {prefix}_{placeholderIndex}
       </span>
 

@@ -51,7 +51,7 @@
     role="menu"
     aria-label={$t("common.actions")}
     tabindex="-1"
-    class="menu-panel fixed z-[95] min-w-52 animate-fade-in"
+    class="menu-panel fixed z-[var(--layer-context-menu)] min-w-52 animate-fade-in"
     style="left: {position.left}px; top: {position.top}px;"
   >
     {#each $contextMenu.items as item (item.label)}
@@ -68,7 +68,7 @@
       >
         <span>{item.label}</span>
         {#if item.hint}
-          <span class="font-mono text-[11px] text-[var(--text-tertiary)]"
+          <span class="font-mono text-caption text-[var(--text-tertiary)]"
             >{item.hint}</span
           >
         {/if}

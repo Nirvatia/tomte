@@ -157,7 +157,7 @@
       class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-4 py-3"
     >
       <span
-        class="text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
+        class="text-caption font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
       >
         {$t("sidebar.title")}
       </span>
@@ -212,7 +212,7 @@
   {#if $isProjectTreeOpen && !overlay}
     <button
       type="button"
-      class="absolute right-0 top-0 bottom-0 z-10 w-[4px] cursor-col-resize bg-transparent transition-colors hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 focus:outline-none"
+      class="absolute right-0 top-0 bottom-0 z-[var(--layer-raised)] w-[4px] cursor-col-resize bg-transparent transition-colors hover:bg-[var(--accent)]/30 active:bg-[var(--accent)]/50 focus:outline-none"
       onmousedown={handleResizeStart}
       aria-label={$t("sidebar.resize")}
     ></button>

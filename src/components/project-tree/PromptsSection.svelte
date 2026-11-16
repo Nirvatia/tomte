@@ -236,7 +236,7 @@
     <button
       type="button"
       onclick={() => (isPromptsSectionOpen = !isPromptsSectionOpen)}
-      class="tree-section-header flex flex-1 items-center gap-1.5 px-4 py-1.5 text-left text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
+      class="tree-section-header flex flex-1 items-center gap-1.5 px-4 py-1.5 text-left text-label font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-light)]"
     >
       {#if isPromptsSectionOpen}
         <ChevronDown size={12} />
@@ -244,7 +244,7 @@
         <ChevronRight size={12} />
       {/if}
       <span>{$t("prompts.section")}</span>
-      <span class="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
+      <span class="ml-auto font-mono text-micro text-[var(--text-tertiary)]">
         {$promptFiles.length}
       </span>
     </button>
@@ -267,7 +267,7 @@
   {#if isPromptsSectionOpen}
     {#if isManaging}
       <div
-        class="flex items-center gap-2 border-y border-[var(--border)] bg-[var(--bg-light)] py-1 pr-2 pl-[28px] text-[12px] text-[var(--text-secondary)]"
+        class="flex items-center gap-2 border-y border-[var(--border)] bg-[var(--bg-light)] py-1 pr-2 pl-[28px] text-label text-[var(--text-secondary)]"
         role="toolbar"
         aria-label={$t("prompts.bulkToolbar")}
       >
@@ -315,7 +315,7 @@
         </button>
       </div>
       {#if bulkError}
-        <p class="px-4 py-1 text-[11px] text-[var(--error)]" role="alert">
+        <p class="px-4 py-1 text-caption text-[var(--error)]" role="alert">
           {bulkError}
         </p>
       {/if}
@@ -330,7 +330,7 @@
             onDrop: (dragged, target, place) =>
               void movePromptFile(dragged, target, place),
           }}
-          class="group flex items-center gap-2 border-l-2 py-[5px] pr-4 text-[13px] transition-all hover:bg-[var(--bg-light)] {isManaging &&
+          class="group flex items-center gap-2 border-l-2 py-[5px] pr-4 text-ui transition-all hover:bg-[var(--bg-light)] {isManaging &&
           selectedIds.includes(file.id)
             ? 'border-l-[var(--accent)] bg-[var(--accent-dim)]'
             : 'border-l-transparent'} {$activeFileId === file.id && !isManaging
@@ -353,7 +353,7 @@
                   cancelRename();
                 }
               }}
-              class="input ml-[28px] h-6 flex-1 px-2 text-[13px]"
+              class="input ml-[28px] h-6 flex-1 px-2 text-ui"
               use:autofocus
             />
           {:else if isManaging}
@@ -463,14 +463,14 @@
               }
             }}
             placeholder={$t("prompts.fileNamePlaceholder")}
-            class="input h-6 flex-1 px-2 text-[13px]"
+            class="input h-6 flex-1 px-2 text-ui"
           />
         </div>
       {/if}
 
       {#if $promptFiles.length === 0 && !isCreatingFile}
         <div class="px-4 py-3 text-center">
-          <p class="text-[11px] text-[var(--text-tertiary)]">
+          <p class="text-caption text-[var(--text-tertiary)]">
             {$t("prompts.empty")}
           </p>
           <button
