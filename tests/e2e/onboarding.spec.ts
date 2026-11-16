@@ -47,11 +47,13 @@ async function expectSpotOn(page: Page, targetSelector: string) {
       const target = await page.locator(targetSelector).boundingBox();
       const spot = await page.locator(".tour-spot").boundingBox();
       if (!target || !spot) return false;
+      // Панели вырезаются точно по краям, отсюда допуск на дробные пиксели.
+      const eps = 0.5;
       return (
-        spot.x <= target.x &&
-        spot.y <= target.y &&
-        spot.x + spot.width >= target.x + target.width &&
-        spot.y + spot.height >= target.y + target.height
+        spot.x <= target.x + eps &&
+        spot.y <= target.y + eps &&
+        spot.x + spot.width >= target.x + target.width - eps &&
+        spot.y + spot.height >= target.y + target.height - eps
       );
     })
     .toBe(true);
@@ -158,6 +160,40 @@ test("«Назад» к выполненному действию не заст�
   await expect(page.locator(".tour-badge")).toHaveCount(0);
   await tour.getByRole("button", { name: "Далее" }).click();
   await expect(tour.getByRole("heading", { name: "Редактор" })).toBeVisible();
+  await context.close();
+});
+
+test("с клавиатуры шаг-действие выполняется Enter", async ({ browser }) => {
+  const { context, page } = await freshPage(browser);
+  const tour = tourOf(page);
+
+  await expect(tour).toBeVisible({ timeout: 15_000 });
+  await tour.getByRole("button", { name: "Далее" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    tour.getByRole("heading", { name: "Новый промпт" }),
+  ).toBeVisible();
+
+  // Фокус переходит на подсвеченную кнопку «+», Enter её нажимает.
+  await expect(page.locator('[data-tour="new-prompt"]')).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(tour.getByRole("heading", { name: "Редактор" })).toBeVisible();
+  await context.close();
+});
+
+test("при работе мышью фокус не уходит на подсвеченную кнопку", async ({
+  browser,
+}) => {
+  const { context, page } = await freshPage(browser);
+  const tour = tourOf(page);
+
+  await expect(tour).toBeVisible({ timeout: 15_000 });
+  await tour.getByRole("button", { name: "Далее" }).click();
+  await expect(
+    tour.getByRole("heading", { name: "Новый промпт" }),
+  ).toBeVisible();
+  await page.waitForTimeout(300);
+  await expect(page.locator('[data-tour="new-prompt"]')).not.toBeFocused();
   await context.close();
 });
 

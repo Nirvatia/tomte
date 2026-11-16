@@ -29,7 +29,10 @@
    * раскрываются с анимацией, меню появляются и исчезают.
    */
 
-  const SPOT_PADDING = 6;
+  /** Отступ выреза вокруг мелких элементов (кнопки, счётчики). */
+  const SPOT_PADDING = 4;
+  /** Больше этого — панель: вырез точно по её краям, без отступа. */
+  const SMALL_TARGET = { width: 240, height: 60 };
   const POPOVER_WIDTH = 360;
   const AUTO_ADVANCE_DELAY = 450;
 
@@ -50,7 +53,8 @@
   let nextButton = $state<HTMLButtonElement | null>(null);
 
   let viewport = $state<Size>({ width: 1280, height: 800 });
-  let spot = $state<Rect | null>(null);
+  /** Вырез в затемнении: прямоугольник цели и скругления его углов. */
+  let spot = $state<(Rect & { radius: string }) | null>(null);
   let popoverSize = $state<Size>({ width: POPOVER_WIDTH, height: 220 });
   let badgeSize = $state<Size>({ width: 130, height: 30 });
   /** Открыта модалка (пользователь нажал что-то в окне): тур ждёт её закрытия. */
@@ -65,6 +69,8 @@
   /** Проверка была ложной после входа в шаг: только тогда переходим сами. */
   let armed = false;
   let advanceTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Последнее действие пользователя — клавиатура (а не мышь или касание). */
+  let usingKeyboard = false;
   let focusTimer: ReturnType<typeof setTimeout> | undefined;
 
   const action = $derived(step.action);
@@ -147,10 +153,47 @@
     return Boolean(hit && element.contains(hit));
   }
 
-  function sameRect(a: Rect | null, b: Rect | null): boolean {
+  /**
+   * Вырез повторяет форму элемента: скругление берётся из его CSS, у
+   * панелей углы прямые. Рамки нет — у многих элементов она своя, и
+   * вторая поверх выглядит двойной. Там, где элемент упирается в край
+   * экрана (статусбар, activity bar), отступ и скругление убираются.
+   */
+  function spotFor(element: HTMLElement): (Rect & { radius: string }) | null {
+    const rect = element.getBoundingClientRect();
+    const small =
+      rect.width <= SMALL_TARGET.width && rect.height <= SMALL_TARGET.height;
+    const padding = small ? SPOT_PADDING : 0;
+    const box = clipToViewport(inflate(rect, padding), viewport);
+    if (!box) return null;
+
+    const own = parseFloat(getComputedStyle(element).borderTopLeftRadius) || 0;
+    const base = small ? Math.max(own, 4) : own;
+    const radius = base > 0 ? base + padding : 0;
+    const atTop = box.top <= 0.5;
+    const atLeft = box.left <= 0.5;
+    const atRight = box.left + box.width >= viewport.width - 0.5;
+    const atBottom = box.top + box.height >= viewport.height - 0.5;
+    const corner = (flush: boolean) => (flush ? "0" : `${radius}px`);
+    return {
+      ...box,
+      radius: [
+        corner(atTop || atLeft),
+        corner(atTop || atRight),
+        corner(atBottom || atRight),
+        corner(atBottom || atLeft),
+      ].join(" "),
+    };
+  }
+
+  function sameSpot(
+    a: (Rect & { radius: string }) | null,
+    b: (Rect & { radius: string }) | null,
+  ): boolean {
     if (a === b) return true;
     if (!a || !b) return false;
     return (
+      a.radius === b.radius &&
       Math.abs(a.top - b.top) < 0.5 &&
       Math.abs(a.left - b.left) < 0.5 &&
       Math.abs(a.width - b.width) < 0.5 &&
@@ -170,13 +213,8 @@
     if (suspended) return;
 
     const element = findTarget(step);
-    const box = element
-      ? clipToViewport(
-          inflate(element.getBoundingClientRect(), SPOT_PADDING),
-          viewport,
-        )
-      : null;
-    if (!sameRect(box, spot)) spot = box;
+    const next = element ? spotFor(element) : null;
+    if (!sameSpot(next, spot)) spot = next;
 
     if (check && !actionDone) {
       if (check()) completeAction();
@@ -222,14 +260,21 @@
       element?.scrollIntoView({ block: "nearest", inline: "nearest" });
 
       if (current.keepFocus) return;
-      if (current.action && !actionDone && element) {
-        // С клавиатуры действие делается сразу: Enter на кнопке или набор текста.
+      // Фокус на цель — для набора текста всегда (печатать можно сразу),
+      // для кнопок только при работе с клавиатуры: Enter нажимает её. Мышью
+      // фокус-кольцо кнопки выглядело бы лишней рамкой поверх подсветки.
+      const focusTarget = current.action?.hint === "type" || usingKeyboard;
+      if (current.action && !actionDone && element && focusTarget) {
         const focusable = element.matches(FOCUSABLE)
           ? element
           : element.querySelector<HTMLElement>(FOCUSABLE);
         focusable?.focus({ preventScroll: true });
-      } else {
+      } else if (usingKeyboard) {
         nextButton?.focus({ preventScroll: true });
+      } else {
+        // Мышью: фокус в подсказку (Esc и стрелки работают), но без
+        // фокус-кольца на кнопке, которую никто не выбирал с клавиатуры.
+        popoverEl?.focus({ preventScroll: true });
       }
     }, 80);
   }
@@ -282,6 +327,10 @@
   }
 
   onMount(() => {
+    const onKey = () => (usingKeyboard = true);
+    const onPointer = () => (usingKeyboard = false);
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("pointerdown", onPointer, true);
     let frame = 0;
     const loop = () => {
       update();
@@ -289,6 +338,8 @@
     };
     loop();
     return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("pointerdown", onPointer, true);
       cancelAnimationFrame(frame);
       clearTimeout(advanceTimer);
       clearTimeout(focusTimer);
@@ -306,8 +357,7 @@
   {#if spot}
     <div
       class="tour-spot"
-      class:is-action={waitingForAction}
-      style="left:{spot.left}px;top:{spot.top}px;width:{spot.width}px;height:{spot.height}px"
+      style="left:{spot.left}px;top:{spot.top}px;width:{spot.width}px;height:{spot.height}px;border-radius:{spot.radius}"
       aria-hidden="true"
     ></div>
     <!-- Блокеры вокруг окна: клики по самому окну доходят до интерфейса -->
@@ -371,6 +421,7 @@
     class:is-nudging={nudging}
     style={popoverStyle}
     role="dialog"
+    tabindex="-1"
     aria-modal="false"
     aria-label={$t("tour.title")}
     aria-describedby="tour-step-text"
@@ -389,31 +440,38 @@
       ></span>
     {/if}
 
+    <div class="tour-head">
+      <span class="tour-step">
+        {$t("tour.progress", {
+          current: stepIndex + 1,
+          total: steps.length,
+        })}
+      </span>
+      <div
+        class="tour-meter"
+        role="progressbar"
+        aria-label={$t("tour.title")}
+        aria-valuemin={1}
+        aria-valuemax={steps.length}
+        aria-valuenow={stepIndex + 1}
+      >
+        <span style="width:{((stepIndex + 1) / steps.length) * 100}%"></span>
+      </div>
+      <button
+        type="button"
+        class="icon-btn tour-close"
+        aria-label={$t("tour.close")}
+        title={$t("tour.close")}
+        onclick={finish}
+      >
+        <X size={15} />
+      </button>
+    </div>
+
     {#key step.id}
-      <div class="tour-popover-body">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <p class="tour-progress">
-              {$t("tour.progress", {
-                current: stepIndex + 1,
-                total: steps.length,
-              })}
-            </p>
-            <h3 class="tour-title">{$t(titleKey)}</h3>
-          </div>
-          <button
-            type="button"
-            class="icon-btn -mr-1.5 -mt-1"
-            aria-label={$t("tour.close")}
-            title={$t("tour.close")}
-            onclick={finish}
-          >
-            <X size={15} />
-          </button>
-        </div>
-
+      <div class="tour-content">
+        <h3 class="tour-title">{$t(titleKey)}</h3>
         <p id="tour-step-text" class="tour-text">{$t(textKey)}</p>
-
         {#if action && actionDone}
           <p class="tour-done" role="status">
             <Check size={14} />
@@ -422,17 +480,6 @@
         {/if}
       </div>
     {/key}
-
-    <div
-      class="tour-meter"
-      role="progressbar"
-      aria-label={$t("tour.title")}
-      aria-valuemin={1}
-      aria-valuemax={steps.length}
-      aria-valuenow={stepIndex + 1}
-    >
-      <span style="width:{((stepIndex + 1) / steps.length) * 100}%"></span>
-    </div>
 
     <div class="tour-actions">
       {#if isFirst}
