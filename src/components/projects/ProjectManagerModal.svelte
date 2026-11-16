@@ -1,19 +1,13 @@
 <script lang="ts">
   import ModalShell from "../ui/ModalShell.svelte";
-  import { formatRelativeTime, t } from "$lib/i18n";
+  import ProjectRow from "./ProjectRow.svelte";
+  import { t } from "$lib/i18n";
   import {
     CircleAlert,
-    Copy,
-    Download,
-    FileText,
     FolderKanban,
-    FolderTree,
     LoaderCircle,
-    Paperclip,
-    Pencil,
     Plus,
     Search,
-    Trash2,
     Upload,
     X,
   } from "@lucide/svelte";
@@ -22,7 +16,7 @@
   import { activeProject, isProjectManagerOpen } from "../../stores";
   import { requestAlert, requestConfirm } from "../../stores/confirm";
 
-  import { formatFileSize, getErrorMessage } from "../../utils";
+  import { getErrorMessage } from "../../utils";
   import { exportProjectBackup, importProjectBackup } from "../../utils/backup";
   import {
     loadProject,
@@ -42,8 +36,6 @@
   let isLoading = $state(false);
   let searchQuery = $state("");
   let renamingProjectId = $state<string | null>(null);
-  let renameValue = $state("");
-  let renameInput = $state<HTMLInputElement | null>(null);
   let actionInProgress = $state(false);
   let errorMessage = $state<string | null>(null);
 
@@ -58,7 +50,6 @@
       void loadProjects();
       searchQuery = "";
       renamingProjectId = null;
-      renameValue = "";
       errorMessage = null;
       isCreating = false;
       newProjectName = "";
@@ -97,11 +88,7 @@
   }
 
   // Этап 10.1. Бэкап: выгрузка проекта целиком и импорт из .tomte.zip.
-  async function handleExportBackup(
-    project: ProjectSummary,
-    event: MouseEvent,
-  ) {
-    event.stopPropagation();
+  async function handleExportBackup(project: ProjectSummary) {
     if (actionInProgress) return;
     actionInProgress = true;
     try {
@@ -204,24 +191,20 @@
     }
   }
 
-  function startRename(project: ProjectSummary, event: MouseEvent) {
-    event.stopPropagation();
+  function startRename(project: ProjectSummary) {
     if (actionInProgress) return;
     errorMessage = null;
     isCreating = false;
     renamingProjectId = project.id;
-    renameValue = project.name;
-    setTimeout(() => renameInput?.focus(), 50);
   }
 
-  async function saveRename() {
-    if (!renamingProjectId || !renameValue.trim()) {
+  async function saveRename(newName: string) {
+    if (!renamingProjectId || !newName.trim()) {
       cancelRename();
       return;
     }
     if (actionInProgress) return;
     const projectId = renamingProjectId;
-    const newName = renameValue;
     actionInProgress = true;
     errorMessage = null;
     try {
@@ -238,11 +221,9 @@
 
   function cancelRename() {
     renamingProjectId = null;
-    renameValue = "";
   }
 
-  async function handleDelete(project: ProjectSummary, event: MouseEvent) {
-    event.stopPropagation();
+  async function handleDelete(project: ProjectSummary) {
     if (actionInProgress) return;
     if (projects.length <= 1) return;
     const confirmed = await requestConfirm({
@@ -273,8 +254,7 @@
     }
   }
 
-  async function handleDuplicate(project: ProjectSummary, event: MouseEvent) {
-    event.stopPropagation();
+  async function handleDuplicate(project: ProjectSummary) {
     if (actionInProgress) return;
     actionInProgress = true;
     errorMessage = null;
@@ -457,145 +437,20 @@
       {:else}
         <div class="space-y-2">
           {#each filteredProjects as project (project.id)}
-            {@const isActive = $activeProject?.id === project.id}
-            <div
-              class="group relative cursor-pointer rounded-lg border p-4 transition-all {isActive
-                ? 'border-[var(--accent)]/50 bg-[var(--accent-dim)]'
-                : 'border-[var(--border)] bg-[var(--bg-medium)] hover:border-[var(--border-light)] hover:bg-[var(--bg-light)]'}"
-              onclick={() => handleSwitch(project.id)}
-              onkeydown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  handleSwitch(project.id);
-                }
-              }}
-              role="button"
-              tabindex="0"
-              aria-label={$t(
-                isActive ? "projects.activeProject" : "projects.switchTo",
-                {
-                  name: project.name,
-                },
-              )}
-            >
-              {#if renamingProjectId === project.id}
-                <input
-                  bind:this={renameInput}
-                  bind:value={renameValue}
-                  onblur={saveRename}
-                  onkeydown={(event) => {
-                    event.stopPropagation();
-                    if (event.key === "Enter") saveRename();
-                    if (event.key === "Escape") cancelRename();
-                  }}
-                  onclick={(event) => event.stopPropagation()}
-                  class="w-full rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-1 text-sm font-medium text-[var(--text-primary)] focus:outline-none"
-                  maxlength="100"
-                />
-              {:else}
-                <div class="flex items-center gap-2">
-                  {#if isActive}
-                    <span
-                      class="h-2 w-2 shrink-0 rounded-full bg-[var(--success)]"
-                      aria-hidden="true"
-                    ></span>
-                  {/if}
-                  <span
-                    class="truncate text-sm font-semibold text-[var(--text-primary)]"
-                  >
-                    {project.name}
-                  </span>
-                  {#if isActive}
-                    <span
-                      class="shrink-0 rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-micro font-semibold uppercase tracking-wider text-[var(--accent)]"
-                    >
-                      {$t("projects.active")}
-                    </span>
-                  {/if}
-                </div>
-              {/if}
-
-              <div
-                class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-[var(--text-tertiary)]"
-              >
-                <span class="flex items-center gap-1">
-                  <FileText size={12} />
-                  {$t("projects.prompts", { count: project.fileCount })}
-                </span>
-                <span class="flex items-center gap-1">
-                  <Paperclip size={12} />
-                  {$t("projects.attachments", {
-                    count: project.attachmentCount,
-                  })}
-                </span>
-                {#if project.hasTree}
-                  <span class="flex items-center gap-1">
-                    <FolderTree size={12} />
-                    {$t("projects.hasTree")}
-                  </span>
-                {/if}
-                <span class="font-mono"
-                  >{formatFileSize(project.totalSize)}</span
-                >
-                <span>·</span>
-                <span>{formatRelativeTime(project.updatedAt)}</span>
-              </div>
-
-              {#if renamingProjectId !== project.id}
-                <div
-                  class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                >
-                  <button
-                    type="button"
-                    onclick={(event) => startRename(project, event)}
-                    disabled={actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                    title={$t("common.rename")}
-                    aria-label={$t("projects.renameProject", {
-                      name: project.name,
-                    })}
-                  >
-                    <Pencil size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={(event) => handleDuplicate(project, event)}
-                    disabled={actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                    title={$t("common.duplicate")}
-                    aria-label={$t("projects.duplicateProject", {
-                      name: project.name,
-                    })}
-                  >
-                    <Copy size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={(event) => handleExportBackup(project, event)}
-                    disabled={actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                    title={$t("backup.exportOne")}
-                    aria-label={$t("backup.exportOne")}
-                  >
-                    <Download size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={(event) => handleDelete(project, event)}
-                    disabled={projects.length <= 1 || actionInProgress}
-                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
-                    title={projects.length <= 1
-                      ? $t("projects.delete.lastHint")
-                      : $t("common.delete")}
-                    aria-label={$t("projects.deleteProject", {
-                      name: project.name,
-                    })}
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              {/if}
-            </div>
+            <ProjectRow
+              {project}
+              isActive={$activeProject?.id === project.id}
+              isRenaming={renamingProjectId === project.id}
+              busy={actionInProgress}
+              canDelete={projects.length > 1}
+              onSwitch={() => handleSwitch(project.id)}
+              onStartRename={() => startRename(project)}
+              onSaveRename={saveRename}
+              onCancelRename={cancelRename}
+              onDuplicate={() => handleDuplicate(project)}
+              onExport={() => handleExportBackup(project)}
+              onDelete={() => handleDelete(project)}
+            />
           {/each}
         </div>
       {/if}

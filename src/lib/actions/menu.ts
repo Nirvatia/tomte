@@ -11,12 +11,14 @@ export interface MenuOptions {
 
 export function menu(node: HTMLElement, options: MenuOptions) {
   let current = options;
+  // Только видимые пункты: часть прячется по ширине (display: none),
+  // фокус на них не встаёт, и стрелки «застревали».
   const items = () =>
     Array.from(
       node.querySelectorAll<HTMLElement>(
         '[role="menuitem"]:not([disabled]), [role="menuitemcheckbox"]:not([disabled]), [role="menuitemradio"]:not([disabled])',
       ),
-    );
+    ).filter((item) => item.getClientRects().length > 0);
 
   queueMicrotask(() => items()[0]?.focus());
 

@@ -2,7 +2,6 @@
   import { t } from "$lib/i18n";
   import { notifyUndo } from "$lib/notify";
   import {
-    Pencil,
     Plus,
     Search,
     Star,
@@ -20,6 +19,8 @@
 
   import Checkbox from "../ui/Checkbox.svelte";
   import ModalShell from "../ui/ModalShell.svelte";
+  import TagForm from "./TagForm.svelte";
+  import TagRow from "./TagRow.svelte";
 
   import {
     addTag,
@@ -43,10 +44,8 @@
   let selectedIds = $state<Set<string>>(new Set());
 
   let isFormMode = $state(false);
-  let formTagName = $state("");
-  let formTagValue = $state("");
-  let formEditingId = $state<string | null>(null);
-  let formNameInput = $state<HTMLInputElement | null>(null);
+  /** Тег в форме правки; null — создание нового. */
+  let formTag = $state<Tag | null>(null);
 
   $effect(() => {
     if ($isTagManagerOpen) {
@@ -99,34 +98,25 @@
   }
 
   function openCreateForm() {
-    formEditingId = null;
-    formTagName = "";
-    formTagValue = "";
+    formTag = null;
     isFormMode = true;
-    setTimeout(() => formNameInput?.focus(), 50);
   }
 
   function openEditForm(tag: Tag) {
-    formEditingId = tag.id;
-    formTagName = tag.name;
-    formTagValue = tag.value;
+    formTag = tag;
     isFormMode = true;
-    setTimeout(() => formNameInput?.focus(), 50);
   }
 
   function closeForm() {
     isFormMode = false;
-    formTagName = "";
-    formTagValue = "";
-    formEditingId = null;
+    formTag = null;
   }
 
-  function handleFormSubmit() {
-    if (!formTagName.trim() || !formTagValue.trim()) return;
-    if (formEditingId) {
-      updateTag(formEditingId, formTagName, formTagValue);
+  function handleFormSubmit(name: string, value: string) {
+    if (formTag) {
+      updateTag(formTag.id, name, value);
     } else {
-      addTag(formTagName, formTagValue);
+      addTag(name, value);
     }
     closeForm();
     refresh();
@@ -254,66 +244,14 @@
     </div>
 
     {#if isFormMode}
-      <div class="space-y-4 overflow-y-auto p-6">
-        <div>
-          <label
-            for="tag-name"
-            class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-          >
-            {$t("tags.name")}
-          </label>
-          <input
-            bind:this={formNameInput}
-            bind:value={formTagName}
-            id="tag-name"
-            type="text"
-            placeholder={$t("tags.namePlaceholder")}
-            class="input w-full px-3.5"
-            maxlength="50"
-          />
-          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-            {$t("tags.nameHint")}
-          </p>
-        </div>
-        <div>
-          <label
-            for="tag-value"
-            class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-          >
-            {$t("tags.value")}
-          </label>
-          <textarea
-            bind:value={formTagValue}
-            id="tag-value"
-            placeholder={$t("tags.valuePlaceholder")}
-            rows="8"
-            class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
-            maxlength="5000"></textarea>
-          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-            {$t("tags.valueHint")}
-          </p>
-        </div>
-      </div>
-
-      <div
-        class="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--bg-medium)] p-5"
-      >
-        <button
-          type="button"
-          onclick={closeForm}
-          class="btn btn-outline btn-md"
-        >
-          {$t("common.cancel")}
-        </button>
-        <button
-          type="button"
-          onclick={handleFormSubmit}
-          disabled={!formTagName.trim() || !formTagValue.trim()}
-          class="btn btn-primary btn-md"
-        >
-          {formEditingId ? $t("common.save") : $t("common.create")}
-        </button>
-      </div>
+      <TagForm
+        initialName={formTag?.name}
+        initialValue={formTag?.value}
+        isEditing={Boolean(formTag)}
+        rows={8}
+        onSubmit={handleFormSubmit}
+        onCancel={closeForm}
+      />
     {:else}
       <div
         class="flex flex-wrap items-center gap-2 border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
@@ -433,78 +371,15 @@
 
           <div>
             {#each filteredTags as tag (tag.id)}
-              <div
-                class="group flex items-center gap-3 border-b border-[var(--border)] px-6 py-3 transition-colors hover:bg-[var(--bg-light)]"
-              >
-                <div class="shrink-0">
-                  <Checkbox
-                    checked={selectedIds.has(tag.id)}
-                    onToggle={() => toggleSelect(tag.id)}
-                    ariaLabel={selectedIds.has(tag.id)
-                      ? $t("common.deselect")
-                      : $t("common.select")}
-                  />
-                </div>
-
-                <div class="min-w-0 flex-1">
-                  <p
-                    class="truncate text-sm font-medium text-[var(--text-primary)]"
-                  >
-                    {tag.name}
-                  </p>
-                  <p
-                    class="mt-0.5 truncate text-xs text-[var(--text-tertiary)]"
-                  >
-                    {tag.value}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onclick={() => handleToggleFavorite(tag)}
-                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors {tag.favorite
-                    ? 'text-[var(--accent)] hover:bg-[var(--accent-dim)]'
-                    : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--accent-hover)]'}"
-                  title={tag.favorite
-                    ? $t("tags.unfavorite")
-                    : $t("tags.addFavorite")}
-                  aria-label={tag.favorite
-                    ? $t("tags.unfavorite")
-                    : $t("tags.addFavorite")}
-                >
-                  <Star size={16} class={tag.favorite ? "fill-current" : ""} />
-                </button>
-
-                <div class="flex shrink-0 items-center gap-0.5">
-                  <button
-                    type="button"
-                    onclick={() => handleApply(tag)}
-                    class="icon-btn hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
-                    title={$t("tags.apply")}
-                    aria-label={$t("tags.applyTag", { name: tag.name })}
-                  >
-                    <Plus size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={() => openEditForm(tag)}
-                    class="icon-btn"
-                    title={$t("common.edit")}
-                    aria-label={$t("tags.editTag", { name: tag.name })}
-                  >
-                    <Pencil size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onclick={() => void handleDeleteOne(tag)}
-                    class="icon-btn danger"
-                    title={$t("common.delete")}
-                    aria-label={$t("tags.deleteTag", { name: tag.name })}
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </div>
+              <TagRow
+                {tag}
+                selected={selectedIds.has(tag.id)}
+                onToggleSelect={() => toggleSelect(tag.id)}
+                onToggleFavorite={() => handleToggleFavorite(tag)}
+                onApply={() => handleApply(tag)}
+                onEdit={() => openEditForm(tag)}
+                onDelete={() => void handleDeleteOne(tag)}
+              />
             {/each}
           </div>
         {/if}

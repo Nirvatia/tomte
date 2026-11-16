@@ -1,353 +1,141 @@
 <script lang="ts">
   import { t } from "$lib/i18n";
   import {
-    Undo2,
-    Redo2,
-    Copy,
-    Trash2,
-    List,
-    ListOrdered,
-    ListIndentIncrease,
-    ListIndentDecrease,
-    Eye,
-    Brain,
     Bold,
-    Italic,
-    Underline as UnderlineIcon,
     Code,
-    Quote,
-    Heading1,
-    Heading2,
-    Strikethrough,
-    Highlighter,
-    Rows3,
-    Columns3,
-    Minus,
-    Trash,
+    Copy,
     Eraser,
     FolderTree,
-    Wrench,
-    FlaskConical,
-    GraduationCap,
-    Table2,
+    Heading1,
+    Heading2,
+    Highlighter,
+    Italic,
+    List,
+    ListIndentDecrease,
+    ListIndentIncrease,
+    ListOrdered,
+    Quote,
+    Redo2,
+    Strikethrough,
+    Trash2,
+    Underline as UnderlineIcon,
+    Undo2,
   } from "@lucide/svelte";
+  import type { ChainedCommands, Editor } from "@tiptap/core";
 
-  import type { Editor } from "@tiptap/core";
-
+  import { isProjectTreeOpen } from "../../stores";
   import {
-    isPreviewOpen,
-    isExtractorOpen,
-    exportFormat,
-    isProjectTreeOpen,
-    isTourOpen,
-  } from "../../stores";
-
-  import { requestConfirm } from "../../stores/confirm";
-
-  import {
-    clearAttachmentsFromProject,
-    clearProjectTreeSource,
-    clearActiveFileContent,
-  } from "../../utils/projectActions";
-
-  import { applyTestData } from "../../utils/testData";
-
+    EMPTY_TOOLBAR_STATE,
+    confirmClearProject,
+    confirmClearText,
+    copyEditorText,
+    readToolbarState,
+  } from "./editorCommands";
   import FontSizePicker from "./FontSizePicker.svelte";
   import TablePicker from "./TablePicker.svelte";
-  import Dropdown from "../ui/Dropdown.svelte";
+  import TableActionsMenu from "./TableActionsMenu.svelte";
+  import ToolbarButton from "./ToolbarButton.svelte";
+  import ToolsMenu from "./ToolsMenu.svelte";
 
+  /**
+   * Тулбар редактора. Группы прячутся по ширине контейнера (@container):
+   * @2xl — зачёркнутый/выделение/код, @3xl — списки и цитата, @4xl —
+   * заголовки и размер шрифта, @5xl (с таблицей — @6xl) — копировать и
+   * очистить; спрятанное доступно в меню «Инструменты».
+   * Команды — editorCommands.ts, меню — ToolsMenu и TableActionsMenu.
+   */
   interface Props {
     editor?: Editor | null;
   }
 
   let { editor = null }: Props = $props();
 
-  let isToolsMenuOpen = $state(false);
-  let toolsMenuContainer = $state<HTMLDivElement | null>(null);
-
-  function toggleToolsMenu(event: MouseEvent) {
-    event.stopPropagation();
-    isToolsMenuOpen = !isToolsMenuOpen;
-  }
-
-  function handleClickOutside(event: MouseEvent) {
-    if (
-      isToolsMenuOpen &&
-      toolsMenuContainer &&
-      !toolsMenuContainer.contains(event.target as Node)
-    ) {
-      isToolsMenuOpen = false;
-    }
-  }
-
-  function toggleProjectTree() {
-    isProjectTreeOpen.update((v) => !v);
-  }
-
-  let toolbarState = $state({
-    canUndo: false,
-    canRedo: false,
-    activeMarks: new Set<string>(),
-    activeBlocks: new Set<string>(),
-    isInsideTable: false,
-  });
-
-  function updateToolbarState() {
-    if (!editor) return;
-    const marks = new Set<string>();
-    const blocks = new Set<string>();
-    if (editor.isActive("bold")) marks.add("bold");
-    if (editor.isActive("italic")) marks.add("italic");
-    if (editor.isActive("underline")) marks.add("underline");
-    if (editor.isActive("strike")) marks.add("strike");
-    if (editor.isActive("highlight")) marks.add("highlight");
-    if (editor.isActive("code")) marks.add("code");
-    if (editor.isActive("heading", { level: 1 })) blocks.add("h1");
-    if (editor.isActive("heading", { level: 2 })) blocks.add("h2");
-    if (editor.isActive("bulletList")) blocks.add("bulletList");
-    if (editor.isActive("orderedList")) blocks.add("orderedList");
-    if (editor.isActive("blockquote")) blocks.add("blockquote");
-    if (editor.isActive("table")) blocks.add("table");
-    toolbarState = {
-      canUndo: editor.can().undo(),
-      canRedo: editor.can().redo(),
-      activeMarks: marks,
-      activeBlocks: blocks,
-      isInsideTable: editor.isActive("table"),
-    };
-  }
+  let state = $state(EMPTY_TOOLBAR_STATE);
 
   $effect(() => {
     if (!editor) return;
-    updateToolbarState();
-    editor.on("update", updateToolbarState);
-    editor.on("selectionUpdate", updateToolbarState);
-    editor.on("transaction", updateToolbarState);
+    const current = editor;
+    const update = () => (state = readToolbarState(current));
+    update();
+    current.on("update", update);
+    current.on("selectionUpdate", update);
+    current.on("transaction", update);
     return () => {
-      editor?.off("update", updateToolbarState);
-      editor?.off("selectionUpdate", updateToolbarState);
-      editor?.off("transaction", updateToolbarState);
+      current.off("update", update);
+      current.off("selectionUpdate", update);
+      current.off("transaction", update);
     };
   });
 
-  async function handleClearDraft() {
-    const confirmed = await requestConfirm({
-      title: $t("toolbar.clearProject.title"),
-      message: $t("toolbar.clearProject.message"),
-      confirmText: $t("common.clear"),
-      cancelText: $t("common.cancel"),
-      danger: true,
-    });
-    if (!confirmed) return;
-    await clearActiveFileContent();
-    editor?.commands.clearContent();
-    await clearAttachmentsFromProject();
-    await clearProjectTreeSource();
-    exportFormat.set("pdf");
+  const isOn = (key: string) => state.active.has(key);
+
+  /** Команда редактора с возвратом фокуса в текст. */
+  function run(command: (chain: ChainedCommands) => ChainedCommands) {
+    if (editor) command(editor.chain().focus()).run();
   }
 
-  function isActive(mark: string): boolean {
-    return toolbarState.activeMarks.has(mark);
-  }
-
-  function isBlockActive(block: string): boolean {
-    return toolbarState.activeBlocks.has(block);
-  }
-
-  function btnClass(active: boolean): string {
-    return `${TOOLBAR_BTN_BASE} ${active ? TOOLBAR_BTN_ACTIVE : TOOLBAR_BTN_IDLE}`;
-  }
-
-  function run(cmd: () => void) {
-    if (!editor) return;
-    editor.chain().focus();
-    cmd();
-  }
-
-  function handleCopy() {
-    if (!editor) return;
-    navigator.clipboard.writeText(editor.getText());
-  }
-
-  async function handleClear() {
-    if (!editor) return;
-    const confirmed = await requestConfirm({
-      title: $t("toolbar.clearText.title"),
-      message: $t("toolbar.clearText.message"),
-      confirmText: $t("common.clear"),
-      cancelText: $t("common.cancel"),
-      danger: true,
-    });
-    if (!confirmed) return;
-    editor.commands.clearContent();
-  }
-
-  function handleApplyTestData() {
-    applyTestData(editor);
-  }
-
-  function addRowBefore() {
-    run(() => editor?.chain().focus().addRowBefore().run());
-  }
-
-  function addRowAfter() {
-    run(() => editor?.chain().focus().addRowAfter().run());
-  }
-
-  function addColumnBefore() {
-    run(() => editor?.chain().focus().addColumnBefore().run());
-  }
-
-  function addColumnAfter() {
-    run(() => editor?.chain().focus().addColumnAfter().run());
-  }
-
-  function deleteRow() {
-    run(() => editor?.chain().focus().deleteRow().run());
-  }
-
-  function deleteColumn() {
-    run(() => editor?.chain().focus().deleteColumn().run());
-  }
-
-  async function deleteTable() {
-    if (!editor) return;
-    const confirmed = await requestConfirm({
-      title: $t("toolbar.deleteTable.title"),
-      message: $t("toolbar.deleteTable.message"),
-      confirmText: $t("common.delete"),
-      cancelText: $t("common.cancel"),
-      danger: true,
-    });
-    if (!confirmed) return;
-    editor.chain().focus().deleteTable().run();
-  }
-
-  // Цвета состояний не смешиваем в одной строке классов: из двух text-[...]
-  // Tailwind применяет тот, что позже в CSS, а не в атрибуте. Из-за этого
-  // активная кнопка раньше получала светлую иконку на бирюзовом (1.3:1).
-  const TOOLBAR_BTN_BASE =
-    "w-8 h-8 flex items-center justify-center rounded-md transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed";
-  const TOOLBAR_BTN_IDLE =
-    "text-[var(--text-secondary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]";
-  const TOOLBAR_BTN_ACTIVE =
-    "bg-[var(--accent)] text-[var(--bg-darkest)] hover:bg-[var(--accent-hover)]";
-  /** Пункты меню, которые видны, только пока их группы нет в тулбаре. */
+  /** Пункты меню «Инструменты», видимые, только пока их группы нет в тулбаре. */
   const narrowOnly = $derived(
-    toolbarState.isInsideTable ? "flex @6xl:hidden" : "flex @5xl:hidden",
+    state.isInsideTable ? "flex @6xl:hidden" : "flex @5xl:hidden",
   );
-
-  const tableActions = $derived([
-    { label: $t("toolbar.rowAbove"), icon: Rows3, run: addRowBefore },
-    {
-      label: $t("toolbar.rowBelow"),
-      icon: Rows3,
-      iconClass: "rotate-180",
-      run: addRowAfter,
-    },
-    {
-      label: $t("toolbar.colLeft"),
-      icon: Columns3,
-      run: addColumnBefore,
-      separatorBefore: true,
-    },
-    {
-      label: $t("toolbar.colRight"),
-      icon: Columns3,
-      iconClass: "rotate-180",
-      run: addColumnAfter,
-    },
-    {
-      label: $t("toolbar.deleteRow"),
-      icon: Minus,
-      run: deleteRow,
-      danger: true,
-      separatorBefore: true,
-    },
-    {
-      label: $t("toolbar.deleteCol"),
-      icon: Minus,
-      iconClass: "rotate-90",
-      run: deleteColumn,
-      danger: true,
-    },
-    {
-      label: $t("toolbar.deleteTable.button"),
-      icon: Trash,
-      run: () => void deleteTable(),
-      danger: true,
-    },
-  ]);
-
-  const ACTION_BTN_BASE =
-    "flex items-center gap-2 px-3.5 py-[7px] rounded-md border border-[var(--border)] text-[var(--text-secondary)] text-ui font-medium transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] hover:border-[var(--border-light)]";
 </script>
 
-<svelte:window onclick={handleClickOutside} />
-
-<!-- @container: подписи прячутся, когда тулбару не хватает ширины (длинные языки). -->
+<!-- @container: группы и подписи прячутся, когда тулбару не хватает ширины. -->
 <div
   data-tour="toolbar"
   class="@container flex h-[44px] shrink-0 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg-medium)] px-4"
 >
   <button
     type="button"
-    onclick={toggleProjectTree}
-    class="w-8 h-8 flex items-center justify-center rounded-md transition-all duration-150 {$isProjectTreeOpen
+    onclick={() => isProjectTreeOpen.update((open) => !open)}
+    class="flex h-8 w-8 items-center justify-center rounded-md transition-all duration-150 {$isProjectTreeOpen
       ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
       : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]'}"
     aria-label={$t("toolbar.openTree")}
+    aria-pressed={$isProjectTreeOpen}
     title={$t("toolbar.treeTitle")}
   >
     <FolderTree size={18} />
   </button>
+
   <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
   <div class="flex items-center gap-0.5">
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().undo().run())}
-      disabled={!toolbarState.canUndo}
-      class={btnClass(false)}
-      aria-label={$t("common.undo")}
-      title={$t("toolbar.undoHint")}
+    <ToolbarButton
+      label={$t("common.undo")}
+      hint={$t("toolbar.undoHint")}
+      disabled={!state.canUndo}
+      onclick={() => run((c) => c.undo())}
     >
       <Undo2 size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().redo().run())}
-      disabled={!toolbarState.canRedo}
-      class={btnClass(false)}
-      aria-label={$t("common.redo")}
-      title={$t("toolbar.redoHint")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("common.redo")}
+      hint={$t("toolbar.redoHint")}
+      disabled={!state.canRedo}
+      onclick={() => run((c) => c.redo())}
     >
       <Redo2 size={18} />
-    </button>
+    </ToolbarButton>
   </div>
+
   <div
     class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @4xl:block"
   ></div>
   <div class="hidden items-center gap-0.5 @4xl:flex">
-    <button
-      type="button"
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleHeading({ level: 1 }).run())}
-      class={btnClass(isBlockActive("h1"))}
-      aria-label={$t("toolbar.h1")}
-      title={$t("toolbar.h1")}
+    <ToolbarButton
+      label={$t("toolbar.h1")}
+      active={isOn("h1")}
+      onclick={() => run((c) => c.toggleHeading({ level: 1 }))}
     >
       <Heading1 size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleHeading({ level: 2 }).run())}
-      class={btnClass(isBlockActive("h2"))}
-      aria-label={$t("toolbar.h2")}
-      title={$t("toolbar.h2")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.h2")}
+      active={isOn("h2")}
+      onclick={() => run((c) => c.toggleHeading({ level: 2 }))}
     >
       <Heading2 size={18} />
-    </button>
+    </ToolbarButton>
   </div>
   <div
     class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @4xl:block"
@@ -355,302 +143,143 @@
   <div class="hidden items-center @4xl:flex">
     <FontSizePicker {editor} />
   </div>
+
   <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
   <div class="flex items-center gap-0.5">
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleBold().run())}
-      class={btnClass(isActive("bold"))}
-      aria-label={$t("toolbar.bold")}
-      title={$t("toolbar.boldHint")}
+    <ToolbarButton
+      label={$t("toolbar.bold")}
+      hint={$t("toolbar.boldHint")}
+      active={isOn("bold")}
+      onclick={() => run((c) => c.toggleBold())}
     >
       <Bold size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleItalic().run())}
-      class={btnClass(isActive("italic"))}
-      aria-label={$t("toolbar.italic")}
-      title={$t("toolbar.italicHint")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.italic")}
+      hint={$t("toolbar.italicHint")}
+      active={isOn("italic")}
+      onclick={() => run((c) => c.toggleItalic())}
     >
       <Italic size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleUnderline().run())}
-      class={btnClass(isActive("underline"))}
-      aria-label={$t("toolbar.underline")}
-      title={$t("toolbar.underlineHint")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.underline")}
+      hint={$t("toolbar.underlineHint")}
+      active={isOn("underline")}
+      onclick={() => run((c) => c.toggleUnderline())}
     >
       <UnderlineIcon size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleStrike().run())}
-      class="{btnClass(isActive('strike'))} hidden @2xl:flex"
-      aria-label={$t("toolbar.strike")}
-      title={$t("toolbar.strike")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.strike")}
+      active={isOn("strike")}
+      class="hidden @2xl:flex"
+      onclick={() => run((c) => c.toggleStrike())}
     >
       <Strikethrough size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleHighlight().run())}
-      class="{btnClass(isActive('highlight'))} hidden @2xl:flex"
-      aria-label={$t("toolbar.highlight")}
-      title={$t("toolbar.highlight")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.highlight")}
+      active={isOn("highlight")}
+      class="hidden @2xl:flex"
+      onclick={() => run((c) => c.toggleHighlight())}
     >
       <Highlighter size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() => run(() => editor?.chain().focus().toggleCode().run())}
-      class="{btnClass(isActive('code'))} hidden @2xl:flex"
-      aria-label={$t("toolbar.code")}
-      title={$t("toolbar.code")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.code")}
+      active={isOn("code")}
+      class="hidden @2xl:flex"
+      onclick={() => run((c) => c.toggleCode())}
     >
       <Code size={18} />
-    </button>
+    </ToolbarButton>
   </div>
+
   <div
     class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @3xl:block"
   ></div>
   <div class="hidden items-center gap-0.5 @3xl:flex">
-    <button
-      type="button"
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleBulletList().run())}
-      class={btnClass(isBlockActive("bulletList"))}
-      aria-label={$t("toolbar.bulletList")}
-      title={$t("toolbar.bulletList")}
+    <ToolbarButton
+      label={$t("toolbar.bulletList")}
+      active={isOn("bulletList")}
+      onclick={() => run((c) => c.toggleBulletList())}
     >
       <List size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleOrderedList().run())}
-      class={btnClass(isBlockActive("orderedList"))}
-      aria-label={$t("toolbar.orderedList")}
-      title={$t("toolbar.orderedList")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.orderedList")}
+      active={isOn("orderedList")}
+      onclick={() => run((c) => c.toggleOrderedList())}
     >
       <ListOrdered size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() =>
-        run(() => editor?.chain().focus().liftListItem("listItem").run())}
-      class={btnClass(false)}
-      aria-label={$t("toolbar.outdent")}
-      title={$t("toolbar.outdent")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.outdent")}
+      onclick={() => run((c) => c.liftListItem("listItem"))}
     >
       <ListIndentDecrease size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() =>
-        run(() => editor?.chain().focus().sinkListItem("listItem").run())}
-      class={btnClass(false)}
-      aria-label={$t("toolbar.indent")}
-      title={$t("toolbar.indent")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.indent")}
+      onclick={() => run((c) => c.sinkListItem("listItem"))}
     >
       <ListIndentIncrease size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={() =>
-        run(() => editor?.chain().focus().toggleBlockquote().run())}
-      class={btnClass(isBlockActive("blockquote"))}
-      aria-label={$t("toolbar.quote")}
-      title={$t("toolbar.quote")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.quote")}
+      active={isOn("blockquote")}
+      onclick={() => run((c) => c.toggleBlockquote())}
     >
       <Quote size={18} />
-    </button>
+    </ToolbarButton>
     <TablePicker {editor} />
   </div>
-  {#if toolbarState.isInsideTable}
-    <!-- Действия с таблицей — одной кнопкой с меню: семь кнопок в ряд
-         переполняли тулбар, и «Инструменты» уезжали за край. -->
+
+  {#if state.isInsideTable}
     <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
     <div class="shrink-0 animate-fade-in">
-      <Dropdown
-        label={$t("toolbar.tableActions")}
-        widthClass="w-60"
-        triggerClass="h-8 text-[var(--warning)]"
-      >
-        {#snippet trigger()}
-          <Table2 size={16} aria-hidden="true" />
-          <span class="hidden @3xl:inline">{$t("toolbar.table")}</span>
-        {/snippet}
-        {#each tableActions as item (item.label)}
-          {#if item.separatorBefore}
-            <div class="menu-sep"></div>
-          {/if}
-          <button
-            type="button"
-            role="menuitem"
-            class="menu-item {item.danger ? 'danger' : ''}"
-            onclick={item.run}
-          >
-            <item.icon size={14} class="shrink-0 {item.iconClass ?? ''}" />
-            <span class="flex-1">{item.label}</span>
-          </button>
-        {/each}
-      </Dropdown>
+      <TableActionsMenu {editor} />
     </div>
   {/if}
+
   <!-- Копировать/очистить: в тулбаре только на широком экране, иначе —
        в меню «Инструменты». С таблицей ширины нужно больше (её кнопка). -->
   <div
-    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] {toolbarState.isInsideTable
+    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] {state.isInsideTable
       ? '@6xl:block'
       : '@5xl:block'}"
   ></div>
   <div
-    class="hidden items-center gap-0.5 {toolbarState.isInsideTable
+    class="hidden items-center gap-0.5 {state.isInsideTable
       ? '@6xl:flex'
       : '@5xl:flex'}"
   >
-    <button
-      type="button"
-      onclick={handleCopy}
-      class={btnClass(false)}
-      aria-label={$t("toolbar.copyText")}
-      title={$t("toolbar.copyText")}
+    <ToolbarButton
+      label={$t("toolbar.copyText")}
+      onclick={() => copyEditorText(editor)}
     >
       <Copy size={18} />
-    </button>
-    <button
-      type="button"
-      onclick={handleClear}
-      class={`${TOOLBAR_BTN_BASE} hover:bg-[var(--error)]/10`}
-      aria-label={$t("toolbar.clearText.button")}
-      title={$t("toolbar.clearText.button")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.clearText.button")}
+      class="hover:bg-[var(--error)]/10"
+      onclick={() => void confirmClearText(editor)}
     >
       <Trash2 size={18} class="text-[var(--error)]" />
-    </button>
-    <button
-      type="button"
-      onclick={handleClearDraft}
-      class={`${TOOLBAR_BTN_BASE} hover:bg-[var(--accent-dim)]`}
-      aria-label={$t("toolbar.clearProject.button")}
-      title={$t("toolbar.clearProject.hint")}
+    </ToolbarButton>
+    <ToolbarButton
+      label={$t("toolbar.clearProject.button")}
+      hint={$t("toolbar.clearProject.hint")}
+      class="hover:bg-[var(--accent-dim)]"
+      onclick={() => void confirmClearProject(editor)}
     >
       <Eraser size={18} class="text-[var(--warning)]" />
-    </button>
+    </ToolbarButton>
   </div>
+
   <div class="flex-1"></div>
   <div class="ml-2 flex shrink-0 items-center">
-    <div bind:this={toolsMenuContainer} class="relative">
-      <button
-        type="button"
-        onclick={toggleToolsMenu}
-        class="{ACTION_BTN_BASE} {isToolsMenuOpen
-          ? 'border-[var(--accent)] text-[var(--accent)]'
-          : ''}"
-        aria-haspopup="menu"
-        aria-expanded={isToolsMenuOpen}
-        aria-label={$t("toolbar.toolsOpen")}
-        title={$t("toolbar.tools")}
-      >
-        <Wrench size={14} />
-        <span class="hidden @5xl:inline">{$t("toolbar.tools")}</span>
-      </button>
-      {#if isToolsMenuOpen}
-        <div
-          role="menu"
-          aria-label={$t("toolbar.toolsMenu")}
-          class="menu-panel absolute right-0 top-full z-[var(--layer-dropdown)] mt-2 w-64 animate-fade-in"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => {
-              isToolsMenuOpen = false;
-              isPreviewOpen.set(true);
-            }}
-            class="menu-item"
-          >
-            <Eye size={14} class="shrink-0" />
-            <span class="flex-1">{$t("toolbar.preview")}</span>
-          </button>
-          <!-- Копировать и очистить — здесь, когда в тулбаре для них нет места
-               (пороги те же, что у группы в тулбаре). -->
-          <button
-            type="button"
-            role="menuitem"
-            class="menu-item {narrowOnly}"
-            onclick={() => {
-              isToolsMenuOpen = false;
-              handleCopy();
-            }}
-          >
-            <Copy size={14} class="shrink-0" />
-            <span class="flex-1">{$t("toolbar.copyText")}</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            class="menu-item danger {narrowOnly}"
-            onclick={() => {
-              isToolsMenuOpen = false;
-              void handleClear();
-            }}
-          >
-            <Trash2 size={14} class="shrink-0" />
-            <span class="flex-1">{$t("toolbar.clearText.button")}</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            class="menu-item {narrowOnly}"
-            onclick={() => {
-              isToolsMenuOpen = false;
-              void handleClearDraft();
-            }}
-          >
-            <Eraser size={14} class="shrink-0 text-[var(--warning)]" />
-            <span class="flex-1">{$t("toolbar.clearProject.button")}</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => {
-              isToolsMenuOpen = false;
-              isExtractorOpen.set(true);
-            }}
-            class="menu-item"
-          >
-            <Brain size={14} class="shrink-0" />
-            <span class="flex-1">{$t("toolbar.extractor")}</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => {
-              isToolsMenuOpen = false;
-              isTourOpen.set(true);
-            }}
-            class="menu-item"
-          >
-            <GraduationCap size={14} class="shrink-0" />
-            <span class="flex-1">{$t("toolbar.tour")}</span>
-          </button>
-          <div class="menu-sep"></div>
-          <button
-            type="button"
-            role="menuitem"
-            onclick={() => {
-              isToolsMenuOpen = false;
-              handleApplyTestData();
-            }}
-            class="menu-item"
-          >
-            <FlaskConical size={14} class="shrink-0" />
-            <span class="flex-1">{$t("toolbar.testData")}</span>
-          </button>
-        </div>
-      {/if}
-    </div>
+    <ToolsMenu {editor} {narrowOnly} />
   </div>
 </div>

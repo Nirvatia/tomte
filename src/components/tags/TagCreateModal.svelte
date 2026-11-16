@@ -4,7 +4,9 @@
 
   import type { Tag } from "../../types";
   import ModalShell from "../ui/ModalShell.svelte";
+  import TagForm from "./TagForm.svelte";
 
+  /** Модалка «Новый тег» / «Изменить тег» под редактором. */
   interface Props {
     isOpen?: boolean;
     onClose?: () => void;
@@ -21,130 +23,47 @@
     editingTag = null,
   }: Props = $props();
 
-  let tagName = $state("");
-  let tagValue = $state("");
-  let nameInput = $state<HTMLInputElement | null>(null);
+  const title = $derived(editingTag ? $t("tags.editTitle") : $t("tags.new"));
 
-  $effect(() => {
-    if (isOpen) {
-      if (editingTag) {
-        tagName = editingTag.name;
-        tagValue = editingTag.value;
-      } else {
-        tagName = "";
-        tagValue = "";
-      }
-      setTimeout(() => nameInput?.focus(), 50);
-    }
-  });
-
-  function handleSubmit() {
-    if (!tagName.trim() || !tagValue.trim()) return;
+  function handleSubmit(name: string, value: string) {
     if (editingTag) {
-      onUpdate(editingTag.id, tagName.trim(), tagValue.trim());
+      onUpdate(editingTag.id, name, value);
     } else {
-      onCreate(tagName.trim(), tagValue.trim());
+      onCreate(name, value);
     }
-    handleClose();
-  }
-
-  function handleClose() {
-    tagName = "";
-    tagValue = "";
     onClose();
-  }
-
-  function handleNameKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleSubmit();
-    }
   }
 </script>
 
 {#if isOpen}
   <ModalShell
-    label={editingTag ? $t("tags.editTitle") : $t("tags.new")}
-    onClose={handleClose}
+    label={title}
+    {onClose}
     width="max-w-lg"
     panelClass="flex flex-col"
   >
     <div
       class="flex items-center justify-between border-b border-[var(--border)] p-5"
     >
-      <h2 id="modal-title" class="text-lg font-bold text-[var(--text-primary)]">
-        {editingTag ? $t("tags.editTitle") : $t("tags.new")}
-      </h2>
+      <h2 class="text-lg font-bold text-[var(--text-primary)]">{title}</h2>
       <button
         type="button"
-        onclick={handleClose}
+        onclick={onClose}
         class="icon-btn"
         aria-label={$t("common.close")}
       >
         <X size={20} />
       </button>
     </div>
-
-    <div class="space-y-4 p-6">
-      <div>
-        <label
-          for="tag-name"
-          class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-        >
-          {$t("tags.name")}
-        </label>
-        <input
-          bind:this={nameInput}
-          bind:value={tagName}
-          onkeydown={handleNameKeydown}
-          id="tag-name"
-          type="text"
-          placeholder={$t("tags.namePlaceholder")}
-          class="input w-full px-3.5"
-          maxlength="50"
-        />
-        <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-          {$t("tags.nameHint")}
-        </p>
-      </div>
-      <div>
-        <label
-          for="tag-value"
-          class="mb-2 block font-mono text-caption font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-        >
-          {$t("tags.value")}
-        </label>
-        <textarea
-          bind:value={tagValue}
-          id="tag-value"
-          placeholder={$t("tags.valuePlaceholder")}
-          rows="6"
-          class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
-          maxlength="5000"></textarea>
-        <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-          {$t("tags.valueHint")}
-        </p>
-      </div>
-    </div>
-
-    <div
-      class="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--bg-medium)] p-5"
-    >
-      <button
-        type="button"
-        onclick={handleClose}
-        class="btn btn-outline btn-md"
-      >
-        {$t("common.cancel")}
-      </button>
-      <button
-        type="button"
-        onclick={handleSubmit}
-        disabled={!tagName.trim() || !tagValue.trim()}
-        class="btn btn-primary btn-md"
-      >
-        {editingTag ? $t("common.save") : $t("common.create")}
-      </button>
-    </div>
+    <!-- key: при смене редактируемого тега форма начинается заново. -->
+    {#key editingTag?.id}
+      <TagForm
+        initialName={editingTag?.name}
+        initialValue={editingTag?.value}
+        isEditing={Boolean(editingTag)}
+        onSubmit={handleSubmit}
+        onCancel={onClose}
+      />
+    {/key}
   </ModalShell>
 {/if}
