@@ -19,7 +19,7 @@ export const THEME_PREFERENCES: ThemePreference[] = ["system", "light", "dark"];
 /** Цвет строки браузера и заголовка установленного приложения. */
 const THEME_COLOR: Record<Theme, string> = {
   dark: "#141819",
-  light: "#f5f8f8",
+  light: "#ebeee3",
 };
 
 function readPreference(): ThemePreference {

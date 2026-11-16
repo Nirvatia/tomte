@@ -30,11 +30,11 @@
   label={$t("settings.title")}
   widthClass="w-56"
   align="right"
-  triggerClass="h-7"
+  triggerClass="h-9"
 >
   {#snippet trigger()}
     <Settings
-      size={15}
+      size={20}
       class="text-[var(--text-secondary)]"
       aria-hidden="true"
     />

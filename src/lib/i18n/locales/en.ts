@@ -5,6 +5,8 @@ export const en: Dict = {
   activity: {
     codeMap: "Open code map generator",
     codeMapTitle: "Code map",
+    extractor: "Open code extractor",
+    extractorTitle: "Code extractor",
     projects: "Open project manager",
     tags: "Open tag manager",
     tagsTitle: "Tags",
@@ -578,7 +580,6 @@ export const en: Dict = {
       message: "The table will be removed from the document.",
       title: "Delete the table?",
     },
-    extractor: "Code extractor",
     h1: "Heading 1",
     h2: "Heading 2",
     highlight: "Highlight",
@@ -596,10 +597,6 @@ export const en: Dict = {
     strike: "Strikethrough",
     table: "Table",
     tableActions: "Table actions",
-    testData: "Test",
-    tools: "Tools",
-    toolsMenu: "Tools menu",
-    toolsOpen: "Open tools menu",
     tour: "Tour",
     treeTitle: "Project structure",
     underline: "Underline",
@@ -622,7 +619,7 @@ export const en: Dict = {
     skipStep: "Skip this step",
     step: {
       activity: {
-        text: "Project manager (with a .tomte.zip project backup), tag manager and the code map — function and class signatures from the connected tree, so the model sees how the project is built without extra tokens.",
+        text: "Project manager (with a .tomte.zip project backup), tag manager, the code map — function and class signatures from the connected tree, so the model sees how the project is built without extra tokens — and the extractor: paste a model reply and it splits the code blocks into files.",
         title: "Side bar",
       },
       attachments: {
@@ -642,7 +639,7 @@ export const en: Dict = {
         title: "Formats",
       },
       final: {
-        text: "Press “?” for the hotkey cheat sheet — you can restart this tour from the “Tools” menu. Happy prompting!",
+        text: "Press “?” for the hotkey cheat sheet — you can restart this tour from the “Settings” menu. Happy prompting!",
         title: "All set",
       },
       newPrompt: {
@@ -662,8 +659,8 @@ export const en: Dict = {
         title: "Breakdown and model",
       },
       toolbar: {
-        text: "Formatting, lists, tables and undo. “Tools” has a result preview and the extractor: paste a model reply and it splits the code blocks into files.",
-        title: "Toolbar",
+        text: "Formatting, lists, tables, undo, and copying or clearing the text.",
+        title: "Formatting",
       },
       tree: {
         text: "Connect a folder or a GitHub repository and check the files you need — their contents go into the export. Filters hide node_modules, tests and everything in .gitignore.",

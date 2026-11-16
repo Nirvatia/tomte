@@ -35,14 +35,14 @@
   import TablePicker from "./TablePicker.svelte";
   import TableActionsMenu from "./TableActionsMenu.svelte";
   import ToolbarButton from "./ToolbarButton.svelte";
-  import ToolsMenu from "./ToolsMenu.svelte";
 
   /**
    * Тулбар редактора. Группы прячутся по ширине контейнера (@container):
    * @2xl — зачёркнутый/выделение/код, @3xl — списки и цитата, @4xl —
-   * заголовки и размер шрифта, @5xl (с таблицей — @6xl) — копировать и
-   * очистить; спрятанное доступно в меню «Инструменты».
-   * Команды — editorCommands.ts, меню — ToolsMenu и TableActionsMenu.
+   * заголовки и размер шрифта. Копировать и очистить видны всегда: меню
+   * «Инструменты» убрано, прятать эти кнопки больше некуда. Предпросмотр
+   * живёт в шапке, экстрактор — в боковой панели.
+   * Команды — editorCommands.ts, меню таблицы — TableActionsMenu.
    */
   interface Props {
     editor?: Editor | null;
@@ -73,11 +73,6 @@
   function run(command: (chain: ChainedCommands) => ChainedCommands) {
     if (editor) command(editor.chain().focus()).run();
   }
-
-  /** Пункты меню «Инструменты», видимые, только пока их группы нет в тулбаре. */
-  const narrowOnly = $derived(
-    state.isInsideTable ? "flex @6xl:hidden" : "flex @5xl:hidden",
-  );
 </script>
 
 <!-- @container: группы и подписи прячутся, когда тулбару не хватает ширины. -->
@@ -243,17 +238,17 @@
     </div>
   {/if}
 
-  <!-- Копировать/очистить: в тулбаре только на широком экране, иначе —
-       в меню «Инструменты». С таблицей ширины нужно больше (её кнопка). -->
+  <!-- Копировать/очистить видны на любой ширине. В таблице на самой узкой
+       ширине они уступают место кнопке действий с таблицей. -->
   <div
-    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] {state.isInsideTable
-      ? '@6xl:block'
-      : '@5xl:block'}"
+    class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)] {state.isInsideTable
+      ? 'hidden @2xl:block'
+      : ''}"
   ></div>
   <div
-    class="hidden items-center gap-0.5 {state.isInsideTable
-      ? '@6xl:flex'
-      : '@5xl:flex'}"
+    class="items-center gap-0.5 {state.isInsideTable
+      ? 'hidden @2xl:flex'
+      : 'flex'}"
   >
     <ToolbarButton
       label={$t("toolbar.copyText")}
@@ -276,10 +271,5 @@
     >
       <Eraser size={18} class="text-[var(--warning)]" />
     </ToolbarButton>
-  </div>
-
-  <div class="flex-1"></div>
-  <div class="ml-2 flex shrink-0 items-center">
-    <ToolsMenu {editor} {narrowOnly} />
   </div>
 </div>

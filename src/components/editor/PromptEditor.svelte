@@ -289,7 +289,7 @@
   <div class="editor-canvas flex h-full flex-col overflow-hidden p-3">
     <div
       use:dropzone={handleFilesDropped}
-      class="relative flex-1 overflow-hidden bg-[var(--bg-darkest)] transition-all duration-300 {dropZoneActive
+      class="relative min-h-24 flex-1 overflow-hidden bg-[var(--bg-darkest)] transition-all duration-300 {dropZoneActive
         ? 'ring-2 ring-inset ring-[var(--warning)]'
         : ''}"
       role="region"

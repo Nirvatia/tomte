@@ -67,7 +67,13 @@
   }
 </script>
 
-<div data-tour="tags" class="mt-4 flex flex-wrap items-center gap-2">
+<!-- max-h + overflow: много тегов не должны вытеснять редактор — после
+     двух рядов панель прокручивается сама. Отступы px/py оставляют место
+     для кольца фокуса, которое иначе обрезал бы overflow. -->
+<div
+  data-tour="tags"
+  class="-mx-1 mt-3 flex max-h-[5.5rem] shrink-0 flex-wrap content-start items-center gap-2 overflow-y-auto px-1 py-1"
+>
   {#each sortedTags as tag (tag.id)}
     <div
       class="group inline-flex select-none items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-all {tag.favorite

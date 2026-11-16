@@ -5,6 +5,8 @@ export const es: Dict = {
   activity: {
     codeMap: "Abrir el generador de mapa de código",
     codeMapTitle: "Mapa de código",
+    extractor: "Abrir el extractor de código",
+    extractorTitle: "Extractor de código",
     projects: "Abrir el gestor de proyectos",
     tags: "Abrir el gestor de etiquetas",
     tagsTitle: "Etiquetas",
@@ -594,7 +596,6 @@ export const es: Dict = {
       message: "La tabla se eliminará del documento.",
       title: "¿Eliminar la tabla?",
     },
-    extractor: "Extractor de código",
     h1: "Título 1",
     h2: "Título 2",
     highlight: "Resaltado",
@@ -612,10 +613,6 @@ export const es: Dict = {
     strike: "Tachado",
     table: "Tabla",
     tableActions: "Acciones de tabla",
-    testData: "Prueba",
-    tools: "Herramientas",
-    toolsMenu: "Menú de herramientas",
-    toolsOpen: "Abrir el menú de herramientas",
     tour: "Recorrido",
     treeTitle: "Estructura del proyecto",
     underline: "Subrayado",
@@ -638,7 +635,7 @@ export const es: Dict = {
     skipStep: "Saltar paso",
     step: {
       activity: {
-        text: "Gestor de proyectos (con copia de seguridad en .tomte.zip), gestor de etiquetas y mapa de código: firmas de funciones y clases del árbol conectado, para que el modelo entienda el proyecto sin gastar tokens de más.",
+        text: "Gestor de proyectos (con copia de seguridad en .tomte.zip), gestor de etiquetas, mapa de código (firmas de funciones y clases del árbol conectado, para que el modelo entienda el proyecto sin gastar tokens de más) y extractor: pega la respuesta del modelo y separará los bloques de código en archivos.",
         title: "Barra lateral",
       },
       attachments: {
@@ -658,7 +655,7 @@ export const es: Dict = {
         title: "Formatos",
       },
       final: {
-        text: "Pulsa «?» para ver los atajos de teclado; puedes repetir este recorrido desde el menú «Herramientas». ¡Buenos prompts!",
+        text: "Pulsa «?» para ver los atajos de teclado; puedes repetir este recorrido desde el menú «Ajustes». ¡Buenos prompts!",
         title: "Todo listo",
       },
       newPrompt: {
@@ -678,8 +675,8 @@ export const es: Dict = {
         title: "Desglose y modelo",
       },
       toolbar: {
-        text: "Formato, listas, tablas y deshacer. En «Herramientas» están la vista previa y el extractor: pega la respuesta del modelo y separará los bloques de código en archivos.",
-        title: "Barra de herramientas",
+        text: "Formato, listas, tablas, deshacer, y copiar o borrar el texto.",
+        title: "Formato",
       },
       tree: {
         text: "Conecta una carpeta o un repositorio de GitHub y marca los archivos que necesitas: su contenido irá en la exportación. Los filtros ocultan node_modules, tests y todo lo de .gitignore.",

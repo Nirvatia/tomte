@@ -100,7 +100,7 @@ test("тур ведёт по интерфейсу и ждёт действий �
 
   // Информационные шаги про тулбар, теги, вложения и дерево.
   for (const [title, target] of [
-    ["Панель инструментов", "toolbar"],
+    ["Форматирование", "toolbar"],
     ["Теги", "tags"],
     ["Вложения", "attachments"],
     ["Дерево проекта", "tree"],
@@ -287,10 +287,10 @@ test("на телефоне подсказка — шторка, панель в
   await context.close();
 });
 
-test("тур открывается из меню «Инструменты»", async ({ page }) => {
+test("тур открывается из меню «Настройки»", async ({ page }) => {
   // Обычный контекст: тур уже пройден (глобальный storageState).
   await page.goto("/");
-  await page.getByRole("button", { name: "Открыть меню инструментов" }).click();
+  await page.getByRole("button", { name: "Настройки" }).click();
   await page.getByRole("menuitem", { name: "Обучение" }).click();
 
   const tour = tourOf(page);

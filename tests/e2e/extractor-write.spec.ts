@@ -77,8 +77,7 @@ test("экстрактор: запись файлов в папку с план�
     .first();
   await expect(editor).toBeEditable({ timeout: 15_000 });
 
-  await page.getByRole("button", { name: "Открыть меню инструментов" }).click();
-  await page.getByRole("menuitem", { name: "Экстрактор кода" }).click();
+  await page.getByRole("button", { name: "Открыть экстрактор кода" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Экстрактор кода" });
   await expect(dialog).toBeVisible();

@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 
 /**
  * Этап 15.2. Поведение, которое изменилось при разбиении компонентов:
- * кнопки форматирования сообщают состояние, меню «Инструменты» работает
+ * кнопки форматирования сообщают состояние, меню «Настройки» работает
  * с клавиатуры, кнопки строки проекта нажимаются с клавиатуры.
  */
 
@@ -24,31 +24,18 @@ test("кнопка «Жирный» сообщает, включена ли он
   await expect(bold).toHaveAttribute("aria-pressed", "true");
 });
 
-test("меню «Инструменты»: стрелки и Escape", async ({ page }) => {
+test("меню «Настройки»: стрелки и Escape", async ({ page }) => {
   await openApp(page);
-  const trigger = page.getByRole("button", {
-    name: "Открыть меню инструментов",
-  });
+  const trigger = page.getByRole("button", { name: "Настройки" });
   await trigger.click();
-  const menu = page.getByRole("menu", { name: "Меню инструментов" });
+  const menu = page.getByRole("menu", { name: "Настройки" });
   await expect(menu).toBeVisible();
 
-  // Фокус на первом пункте; стрелки ходят по видимым пунктам
-  // (часть пунктов прячется по ширине тулбара).
-  const first = menu.getByRole("menuitem", { name: "Предпросмотр" });
+  // Фокус на первом пункте; стрелки ходят по пунктам и возвращаются.
+  const first = menu.getByRole("menuitemradio").first();
   await expect(first).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(first).not.toBeFocused();
-  const focusedIsVisibleItem = await menu.evaluate((el) => {
-    const active = document.activeElement as HTMLElement | null;
-    return (
-      !!active &&
-      el.contains(active) &&
-      active.getAttribute("role") === "menuitem" &&
-      active.getClientRects().length > 0
-    );
-  });
-  expect(focusedIsVisibleItem).toBe(true);
   await page.keyboard.press("ArrowUp");
   await expect(first).toBeFocused();
 

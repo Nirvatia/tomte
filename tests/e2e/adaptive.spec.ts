@@ -85,9 +85,10 @@ test.describe("Планшет (834px)", () => {
       page.getByRole("button", { name: "Заголовок 1" }),
     ).toBeHidden();
     await expect(page.getByRole("button", { name: "Жирный" })).toBeVisible();
+    // Копирование и очистка видны на любой ширине: меню «Инструменты» нет.
     await expect(
       page.getByRole("button", { name: "Копировать текст" }),
-    ).toBeHidden();
+    ).toBeVisible();
   });
 });
 
@@ -117,7 +118,7 @@ test.describe("Телефон (390px)", () => {
     await expect(page.getByRole("button", { name: /≈/ })).toBeVisible();
   });
 
-  test("тулбар минимален, копирование — в меню «ещё»", async ({ page }) => {
+  test("тулбар минимален, копирование и очистка на месте", async ({ page }) => {
     await seedSidebarOpen(page, false);
     await waitApp(page);
 
@@ -127,13 +128,21 @@ test.describe("Телефон (390px)", () => {
     ).toBeHidden();
     await expect(
       page.getByRole("button", { name: "Копировать текст" }),
-    ).toBeHidden();
-
-    await page
-      .getByRole("button", { name: "Открыть меню инструментов" })
-      .click();
+    ).toBeInViewport();
     await expect(
-      page.getByRole("menuitem", { name: "Копировать текст" }),
+      page.getByRole("button", { name: "Очистить весь текст" }),
+    ).toBeInViewport();
+  });
+
+  test("проекты, экстрактор и предпросмотр — в шапке", async ({ page }) => {
+    await seedSidebarOpen(page, false);
+    await waitApp(page);
+
+    await expect(
+      page.getByRole("button", { name: "Открыть экстрактор кода" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Предпросмотр", exact: true }),
     ).toBeVisible();
   });
 });

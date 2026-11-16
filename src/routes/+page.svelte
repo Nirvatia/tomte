@@ -64,8 +64,12 @@
 {#if isReady}
   <AppHeader />
   <!-- overflow-clip, а не hidden: обрезка та же, но контейнер не
-       прокручиваемый — фокус на элементе за краем не сдвигает колонку. -->
-  <div class="app-main flex flex-1 overflow-clip">
+       прокручиваемый — фокус на элементе за краем не сдвигает колонку.
+       min-h-0 обязателен: clip не делает элемент scroll-контейнером, и без
+       него min-height:auto не даёт flex-элементу сжаться ниже контента —
+       длинный текст или дерево раздували колонку и уводили строку
+       состояния за экран. -->
+  <div class="app-main flex min-h-0 flex-1 overflow-clip">
     <ActivityBar />
     {#if $isDesktop}
       <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
@@ -89,11 +93,11 @@
       </div>
     {/if}
     <div
-      class="flex min-w-0 flex-1 flex-col overflow-clip bg-[var(--bg-darkest)]"
+      class="flex min-h-0 min-w-0 flex-1 flex-col overflow-clip bg-[var(--bg-darkest)]"
     >
       <TabsBar />
       <EditorToolbar {editor} />
-      <main class="flex-1 overflow-hidden">
+      <main class="min-h-0 flex-1 overflow-hidden">
         <PromptEditor onEditorReady={handleEditorReady} />
       </main>
     </div>

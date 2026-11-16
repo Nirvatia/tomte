@@ -37,11 +37,11 @@ test("переключатель меняет тему и запоминает �
   ).toHaveAttribute("aria-checked", "true");
   await page.keyboard.press("Escape");
 
-  // Цвета действительно поменялись: фон редактора белый.
+  // Цвета действительно поменялись: фон светлой темы — пастельный, не белый.
   const background = await page
     .locator(".app-root")
     .evaluate((el) => getComputedStyle(el).backgroundColor);
-  expect(background).toBe("rgb(255, 255, 255)");
+  expect(background).toBe("rgb(246, 244, 236)");
 
   await page.reload();
   expect(await themeOf(page)).toBe("light");

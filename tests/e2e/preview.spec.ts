@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Предпросмотр", () => {
-  test("открывается через меню инструментов", async ({ page }) => {
+  test("открывается кнопкой в шапке", async ({ page }) => {
     await page.goto("/");
 
     // Ждём инициализацию
@@ -14,13 +14,10 @@ test.describe("Предпросмотр", () => {
     await editor.click();
     await page.keyboard.type("Тестовый контент для предпросмотра");
 
-    // Открываем меню инструментов
+    // Кнопка «Предпросмотр» рядом с настройками и экспортом
     await page
-      .getByRole("button", { name: "Открыть меню инструментов" })
+      .getByRole("button", { name: "Предпросмотр", exact: true })
       .click();
-
-    // Кликаем "Предпросмотр"
-    await page.getByRole("menuitem", { name: "Предпросмотр" }).click();
 
     // Модалка предпросмотра открывается
     await expect(
@@ -49,9 +46,8 @@ test.describe("Предпросмотр", () => {
 
     // Не вводим текст, сразу открываем предпросмотр
     await page
-      .getByRole("button", { name: "Открыть меню инструментов" })
+      .getByRole("button", { name: "Предпросмотр", exact: true })
       .click();
-    await page.getByRole("menuitem", { name: "Предпросмотр" }).click();
 
     // Видим заглушку "Нечего просматривать"
     await expect(page.getByText("Нечего просматривать")).toBeVisible();

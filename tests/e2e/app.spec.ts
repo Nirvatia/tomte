@@ -17,7 +17,7 @@ test.describe("Приложение", () => {
 
     // Тулбар виден
     await expect(
-      page.getByRole("button", { name: "Открыть меню инструментов" }),
+      page.getByRole("button", { name: "Жирный", exact: true }),
     ).toBeVisible();
 
     // Сайдбар проекта виден (кнопка структуры проекта)

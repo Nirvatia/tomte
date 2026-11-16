@@ -5,8 +5,10 @@
     Check,
     ChevronDown,
     CircleAlert,
+    Brain,
     Download,
     ExternalLink,
+    Eye,
     File as FileIcon,
     FileCode,
     FileText,
@@ -29,6 +31,8 @@
     exportFormat,
     filteredTreePathSet,
     isExportMenuOpen,
+    isExtractorOpen,
+    isPreviewOpen,
     isProjectManagerOpen,
     projectTreeNodes,
     selectedFileIds,
@@ -166,26 +170,45 @@
 >
   <AppLogo size="compact" />
 
-  <div class="flex items-center gap-3">
-    <!-- Этап 9: на планшете и телефоне activity bar спрятан, проекты открываются отсюда. -->
+  <div class="flex items-center gap-2">
+    <!-- Этап 9: на планшете и телефоне activity bar спрятан, проекты и
+         экстрактор открываются отсюда. -->
     {#if !$isDesktop}
       <button
         type="button"
         onclick={() => isProjectManagerOpen.set(true)}
-        class="icon-btn"
+        class="icon-btn-lg"
         aria-label={$t("activity.projects")}
         title={$t("projects.manager")}
       >
-        <FolderKanban size={16} />
+        <FolderKanban size={20} />
+      </button>
+      <button
+        type="button"
+        onclick={() => isExtractorOpen.set(true)}
+        class="icon-btn-lg"
+        aria-label={$t("activity.extractor")}
+        title={$t("activity.extractorTitle")}
+      >
+        <Brain size={20} />
       </button>
     {/if}
+    <button
+      type="button"
+      onclick={() => isPreviewOpen.set(true)}
+      class="icon-btn-lg"
+      aria-label={$t("toolbar.preview")}
+      title={$t("toolbar.preview")}
+    >
+      <Eye size={22} />
+    </button>
     <SettingsMenu />
     <div data-tour="export" bind:this={exportMenuContainer} class="relative">
       <button
         type="button"
         onclick={toggleExportMenu}
         disabled={isExporting}
-        class="btn btn-primary btn-sm"
+        class="btn btn-primary btn-md"
         bind:this={exportButton}
         aria-haspopup="menu"
         aria-expanded={$isExportMenuOpen}

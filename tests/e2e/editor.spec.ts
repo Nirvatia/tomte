@@ -123,7 +123,7 @@ test.describe("Тулбар", () => {
     );
     expect(fits).toBe(true);
     await expect(
-      page.getByRole("button", { name: "Открыть меню инструментов" }),
+      page.getByRole("button", { name: "Копировать текст" }),
     ).toBeInViewport();
 
     const rowsBefore = await editor.locator("tr").count();
@@ -136,20 +136,18 @@ test.describe("Тулбар", () => {
 test.describe("Тулбар на телефоне", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("копировать и очистить доступны из «Инструментов»", async ({ page }) => {
+  test("копировать и очистить на месте и помещаются в тулбар", async ({
+    page,
+  }) => {
     await page.goto("/");
     await expect(page.locator(".tiptap-prose")).toBeEditable({
       timeout: 15_000,
     });
-    await page
-      .getByRole("button", { name: "Открыть меню инструментов" })
-      .click();
-    const menu = page.getByRole("menu", { name: "Меню инструментов" });
     await expect(
-      menu.getByRole("menuitem", { name: "Копировать текст" }),
-    ).toBeVisible();
+      page.getByRole("button", { name: "Копировать текст" }),
+    ).toBeInViewport();
     await expect(
-      menu.getByRole("menuitem", { name: "Очистить весь текст" }),
-    ).toBeVisible();
+      page.getByRole("button", { name: "Очистить весь текст" }),
+    ).toBeInViewport();
   });
 });

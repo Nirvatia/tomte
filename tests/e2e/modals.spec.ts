@@ -13,8 +13,7 @@ async function openApp(page: Page) {
 }
 
 async function openExtractor(page: Page) {
-  await page.getByRole("button", { name: "Открыть меню инструментов" }).click();
-  await page.getByRole("menuitem", { name: "Экстрактор кода" }).click();
+  await page.getByRole("button", { name: "Открыть экстрактор кода" }).click();
   return page.getByRole("dialog", { name: "Экстрактор кода" });
 }
 
@@ -74,8 +73,7 @@ test("подтверждение проходится с клавиатуры, �
   await page.locator(".tiptap-prose").click();
   await page.keyboard.type("Текст");
 
-  await page.getByRole("button", { name: "Открыть меню инструментов" }).click();
-  await page.getByRole("menuitem", { name: "Очистить весь текст" }).click();
+  await page.getByRole("button", { name: "Очистить весь текст" }).click();
   const confirm = page.getByRole("alertdialog", {
     name: "Очистить весь текст?",
   });

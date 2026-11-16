@@ -107,8 +107,14 @@
    СВЕТЛАЯ ТЕМА
    Те же токены, другие значения. data-theme на <html> ставит
    src/lib/theme.ts (и скрипт в app.html до первой отрисовки).
+   Палитра пастельная: приглушённые шалфейно-кремовые поверхности без
+   чисто белого (он слепит на большом экране), тёмный зелёно-бирюзовый
+   акцент и приглушённые статусные цвета. Иерархия слоёв та же, что в
+   тёмной: darkest — редактор, dark — шапка и панели, medium — сайдбар и
+   тулбар, light/lighter — наведение и ползунки.
    Контраст по WCAG 2.1, как и в тёмной: tertiary — не ниже 4.5:1 на фонах
-   darkest…light, dim (декоративные иконки) — не ниже 3:1 на darkest…light.
+   darkest…lighter, dim (декоративные иконки) — не ниже 3:1 на darkest…
+   lighter, текст на кнопке акцента — не ниже 4.5:1.
    ═══════════════════════════════════════════ */
 :root {
   color-scheme: dark;
@@ -116,32 +122,32 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg-darkest: #ffffff;
-  --bg-dark: #f5f8f8;
-  --bg-medium: #eef3f2;
-  --bg-light: #e3ebea;
-  --bg-lighter: #d3dedd;
-  --bg-raised: #ffffff;
-  --border: #d6e0df;
-  --border-light: #bccbc9;
-  --overlay: rgba(16, 36, 34, 0.38);
+  --bg-darkest: #f6f4ec;
+  --bg-dark: #ebeee3;
+  --bg-medium: #e3e9dd;
+  --bg-light: #dde5d6;
+  --bg-lighter: #ccd7c4;
+  --bg-raised: #fcfbf6;
+  --border: #cfd9c7;
+  --border-light: #b4c2ab;
+  --overlay: rgba(38, 50, 42, 0.4);
 
-  --text-primary: #102422;
-  --text-secondary: #35504d;
-  --text-tertiary: #4f6b68;
-  --text-dim: #6b8582;
+  --text-primary: #27332b;
+  --text-secondary: #44554a;
+  --text-tertiary: #4c6052;
+  --text-dim: #667a6b;
 
-  --accent: #0f766e;
-  --accent-hover: #115e59;
-  --accent-dim: rgba(15, 118, 110, 0.1);
-  --success: #147a3a;
-  --warning: #b45309;
-  --error: #be123c;
-  --info: #0369a1;
+  --accent: #2f6f66;
+  --accent-hover: #245a53;
+  --accent-dim: rgba(47, 111, 102, 0.13);
+  --success: #277042;
+  --warning: #8f5b12;
+  --error: #b0304c;
+  --info: #2a6791;
 
-  --shadow-sm: 0 1px 2px rgba(16, 36, 34, 0.06);
-  --shadow-md: 0 4px 14px rgba(16, 36, 34, 0.1);
-  --shadow-lg: 0 10px 28px rgba(16, 36, 34, 0.14);
+  --shadow-sm: 0 1px 2px rgba(38, 50, 42, 0.08);
+  --shadow-md: 0 4px 14px rgba(38, 50, 42, 0.12);
+  --shadow-lg: 0 10px 28px rgba(38, 50, 42, 0.16);
 }
 
 /* ═══════════════════════════════════════════
@@ -885,39 +891,75 @@
   color: var(--error);
 }
 
-/* — Поля: плоские, без видимой рамки и теней.
-      Акцент при фокусе — нижняя линия 2px (в покое прозрачна,
-      чтобы фокус не дёргал раскладку). — */
+/* — Крупная кнопка-иконка 36px для действий шапки (предпросмотр, проекты,
+      экстрактор). Рамка и высота те же, что у триггера настроек и кнопки
+      экспорта, — действия стоят в один ряд. — */
+.icon-btn-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-darkest);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.icon-btn-lg:hover {
+  border-color: var(--text-dim);
+  color: var(--text-primary);
+}
+
+/* — Поля ввода. Видимая рамка 1px со всех четырёх сторон и малый радиус:
+      границу поля видно в покое, без декоративных «подчёркиваний».
+      Фокус — рамка акцентного цвета плюс такая же внутренняя тень
+      (итого 2px), поэтому размеры поля не меняются и раскладку не дёргает.
+      Одинаково для input и textarea. — */
 .input {
-  border: 1px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
   background: var(--bg-darkest);
   color: var(--text-primary);
   caret-color: var(--accent);
   font-family: var(--font-ui);
   font-size: var(--text-ui);
+  line-height: 1.5;
   transition:
     background-color 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+textarea.input {
+  line-height: 1.55;
 }
 .input::placeholder {
   color: var(--text-dim);
 }
-.input:hover:not(:disabled) {
-  background: var(--bg-light);
+.input:hover:not(:disabled):not(:focus) {
+  border-color: var(--text-dim);
 }
 .input:focus {
   outline: none;
-  background: var(--bg-light);
-  border-bottom-color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .input:disabled {
-  opacity: 0.45;
+  background: var(--bg-medium);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
 }
 .input.is-error,
 .input.is-error:focus {
-  border-bottom-color: var(--error);
+  border-color: var(--error);
+}
+.input.is-error:focus {
+  box-shadow: inset 0 0 0 1px var(--error);
 }
 
 /* — Кастомный dropdown: единственная замена нативного select
@@ -929,9 +971,8 @@
   gap: 8px;
   height: 32px;
   padding: 0 10px;
-  border: 1px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
   background: var(--bg-darkest);
   color: var(--text-primary);
   font-family: var(--font-ui);
@@ -939,14 +980,15 @@
   cursor: pointer;
   transition:
     background-color 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .dropdown-trigger:hover {
-  background: var(--bg-light);
+  border-color: var(--text-dim);
 }
 .dropdown-trigger[aria-expanded="true"] {
-  background: var(--bg-light);
-  border-bottom-color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .dropdown-trigger .chev {
   color: var(--text-tertiary);
