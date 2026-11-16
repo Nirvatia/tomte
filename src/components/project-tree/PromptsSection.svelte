@@ -1,5 +1,6 @@
 <script lang="ts">
   import { t } from "$lib/i18n";
+  import type { PromptFile } from "../../types";
   import {
     Check,
     ChevronDown,
@@ -15,8 +16,10 @@
   import Checkbox from "../ui/Checkbox.svelte";
 
   import { autofocus } from "$lib/actions/autofocus";
-  import { notifyError, notifyUndo } from "$lib/notify";
-  import { promptFileMenu } from "$lib/promptFileMenu";
+  import {
+    deletePromptFileConfirmed,
+    promptFileMenu,
+  } from "$lib/promptFileMenu";
   import { openContextMenu } from "../../stores/contextMenu";
   import { reorderable } from "$lib/actions/reorder";
   import { requestConfirm } from "../../stores/confirm";
@@ -30,7 +33,6 @@
 
   import {
     createPromptFile,
-    deletePromptFileWithUndo,
     deletePromptFiles,
     flushPendingEditorSave,
     movePromptFile,
@@ -217,15 +219,12 @@
     editingFileName = "";
   }
 
-  // Один файл удаляется сразу, с отменой в уведомлении (решение этапа 5).
-  async function handleDeleteFile(fileId: string, fileName: string) {
+  // Файл с текстом удаляется после подтверждения, потом ещё можно отменить.
+  async function handleDeleteFile(file: PromptFile) {
     if (actionInProgress) return;
     actionInProgress = true;
     try {
-      const undo = await deletePromptFileWithUndo(fileId);
-      if (undo) notifyUndo($t("prompts.deleted", { name: fileName }), undo);
-    } catch (error) {
-      notifyError(getErrorMessage(error, $t("prompts.errors.delete")));
+      await deletePromptFileConfirmed(file);
     } finally {
       actionInProgress = false;
     }
@@ -431,7 +430,7 @@
               </button>
               <button
                 type="button"
-                onclick={() => handleDeleteFile(file.id, file.name)}
+                onclick={() => handleDeleteFile(file)}
                 disabled={actionInProgress}
                 class="icon-btn danger disabled:pointer-events-none disabled:opacity-40"
                 title={$t("common.delete")}

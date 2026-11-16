@@ -377,6 +377,11 @@ export const en: Dict = {
         other: "Delete {count} files?",
       },
     },
+    deleteOne: {
+      message:
+        "“{name}” ({chars}) will be deleted. If you change your mind, click “Undo” in the notification right after deleting.",
+      title: "Delete the prompt file?",
+    },
     deleteSelected: "Delete selected files",
     deleteSelectedHint: "Delete selected",
     deleted: "File “{name}” deleted",

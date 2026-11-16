@@ -325,7 +325,7 @@ export async function deletePromptFiles(fileIds: string[]): Promise<boolean> {
   return true;
 }
 
-function isEmptyContent(html: string): boolean {
+export function isEmptyContent(html: string): boolean {
   return html.replace(/<p><\/p>/g, "").trim() === "";
 }
 

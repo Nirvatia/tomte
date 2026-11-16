@@ -389,6 +389,11 @@ export const es: Dict = {
         other: "¿Eliminar {count} archivos?",
       },
     },
+    deleteOne: {
+      message:
+        "«{name}» ({chars}) se eliminará. Si cambias de opinión, pulsa «Deshacer» en la notificación justo después de eliminarlo.",
+      title: "¿Eliminar el archivo de prompt?",
+    },
     deleteSelected: "Eliminar los archivos seleccionados",
     deleteSelectedHint: "Eliminar los seleccionados",
     deleted: "Archivo «{name}» eliminado",
