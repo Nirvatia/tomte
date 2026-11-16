@@ -3,11 +3,14 @@
   import { onMount } from "svelte";
   import { Toaster } from "svelte-sonner";
   import ConfirmModal from "../components/ui/ConfirmModal.svelte";
+  import { trackAppHeight } from "$lib/viewport";
 
   let { children } = $props();
 
   // Этап 10.7 (PWA): кэшируем приложение для работы без сети.
   // Только прод: в dev service worker мешал бы горячей перезагрузке.
+  onMount(() => trackAppHeight());
+
   onMount(() => {
     if (import.meta.env.PROD && "serviceWorker" in navigator) {
       navigator.serviceWorker.register("/service-worker.js").catch((error) => {
@@ -32,7 +35,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="/favicon-76x76.png" />
 </svelte:head>
 
-<div class="flex h-screen flex-col overflow-hidden bg-[var(--bg-darkest)]">
+<div class="app-root flex flex-col bg-[var(--bg-darkest)]">
   {@render children()}
 </div>
 

@@ -82,8 +82,10 @@
     font-family: var(--font-ui);
     font-size: 14px;
     line-height: 1.5;
-    height: 100vh;
+    /* Высота — у .app-root: на телефоне она динамическая. */
+    min-height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
     display: flex;
     flex-direction: column;
     -webkit-font-smoothing: antialiased;
@@ -1265,5 +1267,32 @@
   .tour-done,
   .tour-dim {
     animation: none;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   КОРЕНЬ ПРИЛОЖЕНИЯ: высота окна на телефоне
+   ═══════════════════════════════════════════ */
+.app-root {
+  /* 100vh — запасной вариант для браузеров без dvh. dvh учитывает адресную
+     строку мобильного браузера; --app-height (src/lib/viewport.ts) ещё и
+     экранную клавиатуру на iOS. */
+  height: 100vh;
+  height: var(--app-height, 100dvh);
+  overflow: hidden;
+}
+@media (max-width: 1023px) {
+  .app-root {
+    /* Низкий экран (горизонтальная ориентация, открытая клавиатура):
+       интерфейс не помещается — прокручиваем, а не обрезаем. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .app-root > * {
+    flex-shrink: 0;
+  }
+  .app-root > .app-main {
+    flex-shrink: 1;
+    min-height: 320px;
   }
 }

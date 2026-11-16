@@ -137,3 +137,52 @@ test.describe("Телефон (390px)", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("Телефон: высота окна", () => {
+  // Сенсорный экран: высоту даёт visualViewport (адресная строка, клавиатура).
+  test.use({
+    viewport: { width: 390, height: 664 },
+    isMobile: true,
+    hasTouch: true,
+  });
+
+  const box = (page: Page, selector: string) =>
+    page.locator(selector).first().boundingBox();
+
+  test("приложение вписано в видимую часть окна", async ({ page }) => {
+    await waitApp(page);
+    const root = await box(page, ".app-root");
+    expect(root!.height).toBeCloseTo(664, 0);
+    expect((await box(page, "header"))!.y).toBe(0);
+    const status = await box(page, '[data-tour="tokens"]');
+    expect(status!.y + status!.height).toBeLessThanOrEqual(664);
+  });
+
+  test("видимая часть сжалась (клавиатура) — шапка и статусбар на месте", async ({
+    page,
+  }) => {
+    await waitApp(page);
+    await page.setViewportSize({ width: 390, height: 420 });
+    await expect
+      .poll(async () => (await box(page, ".app-root"))!.height)
+      .toBeCloseTo(420, 0);
+    expect((await box(page, "header"))!.y).toBe(0);
+    const status = await box(page, '[data-tour="tokens"]');
+    expect(status!.y + status!.height).toBeLessThanOrEqual(420);
+  });
+
+  test("низкий экран: интерфейс прокручивается, а не обрезается", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 844, height: 340 });
+    await waitApp(page);
+    const root = page.locator(".app-root");
+    const overflow = await root.evaluate(
+      (el) => el.scrollHeight - el.clientHeight,
+    );
+    expect(overflow).toBeGreaterThan(0);
+    await root.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    const status = await box(page, '[data-tour="tokens"]');
+    expect(status!.y + status!.height).toBeLessThanOrEqual(340);
+  });
+});

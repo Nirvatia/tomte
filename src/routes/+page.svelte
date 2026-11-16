@@ -63,7 +63,7 @@
 
 {#if isReady}
   <AppHeader />
-  <div class="flex flex-1 overflow-hidden">
+  <div class="app-main flex flex-1 overflow-hidden">
     <ActivityBar />
     {#if $isDesktop}
       <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
