@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ModalShell from "../ui/ModalShell.svelte";
   import { t } from "$lib/i18n";
   import { X, Copy, Check, Folder, LoaderCircle } from "@lucide/svelte";
   import { projectTreeNodes, projectTreeRootName } from "../../stores";
@@ -74,175 +75,155 @@
       console.error("Failed to copy", err);
     }
   }
-
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) onClose();
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (!isOpen || event.key !== "Escape") return;
-    // Останавливаем всплытие, чтобы обработчик на window не закрыл модалку второй раз.
-    event.stopPropagation();
-    onClose();
-  }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
 {#if isOpen}
-  <div
-    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
-    onclick={handleBackdropClick}
-    onkeydown={handleKeydown}
-    role="dialog"
-    aria-modal="true"
-    aria-label={$t("codeMap.dialog")}
-    tabindex="-1"
+  <ModalShell
+    label={$t("codeMap.dialog")}
+    {onClose}
+    width="max-w-5xl"
+    panelClass="flex h-[80vh] flex-col"
   >
     <div
-      class="flex h-[80vh] w-full max-w-5xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
+      class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4"
     >
-      <div
-        class="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-6 py-4"
+      <h3
+        class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
       >
-        <h3
-          class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
+        <Folder size={20} class="text-[var(--accent)]" />
+        {$t("codeMap.title")}
+      </h3>
+      <button
+        type="button"
+        onclick={onClose}
+        class="icon-btn"
+        aria-label={$t("common.close")}
+      >
+        <X size={18} />
+      </button>
+    </div>
+
+    <div class="flex flex-1 overflow-hidden">
+      <div class="flex w-1/3 flex-col border-r border-[var(--border)]">
+        <div
+          class="border-b border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
         >
-          <Folder size={20} class="text-[var(--accent)]" />
-          {$t("codeMap.title")}
-        </h3>
-        <button
-          type="button"
-          onclick={onClose}
-          class="icon-btn"
-          aria-label={$t("common.close")}
-        >
-          <X size={18} />
-        </button>
+          {$t("codeMap.pickFolder")}
+        </div>
+        <div class="flex-1 overflow-y-auto p-2">
+          {#if $projectTreeNodes.length === 0}
+            <div class="p-4 text-center text-sm text-[var(--text-tertiary)]">
+              {$t("codeMap.emptyTree")}
+            </div>
+          {:else}
+            {#each $projectTreeNodes as node (node.path)}
+              {#if node.type === "directory"}
+                <CodeMapFolderItem
+                  {node}
+                  selectedPath={selectedNode?.path || ""}
+                  onSelect={handleSelect}
+                />
+              {/if}
+            {/each}
+          {/if}
+        </div>
       </div>
 
-      <div class="flex flex-1 overflow-hidden">
-        <div class="flex w-1/3 flex-col border-r border-[var(--border)]">
-          <div
-            class="border-b border-[var(--border)] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+      <div class="flex w-2/3 flex-col bg-[var(--bg-darkest)]">
+        <div
+          class="flex items-center justify-between border-b border-[var(--border)] px-4 py-2"
+        >
+          <span
+            class="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
           >
-            {$t("codeMap.pickFolder")}
-          </div>
-          <div class="flex-1 overflow-y-auto p-2">
-            {#if $projectTreeNodes.length === 0}
-              <div class="p-4 text-center text-sm text-[var(--text-tertiary)]">
-                {$t("codeMap.emptyTree")}
-              </div>
-            {:else}
-              {#each $projectTreeNodes as node (node.path)}
-                {#if node.type === "directory"}
-                  <CodeMapFolderItem
-                    {node}
-                    selectedPath={selectedNode?.path || ""}
-                    onSelect={handleSelect}
-                  />
+            {selectedNode
+              ? $t("codeMap.mapFor", { name: selectedNode.name })
+              : $t("codeMap.result")}
+          </span>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              onclick={handleGenerate}
+              disabled={!selectedNode || isGenerating}
+              class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:opacity-40"
+            >
+              {#if isGenerating}
+                <LoaderCircle size={14} class="animate-spin" />
+                <span>{$t("codeMap.generating")}</span>
+              {:else}
+                <span>{$t("codeMap.generate")}</span>
+              {/if}
+            </button>
+            {#if generatedMap}
+              <button
+                type="button"
+                onclick={handleCopy}
+                class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors {copied
+                  ? 'text-[var(--success)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
+              >
+                {#if copied}
+                  <Check size={14} />
+                  <span>{$t("common.copied")}</span>
+                {:else}
+                  <Copy size={14} />
+                  <span>{$t("common.copy")}</span>
                 {/if}
-              {/each}
+              </button>
             {/if}
           </div>
         </div>
-
-        <div class="flex w-2/3 flex-col bg-[var(--bg-darkest)]">
-          <div
-            class="flex items-center justify-between border-b border-[var(--border)] px-4 py-2"
-          >
-            <span
-              class="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+        <div class="flex-1 overflow-y-auto p-4">
+          {#if report && (report.noContent.length > 0 || report.failed.length > 0)}
+            <div
+              class="mb-3 rounded border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]"
+              role="status"
             >
-              {selectedNode
-                ? $t("codeMap.mapFor", { name: selectedNode.name })
-                : $t("codeMap.result")}
-            </span>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                onclick={handleGenerate}
-                disabled={!selectedNode || isGenerating}
-                class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:opacity-40"
-              >
-                {#if isGenerating}
-                  <LoaderCircle size={14} class="animate-spin" />
-                  <span>{$t("codeMap.generating")}</span>
-                {:else}
-                  <span>{$t("codeMap.generate")}</span>
-                {/if}
-              </button>
-              {#if generatedMap}
-                <button
-                  type="button"
-                  onclick={handleCopy}
-                  class="flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors {copied
-                    ? 'text-[var(--success)]'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
-                >
-                  {#if copied}
-                    <Check size={14} />
-                    <span>{$t("common.copied")}</span>
-                  {:else}
-                    <Copy size={14} />
-                    <span>{$t("common.copy")}</span>
-                  {/if}
-                </button>
+              {#if report.noContent.length > 0}
+                <p>
+                  {$t("codeMap.skippedNoContent", {
+                    count: report.noContent.length,
+                  })}
+                </p>
+              {/if}
+              {#if report.failed.length > 0}
+                <p class="mt-1">
+                  {$t("codeMap.failed", {
+                    files:
+                      report.failed.length > 5
+                        ? $t("codeMap.andMore", {
+                            files: report.failed.slice(0, 5).join(", "),
+                            count: report.failed.length - 5,
+                          })
+                        : report.failed.join(", "),
+                  })}
+                </p>
               {/if}
             </div>
-          </div>
-          <div class="flex-1 overflow-y-auto p-4">
-            {#if report && (report.noContent.length > 0 || report.failed.length > 0)}
-              <div
-                class="mb-3 rounded border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-3 py-2 text-xs text-[var(--text-secondary)]"
-                role="status"
-              >
-                {#if report.noContent.length > 0}
-                  <p>
-                    {$t("codeMap.skippedNoContent", {
-                      count: report.noContent.length,
-                    })}
-                  </p>
-                {/if}
-                {#if report.failed.length > 0}
-                  <p class="mt-1">
-                    {$t("codeMap.failed", {
-                      files:
-                        report.failed.length > 5
-                          ? $t("codeMap.andMore", {
-                              files: report.failed.slice(0, 5).join(", "),
-                              count: report.failed.length - 5,
-                            })
-                          : report.failed.join(", "),
-                    })}
-                  </p>
-                {/if}
-              </div>
-            {/if}
-            {#if generateError}
-              <p class="text-sm text-[var(--error)]" role="alert">
-                {generateError}
-              </p>
-            {:else if report && !generatedMap}
-              <p class="text-sm text-[var(--text-tertiary)]">
-                {$t("codeMap.nothingSupported")}
-              </p>
-            {/if}
-            {#if generatedMap}
-              <pre
-                class="font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap">{generatedMap}</pre>
-            {:else if !report && !generateError}
-              <div
-                class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]"
-              >
-                {selectedNode
-                  ? $t("codeMap.pressGenerate")
-                  : $t("codeMap.pickFolderLeft")}
-              </div>
-            {/if}
-          </div>
+          {/if}
+          {#if generateError}
+            <p class="text-sm text-[var(--error)]" role="alert">
+              {generateError}
+            </p>
+          {:else if report && !generatedMap}
+            <p class="text-sm text-[var(--text-tertiary)]">
+              {$t("codeMap.nothingSupported")}
+            </p>
+          {/if}
+          {#if generatedMap}
+            <pre
+              class="font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap">{generatedMap}</pre>
+          {:else if !report && !generateError}
+            <div
+              class="flex h-full items-center justify-center text-sm text-[var(--text-tertiary)]"
+            >
+              {selectedNode
+                ? $t("codeMap.pressGenerate")
+                : $t("codeMap.pickFolderLeft")}
+            </div>
+          {/if}
         </div>
       </div>
     </div>
-  </div>
+  </ModalShell>
 {/if}

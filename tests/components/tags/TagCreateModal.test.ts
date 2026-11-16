@@ -273,8 +273,9 @@ describe("TagCreateModal", () => {
         props: { ...baseProps, onClose },
       });
 
-      const dialog = screen.getByRole("dialog");
-      const backdrop = dialog.parentElement!;
+      // Затемнение — сам элемент dialog (ModalShell); клик по панели
+      // внутри модалку не закрывает.
+      const backdrop = screen.getByRole("dialog");
 
       await fireEvent.click(backdrop);
 

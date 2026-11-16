@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ModalShell from "../ui/ModalShell.svelte";
   import { formatRelativeTime, t } from "$lib/i18n";
   import {
     CircleAlert,
@@ -136,34 +137,12 @@
     }
   }
 
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      close();
-    }
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape" && isCreating) {
+  // Escape сначала отменяет создание проекта, потом закрывает менеджер.
+  // Поле переименования обрабатывает Escape само и дальше его не пускает.
+  function handleEscape() {
+    if (isCreating) {
       cancelCreate();
-      return;
-    }
-    if (event.key === "Escape" && !actionInProgress && !renamingProjectId) {
-      close();
-    }
-  }
-
-  function handleBackdropKeydown(event: KeyboardEvent) {
-    // Не перехватываем клавиши, если событие произошло внутри полей ввода (input)
-    const target = event.target as HTMLElement | null;
-    if (target && target.tagName === "INPUT") {
-      return;
-    }
-
-    if (event.key === "Escape") {
-      if (isCreating) {
-        cancelCreate();
-        return;
-      }
+    } else if (!actionInProgress && !renamingProjectId) {
       close();
     }
   }
@@ -311,326 +290,315 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
 {#if $isProjectManagerOpen}
-  <div
-    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
-    onclick={handleBackdropClick}
-    onkeydown={handleBackdropKeydown}
-    role="dialog"
-    aria-modal="true"
-    aria-label={$t("projects.manager")}
-    tabindex="-1"
+  <ModalShell
+    label={$t("projects.manager")}
+    onClose={close}
+    onEscape={handleEscape}
+    width="max-w-2xl"
+    panelClass="flex max-h-[85vh] flex-col"
   >
     <div
-      class="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
-      role="presentation"
-      onclick={(event) => event.stopPropagation()}
+      class="flex items-center justify-between border-b border-[var(--border)] p-6"
     >
-      <div
-        class="flex items-center justify-between border-b border-[var(--border)] p-6"
-      >
-        <div>
-          <h2
-            class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
+      <div>
+        <h2
+          class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
+        >
+          <FolderKanban size={22} class="text-[var(--accent)]" />
+          {$t("projects.manager")}
+        </h2>
+        <p class="mt-1 text-sm text-[var(--text-tertiary)]">
+          {$t("common.total")}
+          <strong class="font-semibold text-[var(--text-primary)]"
+            >{projects.length}</strong
           >
-            <FolderKanban size={22} class="text-[var(--accent)]" />
-            {$t("projects.manager")}
-          </h2>
-          <p class="mt-1 text-sm text-[var(--text-tertiary)]">
-            {$t("common.total")}
-            <strong class="font-semibold text-[var(--text-primary)]"
-              >{projects.length}</strong
-            >
-          </p>
-        </div>
-        <button
-          type="button"
-          onclick={close}
-          disabled={actionInProgress}
-          class="icon-btn disabled:opacity-40"
-          aria-label={$t("projects.closeManager")}
-        >
-          <X size={20} />
-        </button>
+        </p>
       </div>
-
-      <div
-        class="border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
+      <button
+        type="button"
+        onclick={close}
+        disabled={actionInProgress}
+        class="icon-btn disabled:opacity-40"
+        aria-label={$t("projects.closeManager")}
       >
-        {#if isCreating}
-          <div class="flex items-center gap-2">
-            <input
-              bind:this={createInput}
-              bind:value={newProjectName}
-              onkeydown={(event) => {
-                event.stopPropagation();
-                if (event.key === "Enter") {
-                  void submitCreate();
-                }
-                if (event.key === "Escape") {
-                  cancelCreate();
-                }
-              }}
-              type="text"
-              placeholder={$t("projects.newNamePlaceholder")}
-              class="input w-full px-3.5"
-              maxlength="100"
-              aria-label={$t("projects.newName")}
-            />
-            <button
-              type="button"
-              onclick={() => void submitCreate()}
-              disabled={actionInProgress || !newProjectName.trim()}
-              class="btn btn-primary btn-md shrink-0"
-            >
-              {#if actionInProgress}
-                <LoaderCircle size={14} class="animate-spin" />
-              {:else}
-                <Plus size={14} />
-              {/if}
-              {$t("common.create")}
-            </button>
-            <button
-              type="button"
-              onclick={cancelCreate}
-              disabled={actionInProgress}
-              class="btn btn-outline btn-md shrink-0"
-            >
-              {$t("common.cancel")}
-            </button>
-          </div>
-        {:else}
-          <div class="flex items-center gap-2">
-            <div class="relative flex-1">
-              <Search
-                size={15}
-                class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
-              />
-              <input
-                type="text"
-                bind:value={searchQuery}
-                placeholder={$t("projects.searchPlaceholder")}
-                class="input w-full py-2 pl-9 pr-3"
-                aria-label={$t("projects.search")}
-              />
-            </div>
-            <button
-              type="button"
-              onclick={() => importInput?.click()}
-              disabled={actionInProgress || isImporting}
-              class="btn btn-outline btn-md shrink-0"
-              title={$t("backup.import")}
-              aria-label={$t("backup.import")}
-            >
-              {#if isImporting}
-                <LoaderCircle size={14} class="animate-spin" />
-              {:else}
-                <Upload size={14} />
-              {/if}
-            </button>
-            <input
-              bind:this={importInput}
-              type="file"
-              accept=".zip,application/zip"
-              class="hidden"
-              onchange={(event) => void handleImportChange(event)}
-              aria-label={$t("backup.import")}
-            />
-            <button
-              type="button"
-              onclick={startCreate}
-              disabled={actionInProgress}
-              class="btn btn-primary btn-md shrink-0"
-            >
-              <Plus size={14} />
-              {$t("projects.new")}
-            </button>
-          </div>
-        {/if}
-      </div>
+        <X size={20} />
+      </button>
+    </div>
 
-      {#if errorMessage}
-        <div
-          class="flex items-start gap-2 border-b border-[var(--error)]/30 bg-[var(--error)]/10 px-6 py-3 text-xs text-[var(--error)]"
-        >
-          <CircleAlert size={14} class="mt-0.5 shrink-0" />
-          <span>{errorMessage}</span>
+    <div
+      class="border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
+    >
+      {#if isCreating}
+        <div class="flex items-center gap-2">
+          <input
+            bind:this={createInput}
+            bind:value={newProjectName}
+            onkeydown={(event) => {
+              event.stopPropagation();
+              if (event.key === "Enter") {
+                void submitCreate();
+              }
+              if (event.key === "Escape") {
+                // Обработано здесь: каркас модалки не закроет менеджер.
+                event.preventDefault();
+                cancelCreate();
+              }
+            }}
+            type="text"
+            placeholder={$t("projects.newNamePlaceholder")}
+            class="input w-full px-3.5"
+            maxlength="100"
+            aria-label={$t("projects.newName")}
+          />
+          <button
+            type="button"
+            onclick={() => void submitCreate()}
+            disabled={actionInProgress || !newProjectName.trim()}
+            class="btn btn-primary btn-md shrink-0"
+          >
+            {#if actionInProgress}
+              <LoaderCircle size={14} class="animate-spin" />
+            {:else}
+              <Plus size={14} />
+            {/if}
+            {$t("common.create")}
+          </button>
+          <button
+            type="button"
+            onclick={cancelCreate}
+            disabled={actionInProgress}
+            class="btn btn-outline btn-md shrink-0"
+          >
+            {$t("common.cancel")}
+          </button>
+        </div>
+      {:else}
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1">
+            <Search
+              size={15}
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
+            />
+            <input
+              type="text"
+              bind:value={searchQuery}
+              placeholder={$t("projects.searchPlaceholder")}
+              class="input w-full py-2 pl-9 pr-3"
+              aria-label={$t("projects.search")}
+            />
+          </div>
+          <button
+            type="button"
+            onclick={() => importInput?.click()}
+            disabled={actionInProgress || isImporting}
+            class="btn btn-outline btn-md shrink-0"
+            title={$t("backup.import")}
+            aria-label={$t("backup.import")}
+          >
+            {#if isImporting}
+              <LoaderCircle size={14} class="animate-spin" />
+            {:else}
+              <Upload size={14} />
+            {/if}
+          </button>
+          <input
+            bind:this={importInput}
+            type="file"
+            accept=".zip,application/zip"
+            class="hidden"
+            onchange={(event) => void handleImportChange(event)}
+            aria-label={$t("backup.import")}
+          />
+          <button
+            type="button"
+            onclick={startCreate}
+            disabled={actionInProgress}
+            class="btn btn-primary btn-md shrink-0"
+          >
+            <Plus size={14} />
+            {$t("projects.new")}
+          </button>
         </div>
       {/if}
+    </div>
 
-      <div class="min-h-0 flex-1 overflow-y-auto p-6">
-        {#if isLoading}
-          <div class="flex flex-col items-center justify-center py-16">
-            <LoaderCircle size={32} class="animate-spin text-[var(--accent)]" />
-            <p class="mt-3 text-sm text-[var(--text-tertiary)]">
-              {$t("projects.loading")}
+    {#if errorMessage}
+      <div
+        class="flex items-start gap-2 border-b border-[var(--error)]/30 bg-[var(--error)]/10 px-6 py-3 text-xs text-[var(--error)]"
+      >
+        <CircleAlert size={14} class="mt-0.5 shrink-0" />
+        <span>{errorMessage}</span>
+      </div>
+    {/if}
+
+    <div class="min-h-0 flex-1 overflow-y-auto p-6">
+      {#if isLoading}
+        <div class="flex flex-col items-center justify-center py-16">
+          <LoaderCircle size={32} class="animate-spin text-[var(--accent)]" />
+          <p class="mt-3 text-sm text-[var(--text-tertiary)]">
+            {$t("projects.loading")}
+          </p>
+        </div>
+      {:else if filteredProjects.length === 0}
+        <div class="py-16 text-center">
+          <FolderKanban size={40} class="mx-auto mb-3 text-[var(--text-dim)]" />
+          <p class="text-sm font-medium text-[var(--text-secondary)]">
+            {searchQuery.trim()
+              ? $t("common.nothingFound")
+              : $t("projects.empty")}
+          </p>
+          {#if searchQuery.trim()}
+            <p class="mt-1 text-xs text-[var(--text-tertiary)]">
+              {$t("projects.tryQuery")}
             </p>
-          </div>
-        {:else if filteredProjects.length === 0}
-          <div class="py-16 text-center">
-            <FolderKanban
-              size={40}
-              class="mx-auto mb-3 text-[var(--text-dim)]"
-            />
-            <p class="text-sm font-medium text-[var(--text-secondary)]">
-              {searchQuery.trim()
-                ? $t("common.nothingFound")
-                : $t("projects.empty")}
-            </p>
-            {#if searchQuery.trim()}
-              <p class="mt-1 text-xs text-[var(--text-tertiary)]">
-                {$t("projects.tryQuery")}
-              </p>
-            {/if}
-          </div>
-        {:else}
-          <div class="space-y-2">
-            {#each filteredProjects as project (project.id)}
-              {@const isActive = $activeProject?.id === project.id}
-              <div
-                class="group relative cursor-pointer rounded-lg border p-4 transition-all {isActive
-                  ? 'border-[var(--accent)]/50 bg-[var(--accent-dim)]'
-                  : 'border-[var(--border)] bg-[var(--bg-medium)] hover:border-[var(--border-light)] hover:bg-[var(--bg-light)]'}"
-                onclick={() => handleSwitch(project.id)}
-                onkeydown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    handleSwitch(project.id);
-                  }
-                }}
-                role="button"
-                tabindex="0"
-                aria-label={$t(
-                  isActive ? "projects.activeProject" : "projects.switchTo",
-                  {
-                    name: project.name,
-                  },
-                )}
-              >
-                {#if renamingProjectId === project.id}
-                  <input
-                    bind:this={renameInput}
-                    bind:value={renameValue}
-                    onblur={saveRename}
-                    onkeydown={(event) => {
-                      event.stopPropagation();
-                      if (event.key === "Enter") saveRename();
-                      if (event.key === "Escape") cancelRename();
-                    }}
-                    onclick={(event) => event.stopPropagation()}
-                    class="w-full rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-1 text-sm font-medium text-[var(--text-primary)] focus:outline-none"
-                    maxlength="100"
-                  />
-                {:else}
-                  <div class="flex items-center gap-2">
-                    {#if isActive}
-                      <span
-                        class="h-2 w-2 shrink-0 rounded-full bg-[var(--success)]"
-                        aria-hidden="true"
-                      ></span>
-                    {/if}
+          {/if}
+        </div>
+      {:else}
+        <div class="space-y-2">
+          {#each filteredProjects as project (project.id)}
+            {@const isActive = $activeProject?.id === project.id}
+            <div
+              class="group relative cursor-pointer rounded-lg border p-4 transition-all {isActive
+                ? 'border-[var(--accent)]/50 bg-[var(--accent-dim)]'
+                : 'border-[var(--border)] bg-[var(--bg-medium)] hover:border-[var(--border-light)] hover:bg-[var(--bg-light)]'}"
+              onclick={() => handleSwitch(project.id)}
+              onkeydown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleSwitch(project.id);
+                }
+              }}
+              role="button"
+              tabindex="0"
+              aria-label={$t(
+                isActive ? "projects.activeProject" : "projects.switchTo",
+                {
+                  name: project.name,
+                },
+              )}
+            >
+              {#if renamingProjectId === project.id}
+                <input
+                  bind:this={renameInput}
+                  bind:value={renameValue}
+                  onblur={saveRename}
+                  onkeydown={(event) => {
+                    event.stopPropagation();
+                    if (event.key === "Enter") saveRename();
+                    if (event.key === "Escape") cancelRename();
+                  }}
+                  onclick={(event) => event.stopPropagation()}
+                  class="w-full rounded border border-[var(--accent)] bg-[var(--bg-darkest)] px-2 py-1 text-sm font-medium text-[var(--text-primary)] focus:outline-none"
+                  maxlength="100"
+                />
+              {:else}
+                <div class="flex items-center gap-2">
+                  {#if isActive}
                     <span
-                      class="truncate text-sm font-semibold text-[var(--text-primary)]"
+                      class="h-2 w-2 shrink-0 rounded-full bg-[var(--success)]"
+                      aria-hidden="true"
+                    ></span>
+                  {/if}
+                  <span
+                    class="truncate text-sm font-semibold text-[var(--text-primary)]"
+                  >
+                    {project.name}
+                  </span>
+                  {#if isActive}
+                    <span
+                      class="shrink-0 rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)]"
                     >
-                      {project.name}
-                    </span>
-                    {#if isActive}
-                      <span
-                        class="shrink-0 rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--accent)]"
-                      >
-                        {$t("projects.active")}
-                      </span>
-                    {/if}
-                  </div>
-                {/if}
-
-                <div
-                  class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--text-tertiary)]"
-                >
-                  <span class="flex items-center gap-1">
-                    <FileText size={12} />
-                    {$t("projects.prompts", { count: project.fileCount })}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <Paperclip size={12} />
-                    {$t("projects.attachments", {
-                      count: project.attachmentCount,
-                    })}
-                  </span>
-                  {#if project.hasTree}
-                    <span class="flex items-center gap-1">
-                      <FolderTree size={12} />
-                      {$t("projects.hasTree")}
+                      {$t("projects.active")}
                     </span>
                   {/if}
-                  <span class="font-mono"
-                    >{formatFileSize(project.totalSize)}</span
-                  >
-                  <span>·</span>
-                  <span>{formatRelativeTime(project.updatedAt)}</span>
                 </div>
+              {/if}
 
-                {#if renamingProjectId !== project.id}
-                  <div
-                    class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                  >
-                    <button
-                      type="button"
-                      onclick={(event) => startRename(project, event)}
-                      disabled={actionInProgress}
-                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                      title={$t("common.rename")}
-                      aria-label={$t("projects.renameProject", {
-                        name: project.name,
-                      })}
-                    >
-                      <Pencil size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onclick={(event) => handleDuplicate(project, event)}
-                      disabled={actionInProgress}
-                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                      title={$t("common.duplicate")}
-                      aria-label={$t("projects.duplicateProject", {
-                        name: project.name,
-                      })}
-                    >
-                      <Copy size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onclick={(event) => handleExportBackup(project, event)}
-                      disabled={actionInProgress}
-                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
-                      title={$t("backup.exportOne")}
-                      aria-label={$t("backup.exportOne")}
-                    >
-                      <Download size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onclick={(event) => handleDelete(project, event)}
-                      disabled={projects.length <= 1 || actionInProgress}
-                      class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
-                      title={projects.length <= 1
-                        ? $t("projects.delete.lastHint")
-                        : $t("common.delete")}
-                      aria-label={$t("projects.deleteProject", {
-                        name: project.name,
-                      })}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
+              <div
+                class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--text-tertiary)]"
+              >
+                <span class="flex items-center gap-1">
+                  <FileText size={12} />
+                  {$t("projects.prompts", { count: project.fileCount })}
+                </span>
+                <span class="flex items-center gap-1">
+                  <Paperclip size={12} />
+                  {$t("projects.attachments", {
+                    count: project.attachmentCount,
+                  })}
+                </span>
+                {#if project.hasTree}
+                  <span class="flex items-center gap-1">
+                    <FolderTree size={12} />
+                    {$t("projects.hasTree")}
+                  </span>
                 {/if}
+                <span class="font-mono"
+                  >{formatFileSize(project.totalSize)}</span
+                >
+                <span>·</span>
+                <span>{formatRelativeTime(project.updatedAt)}</span>
               </div>
-            {/each}
-          </div>
-        {/if}
-      </div>
+
+              {#if renamingProjectId !== project.id}
+                <div
+                  class="absolute right-3 top-3 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  <button
+                    type="button"
+                    onclick={(event) => startRename(project, event)}
+                    disabled={actionInProgress}
+                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                    title={$t("common.rename")}
+                    aria-label={$t("projects.renameProject", {
+                      name: project.name,
+                    })}
+                  >
+                    <Pencil size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onclick={(event) => handleDuplicate(project, event)}
+                    disabled={actionInProgress}
+                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                    title={$t("common.duplicate")}
+                    aria-label={$t("projects.duplicateProject", {
+                      name: project.name,
+                    })}
+                  >
+                    <Copy size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onclick={(event) => handleExportBackup(project, event)}
+                    disabled={actionInProgress}
+                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-40"
+                    title={$t("backup.exportOne")}
+                    aria-label={$t("backup.exportOne")}
+                  >
+                    <Download size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onclick={(event) => handleDelete(project, event)}
+                    disabled={projects.length <= 1 || actionInProgress}
+                    class="flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--error)]/10 hover:text-[var(--error)] disabled:pointer-events-none disabled:opacity-30"
+                    title={projects.length <= 1
+                      ? $t("projects.delete.lastHint")
+                      : $t("common.delete")}
+                    aria-label={$t("projects.deleteProject", {
+                      name: project.name,
+                    })}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
-  </div>
+  </ModalShell>
 {/if}

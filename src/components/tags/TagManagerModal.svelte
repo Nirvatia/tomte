@@ -19,6 +19,7 @@
   import { requestConfirm } from "../../stores/confirm";
 
   import Checkbox from "../ui/Checkbox.svelte";
+  import ModalShell from "../ui/ModalShell.svelte";
 
   import {
     addTag,
@@ -88,19 +89,12 @@
     isTagManagerOpen.set(false);
   }
 
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
+  // Escape сначала закрывает форму тега, потом сам менеджер.
+  function handleEscape() {
+    if (isFormMode) {
+      closeForm();
+    } else {
       close();
-    }
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape") {
-      if (isFormMode) {
-        closeForm();
-      } else {
-        close();
-      }
     }
   }
 
@@ -217,318 +211,304 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
 {#if $isTagManagerOpen}
-  <!-- Оверлей / Бэкдроп -->
-  <div
-    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
-    onclick={handleBackdropClick}
-    role="presentation"
+  <ModalShell
+    label={$t("tags.manager")}
+    onClose={close}
+    onEscape={handleEscape}
+    width="max-w-3xl"
+    panelClass="flex max-h-[85vh] flex-col"
   >
-    <!-- Диалоговое окно -->
     <div
-      class="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="manager-modal-title"
+      class="flex items-center justify-between border-b border-[var(--border)] p-6"
     >
-      <div
-        class="flex items-center justify-between border-b border-[var(--border)] p-6"
-      >
-        <div>
-          <h2
-            id="manager-modal-title"
-            class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
+      <div>
+        <h2
+          id="manager-modal-title"
+          class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
+        >
+          <TagIcon size={22} class="text-[var(--accent)]" />
+          {$t("tags.manager")}
+        </h2>
+        <p class="mt-1 text-sm text-[var(--text-tertiary)]">
+          {$t("common.total")}
+          <strong class="font-semibold text-[var(--text-primary)]"
+            >{tags.length}</strong
           >
-            <TagIcon size={22} class="text-[var(--accent)]" />
-            {$t("tags.manager")}
-          </h2>
-          <p class="mt-1 text-sm text-[var(--text-tertiary)]">
-            {$t("common.total")}
-            <strong class="font-semibold text-[var(--text-primary)]"
-              >{tags.length}</strong
-            >
-            {#if favoritesCount > 0}
-              <span class="ml-3 text-[var(--border-light)]">·</span>
-              <span class="ml-3 font-medium text-[var(--accent-hover)]">
-                {$t("tags.favoritesCount", { count: favoritesCount })}
-              </span>
-            {/if}
+          {#if favoritesCount > 0}
+            <span class="ml-3 text-[var(--border-light)]">·</span>
+            <span class="ml-3 font-medium text-[var(--accent-hover)]">
+              {$t("tags.favoritesCount", { count: favoritesCount })}
+            </span>
+          {/if}
+        </p>
+      </div>
+      <button
+        type="button"
+        onclick={close}
+        class="icon-btn"
+        aria-label={$t("tags.closeManager")}
+      >
+        <X size={20} />
+      </button>
+    </div>
+
+    {#if isFormMode}
+      <div class="space-y-4 overflow-y-auto p-6">
+        <div>
+          <label
+            for="tag-name"
+            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          >
+            {$t("tags.name")}
+          </label>
+          <input
+            bind:this={formNameInput}
+            bind:value={formTagName}
+            id="tag-name"
+            type="text"
+            placeholder={$t("tags.namePlaceholder")}
+            class="input w-full px-3.5"
+            maxlength="50"
+          />
+          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
+            {$t("tags.nameHint")}
           </p>
         </div>
+        <div>
+          <label
+            for="tag-value"
+            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          >
+            {$t("tags.value")}
+          </label>
+          <textarea
+            bind:value={formTagValue}
+            id="tag-value"
+            placeholder={$t("tags.valuePlaceholder")}
+            rows="8"
+            class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
+            maxlength="5000"></textarea>
+          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
+            {$t("tags.valueHint")}
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--bg-medium)] p-5"
+      >
         <button
           type="button"
-          onclick={close}
-          class="icon-btn"
-          aria-label={$t("tags.closeManager")}
+          onclick={closeForm}
+          class="btn btn-outline btn-md"
         >
-          <X size={20} />
+          {$t("common.cancel")}
+        </button>
+        <button
+          type="button"
+          onclick={handleFormSubmit}
+          disabled={!formTagName.trim() || !formTagValue.trim()}
+          class="btn btn-primary btn-md"
+        >
+          {formEditingId ? $t("common.save") : $t("common.create")}
+        </button>
+      </div>
+    {:else}
+      <div
+        class="flex flex-wrap items-center gap-2 border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
+      >
+        <div class="relative min-w-[200px] flex-1">
+          <Search
+            size={15}
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
+          />
+          <input
+            type="text"
+            bind:value={searchQuery}
+            placeholder={$t("tags.searchPlaceholder")}
+            class="input w-full py-2 pl-9 pr-3"
+            aria-label={$t("tags.search")}
+          />
+        </div>
+
+        <button
+          type="button"
+          onclick={() => (showOnlyFavorites = !showOnlyFavorites)}
+          class="inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors {showOnlyFavorites
+            ? 'border-[var(--accent)] bg-[var(--accent-dim)] text-[var(--accent-hover)]'
+            : 'border-[var(--border)] bg-[var(--bg-dark)] text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
+        >
+          {#if showOnlyFavorites}
+            <Star size={14} class="fill-current" />
+          {:else}
+            <StarOff size={14} />
+          {/if}
+          {showOnlyFavorites ? $t("tags.onlyFavorites") : $t("tags.favorites")}
+        </button>
+
+        {#if selectedCount > 0}
+          <button
+            type="button"
+            onclick={() => void handleDeleteSelected()}
+            class="btn btn-danger btn-md"
+          >
+            <Trash2 size={14} />
+            {$t("common.deleteCount", { count: selectedCount })}
+          </button>
+          <button
+            type="button"
+            onclick={deselectAll}
+            class="btn btn-outline btn-md"
+          >
+            {$t("common.deselect")}
+          </button>
+        {/if}
+
+        <button
+          type="button"
+          onclick={openCreateForm}
+          class="btn btn-primary btn-md shrink-0"
+        >
+          <Plus size={14} />
+          {$t("tags.new")}
         </button>
       </div>
 
-      {#if isFormMode}
-        <div class="space-y-4 overflow-y-auto p-6">
-          <div>
-            <label
-              for="tag-name"
-              class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-            >
-              {$t("tags.name")}
-            </label>
-            <input
-              bind:this={formNameInput}
-              bind:value={formTagName}
-              id="tag-name"
-              type="text"
-              placeholder={$t("tags.namePlaceholder")}
-              class="input w-full px-3.5"
-              maxlength="50"
-            />
-            <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-              {$t("tags.nameHint")}
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        {#if filteredTags.length === 0}
+          <div class="py-16 text-center">
+            <TagIcon size={40} class="mx-auto mb-3 text-[var(--text-dim)]" />
+            <p class="text-sm font-medium text-[var(--text-secondary)]">
+              {searchQuery.trim() || showOnlyFavorites
+                ? $t("common.nothingFound")
+                : $t("tags.empty")}
             </p>
-          </div>
-          <div>
-            <label
-              for="tag-value"
-              class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-            >
-              {$t("tags.value")}
-            </label>
-            <textarea
-              bind:value={formTagValue}
-              id="tag-value"
-              placeholder={$t("tags.valuePlaceholder")}
-              rows="8"
-              class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
-              maxlength="5000"></textarea>
-            <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-              {$t("tags.valueHint")}
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--bg-medium)] p-5"
-        >
-          <button
-            type="button"
-            onclick={closeForm}
-            class="btn btn-outline btn-md"
-          >
-            {$t("common.cancel")}
-          </button>
-          <button
-            type="button"
-            onclick={handleFormSubmit}
-            disabled={!formTagName.trim() || !formTagValue.trim()}
-            class="btn btn-primary btn-md"
-          >
-            {formEditingId ? $t("common.save") : $t("common.create")}
-          </button>
-        </div>
-      {:else}
-        <div
-          class="flex flex-wrap items-center gap-2 border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-4"
-        >
-          <div class="relative min-w-[200px] flex-1">
-            <Search
-              size={15}
-              class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
-            />
-            <input
-              type="text"
-              bind:value={searchQuery}
-              placeholder={$t("tags.searchPlaceholder")}
-              class="input w-full py-2 pl-9 pr-3"
-              aria-label={$t("tags.search")}
-            />
-          </div>
-
-          <button
-            type="button"
-            onclick={() => (showOnlyFavorites = !showOnlyFavorites)}
-            class="inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors {showOnlyFavorites
-              ? 'border-[var(--accent)] bg-[var(--accent-dim)] text-[var(--accent-hover)]'
-              : 'border-[var(--border)] bg-[var(--bg-dark)] text-[var(--text-secondary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--text-primary)]'}"
-          >
-            {#if showOnlyFavorites}
-              <Star size={14} class="fill-current" />
-            {:else}
-              <StarOff size={14} />
-            {/if}
-            {showOnlyFavorites
-              ? $t("tags.onlyFavorites")
-              : $t("tags.favorites")}
-          </button>
-
-          {#if selectedCount > 0}
-            <button
-              type="button"
-              onclick={() => void handleDeleteSelected()}
-              class="btn btn-danger btn-md"
-            >
-              <Trash2 size={14} />
-              {$t("common.deleteCount", { count: selectedCount })}
-            </button>
-            <button
-              type="button"
-              onclick={deselectAll}
-              class="btn btn-outline btn-md"
-            >
-              {$t("common.deselect")}
-            </button>
-          {/if}
-
-          <button
-            type="button"
-            onclick={openCreateForm}
-            class="btn btn-primary btn-md shrink-0"
-          >
-            <Plus size={14} />
-            {$t("tags.new")}
-          </button>
-        </div>
-
-        <div class="min-h-0 flex-1 overflow-y-auto">
-          {#if filteredTags.length === 0}
-            <div class="py-16 text-center">
-              <TagIcon size={40} class="mx-auto mb-3 text-[var(--text-dim)]" />
-              <p class="text-sm font-medium text-[var(--text-secondary)]">
-                {searchQuery.trim() || showOnlyFavorites
-                  ? $t("common.nothingFound")
-                  : $t("tags.empty")}
+            {#if searchQuery.trim() || showOnlyFavorites}
+              <p class="mt-1 text-xs text-[var(--text-tertiary)]">
+                {$t("tags.tryFilter")}
               </p>
-              {#if searchQuery.trim() || showOnlyFavorites}
-                <p class="mt-1 text-xs text-[var(--text-tertiary)]">
-                  {$t("tags.tryFilter")}
-                </p>
-              {:else}
-                <p class="mt-1 text-xs text-[var(--text-tertiary)]">
-                  {$t("tags.emptyHint")}
-                </p>
-              {/if}
-            </div>
-          {:else}
-            <div
-              class="sticky top-0 z-10 flex items-center gap-3 border-b border-[var(--border)] bg-[var(--bg-light)] px-6 py-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+            {:else}
+              <p class="mt-1 text-xs text-[var(--text-tertiary)]">
+                {$t("tags.emptyHint")}
+              </p>
+            {/if}
+          </div>
+        {:else}
+          <div
+            class="sticky top-0 z-10 flex items-center gap-3 border-b border-[var(--border)] bg-[var(--bg-light)] px-6 py-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+          >
+            <button
+              type="button"
+              onclick={toggleSelectAll}
+              class="flex h-4 w-4 shrink-0 items-center justify-center"
+              aria-label={allFilteredSelected
+                ? $t("common.deselect")
+                : $t("common.selectAll")}
             >
-              <button
-                type="button"
-                onclick={toggleSelectAll}
-                class="flex h-4 w-4 shrink-0 items-center justify-center"
-                aria-label={allFilteredSelected
-                  ? $t("common.deselect")
-                  : $t("common.selectAll")}
+              {#if allFilteredSelected}
+                <Checkbox
+                  checked={true}
+                  ariaLabel={$t("common.deselect")}
+                  onToggle={toggleSelectAll}
+                />
+              {:else if someFilteredSelected}
+                <Checkbox
+                  indeterminate={true}
+                  ariaLabel={$t("common.selectAll")}
+                  onToggle={toggleSelectAll}
+                />
+              {:else}
+                <Checkbox
+                  checked={false}
+                  ariaLabel={$t("common.selectAll")}
+                  onToggle={toggleSelectAll}
+                />
+              {/if}
+            </button>
+            <span class="flex-1">{$t("tags.name")}</span>
+            <span class="w-20 text-center">{$t("tags.favorite")}</span>
+            <span class="w-28 text-right">{$t("common.actions")}</span>
+          </div>
+
+          <div>
+            {#each filteredTags as tag (tag.id)}
+              <div
+                class="group flex items-center gap-3 border-b border-[var(--border)] px-6 py-3 transition-colors hover:bg-[var(--bg-light)]"
               >
-                {#if allFilteredSelected}
+                <div class="shrink-0">
                   <Checkbox
-                    checked={true}
-                    ariaLabel={$t("common.deselect")}
-                    onToggle={toggleSelectAll}
+                    checked={selectedIds.has(tag.id)}
+                    onToggle={() => toggleSelect(tag.id)}
+                    ariaLabel={selectedIds.has(tag.id)
+                      ? $t("common.deselect")
+                      : $t("common.select")}
                   />
-                {:else if someFilteredSelected}
-                  <Checkbox
-                    indeterminate={true}
-                    ariaLabel={$t("common.selectAll")}
-                    onToggle={toggleSelectAll}
-                  />
-                {:else}
-                  <Checkbox
-                    checked={false}
-                    ariaLabel={$t("common.selectAll")}
-                    onToggle={toggleSelectAll}
-                  />
-                {/if}
-              </button>
-              <span class="flex-1">{$t("tags.name")}</span>
-              <span class="w-20 text-center">{$t("tags.favorite")}</span>
-              <span class="w-28 text-right">{$t("common.actions")}</span>
-            </div>
+                </div>
 
-            <div>
-              {#each filteredTags as tag (tag.id)}
-                <div
-                  class="group flex items-center gap-3 border-b border-[var(--border)] px-6 py-3 transition-colors hover:bg-[var(--bg-light)]"
+                <div class="min-w-0 flex-1">
+                  <p
+                    class="truncate text-sm font-medium text-[var(--text-primary)]"
+                  >
+                    {tag.name}
+                  </p>
+                  <p
+                    class="mt-0.5 truncate text-xs text-[var(--text-tertiary)]"
+                  >
+                    {tag.value}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onclick={() => handleToggleFavorite(tag)}
+                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors {tag.favorite
+                    ? 'text-[var(--accent)] hover:bg-[var(--accent-dim)]'
+                    : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--accent-hover)]'}"
+                  title={tag.favorite
+                    ? $t("tags.unfavorite")
+                    : $t("tags.addFavorite")}
+                  aria-label={tag.favorite
+                    ? $t("tags.unfavorite")
+                    : $t("tags.addFavorite")}
                 >
-                  <div class="shrink-0">
-                    <Checkbox
-                      checked={selectedIds.has(tag.id)}
-                      onToggle={() => toggleSelect(tag.id)}
-                      ariaLabel={selectedIds.has(tag.id)
-                        ? $t("common.deselect")
-                        : $t("common.select")}
-                    />
-                  </div>
+                  <Star size={16} class={tag.favorite ? "fill-current" : ""} />
+                </button>
 
-                  <div class="min-w-0 flex-1">
-                    <p
-                      class="truncate text-sm font-medium text-[var(--text-primary)]"
-                    >
-                      {tag.name}
-                    </p>
-                    <p
-                      class="mt-0.5 truncate text-xs text-[var(--text-tertiary)]"
-                    >
-                      {tag.value}
-                    </p>
-                  </div>
-
+                <div class="flex shrink-0 items-center gap-0.5">
                   <button
                     type="button"
-                    onclick={() => handleToggleFavorite(tag)}
-                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors {tag.favorite
-                      ? 'text-[var(--accent)] hover:bg-[var(--accent-dim)]'
-                      : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-lighter)] hover:text-[var(--accent-hover)]'}"
-                    title={tag.favorite
-                      ? $t("tags.unfavorite")
-                      : $t("tags.addFavorite")}
-                    aria-label={tag.favorite
-                      ? $t("tags.unfavorite")
-                      : $t("tags.addFavorite")}
+                    onclick={() => handleApply(tag)}
+                    class="icon-btn hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
+                    title={$t("tags.apply")}
+                    aria-label={$t("tags.applyTag", { name: tag.name })}
                   >
-                    <Star
-                      size={16}
-                      class={tag.favorite ? "fill-current" : ""}
-                    />
+                    <Plus size={15} />
                   </button>
-
-                  <div class="flex shrink-0 items-center gap-0.5">
-                    <button
-                      type="button"
-                      onclick={() => handleApply(tag)}
-                      class="icon-btn hover:bg-[var(--accent-dim)] hover:text-[var(--accent)]"
-                      title={$t("tags.apply")}
-                      aria-label={$t("tags.applyTag", { name: tag.name })}
-                    >
-                      <Plus size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      onclick={() => openEditForm(tag)}
-                      class="icon-btn"
-                      title={$t("common.edit")}
-                      aria-label={$t("tags.editTag", { name: tag.name })}
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      onclick={() => void handleDeleteOne(tag)}
-                      class="icon-btn danger"
-                      title={$t("common.delete")}
-                      aria-label={$t("tags.deleteTag", { name: tag.name })}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onclick={() => openEditForm(tag)}
+                    class="icon-btn"
+                    title={$t("common.edit")}
+                    aria-label={$t("tags.editTag", { name: tag.name })}
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => void handleDeleteOne(tag)}
+                    class="icon-btn danger"
+                    title={$t("common.delete")}
+                    aria-label={$t("tags.deleteTag", { name: tag.name })}
+                  >
+                    <Trash2 size={15} />
+                  </button>
                 </div>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {/if}
-    </div>
-  </div>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {/if}
+  </ModalShell>
 {/if}

@@ -5,14 +5,17 @@
  * Второй аргумент — условие: без него фокус ставится всегда, с false —
  * пропуск (удобно в {#each} на первом элементе).
  */
-export function autofocus(
-  node: HTMLInputElement | HTMLTextAreaElement,
-  enabled: boolean = true,
-): void {
+export function autofocus(node: HTMLElement, enabled: boolean = true): void {
   if (!enabled) return;
-  // Даём браузеру вставить элемент в DOM, затем фокусируем и выделяем текст.
+  // Даём браузеру вставить элемент в DOM, затем фокусируем; в поле ввода
+  // ещё и выделяем текст.
   queueMicrotask(() => {
     node.focus();
-    node.select();
+    if (
+      node instanceof HTMLInputElement ||
+      node instanceof HTMLTextAreaElement
+    ) {
+      node.select();
+    }
   });
 }

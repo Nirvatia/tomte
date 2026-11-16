@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ModalShell from "../ui/ModalShell.svelte";
   import { t } from "$lib/i18n";
   import { CircleAlert, FileText, Image as ImageIcon, X } from "@lucide/svelte";
   import { attachedFiles, isPreviewOpen } from "../../stores";
@@ -15,167 +16,126 @@
   function close() {
     isPreviewOpen.set(false);
   }
-
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      close();
-    }
-  }
-
-  function handleBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-    }
-    if (event.key === "Escape") {
-      close();
-    }
-  }
-
-  function handleWindowKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape") {
-      close();
-    }
-  }
-
-  function stopEventPropagation(event: Event) {
-    event.stopPropagation();
-  }
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
-
 {#if $isPreviewOpen}
-  <div
-    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
-    onclick={handleBackdropClick}
-    onkeydown={handleBackdropKeydown}
-    role="dialog"
-    aria-modal="true"
-    aria-label={$t("preview.dialog")}
-    tabindex="-1"
+  <ModalShell
+    label={$t("preview.dialog")}
+    onClose={close}
+    width="max-w-5xl"
+    panelClass="flex max-h-[90vh] flex-col"
   >
     <div
-      class="flex max-h-[90vh] w-full max-w-5xl flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
-      role="presentation"
-      onclick={stopEventPropagation}
-      onkeydown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-        }
-      }}
+      class="flex shrink-0 items-center justify-between border-b border-[var(--border)] p-6"
     >
-      <div
-        class="flex shrink-0 items-center justify-between border-b border-[var(--border)] p-6"
-      >
-        <div>
-          <h2
-            class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
-          >
-            <FileText size={24} class="text-[var(--accent)]" />
-            {$t("preview.title")}
-          </h2>
-          <p class="mt-1 font-mono text-xs text-[var(--text-tertiary)]">
-            {$t("preview.files")}
-            <strong class="font-semibold text-[var(--text-primary)]">
-              {previewData.stats.totalFiles}
-            </strong>
-          </p>
-        </div>
-        <button
-          type="button"
-          onclick={close}
-          class="icon-btn"
-          aria-label={$t("extractor.closePreview")}
+      <div>
+        <h2
+          class="flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]"
         >
-          <X size={20} />
-        </button>
+          <FileText size={24} class="text-[var(--accent)]" />
+          {$t("preview.title")}
+        </h2>
+        <p class="mt-1 font-mono text-xs text-[var(--text-tertiary)]">
+          {$t("preview.files")}
+          <strong class="font-semibold text-[var(--text-primary)]">
+            {previewData.stats.totalFiles}
+          </strong>
+        </p>
       </div>
-
-      <div
-        class="shrink-0 border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-3"
+      <button
+        type="button"
+        onclick={close}
+        class="icon-btn"
+        aria-label={$t("extractor.closePreview")}
       >
-        <div class="flex flex-wrap gap-2">
+        <X size={20} />
+      </button>
+    </div>
+
+    <div
+      class="shrink-0 border-b border-[var(--border)] bg-[var(--bg-medium)] px-6 py-3"
+    >
+      <div class="flex flex-wrap gap-2">
+        <div
+          class="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-2.5 py-1.5 font-mono text-xs"
+        >
+          <ImageIcon size={13} class="text-[var(--accent-hover)]" />
+          <span class="text-[var(--text-tertiary)]">
+            {$t("preview.usedImages")}
+            <strong class="font-semibold text-[var(--text-primary)]">
+              {previewData.stats.usedImages}
+            </strong>
+          </span>
+        </div>
+
+        {#if previewData.stats.unusedImages > 0}
           <div
-            class="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-2.5 py-1.5 font-mono text-xs"
+            class="inline-flex items-center gap-1.5 rounded-md border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-2.5 py-1.5 font-mono text-xs"
           >
-            <ImageIcon size={13} class="text-[var(--accent-hover)]" />
+            <CircleAlert size={13} class="text-[var(--warning)]" />
             <span class="text-[var(--text-tertiary)]">
-              {$t("preview.usedImages")}
-              <strong class="font-semibold text-[var(--text-primary)]">
-                {previewData.stats.usedImages}
+              {$t("preview.noPlaceholder")}
+              <strong class="font-semibold text-[var(--accent-hover)]">
+                {previewData.stats.unusedImages}
               </strong>
             </span>
           </div>
+        {/if}
 
-          {#if previewData.stats.unusedImages > 0}
-            <div
-              class="inline-flex items-center gap-1.5 rounded-md border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-2.5 py-1.5 font-mono text-xs"
-            >
-              <CircleAlert size={13} class="text-[var(--warning)]" />
-              <span class="text-[var(--text-tertiary)]">
-                {$t("preview.noPlaceholder")}
-                <strong class="font-semibold text-[var(--accent-hover)]">
-                  {previewData.stats.unusedImages}
-                </strong>
-              </span>
-            </div>
-          {/if}
+        <div
+          class="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-2.5 py-1.5 font-mono text-xs"
+        >
+          <FileText size={13} class="text-[var(--success)]" />
+          <span class="text-[var(--text-tertiary)]">
+            {$t("preview.usedFiles")}
+            <strong class="font-semibold text-[var(--text-primary)]">
+              {previewData.stats.usedFiles}
+            </strong>
+          </span>
+        </div>
 
+        {#if previewData.stats.attachedTexts > 0}
           <div
-            class="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-dark)] px-2.5 py-1.5 font-mono text-xs"
+            class="inline-flex items-center gap-1.5 rounded-md border border-[var(--success)]/30 bg-[var(--success)]/10 px-2.5 py-1.5 font-mono text-xs"
           >
             <FileText size={13} class="text-[var(--success)]" />
             <span class="text-[var(--text-tertiary)]">
-              {$t("preview.usedFiles")}
-              <strong class="font-semibold text-[var(--text-primary)]">
-                {previewData.stats.usedFiles}
+              {$t("preview.appended")}
+              <strong class="font-semibold text-[var(--success)]">
+                {previewData.stats.attachedTexts}
               </strong>
             </span>
-          </div>
-
-          {#if previewData.stats.attachedTexts > 0}
-            <div
-              class="inline-flex items-center gap-1.5 rounded-md border border-[var(--success)]/30 bg-[var(--success)]/10 px-2.5 py-1.5 font-mono text-xs"
-            >
-              <FileText size={13} class="text-[var(--success)]" />
-              <span class="text-[var(--text-tertiary)]">
-                {$t("preview.appended")}
-                <strong class="font-semibold text-[var(--success)]">
-                  {previewData.stats.attachedTexts}
-                </strong>
-              </span>
-            </div>
-          {/if}
-        </div>
-      </div>
-
-      <div class="min-h-0 flex-1 overflow-y-auto p-6">
-        {#if !editorHtml.trim() && previewData.stats.totalFiles === 0}
-          <div
-            class="flex h-full flex-col items-center justify-center py-16 text-center"
-          >
-            <FileText
-              size={44}
-              class="mb-3 text-[var(--text-tertiary)] opacity-40"
-            />
-            <p class="text-sm font-medium text-[var(--text-secondary)]">
-              {$t("preview.empty")}
-            </p>
-            <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-              {$t("preview.emptyHint")}
-            </p>
-          </div>
-        {:else}
-          <div
-            class="preview-content mx-auto max-w-4xl rounded-lg border border-[var(--border)] bg-[var(--bg-darkest)] p-8"
-          >
-            <!-- HTML редактора идёт из схемы Tiptap, имена и содержимое вложений
-                 экранирует buildPreviewHtml. -->
-            <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-            {@html previewData.html}
           </div>
         {/if}
       </div>
     </div>
-  </div>
+
+    <div class="min-h-0 flex-1 overflow-y-auto p-6">
+      {#if !editorHtml.trim() && previewData.stats.totalFiles === 0}
+        <div
+          class="flex h-full flex-col items-center justify-center py-16 text-center"
+        >
+          <FileText
+            size={44}
+            class="mb-3 text-[var(--text-tertiary)] opacity-40"
+          />
+          <p class="text-sm font-medium text-[var(--text-secondary)]">
+            {$t("preview.empty")}
+          </p>
+          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
+            {$t("preview.emptyHint")}
+          </p>
+        </div>
+      {:else}
+        <div
+          class="preview-content mx-auto max-w-4xl rounded-lg border border-[var(--border)] bg-[var(--bg-darkest)] p-8"
+        >
+          <!-- HTML редактора идёт из схемы Tiptap, имена и содержимое вложений
+                 экранирует buildPreviewHtml. -->
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+          {@html previewData.html}
+        </div>
+      {/if}
+    </div>
+  </ModalShell>
 {/if}

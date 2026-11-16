@@ -3,6 +3,7 @@
   import { X } from "@lucide/svelte";
 
   import type { Tag } from "../../types";
+  import ModalShell from "../ui/ModalShell.svelte";
 
   interface Props {
     isOpen?: boolean;
@@ -53,18 +54,6 @@
     onClose();
   }
 
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      handleClose();
-    }
-  }
-
-  function handleWindowKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape" && isOpen) {
-      handleClose();
-    }
-  }
-
   function handleNameKeydown(event: KeyboardEvent) {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -73,102 +62,89 @@
   }
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
-
 {#if isOpen}
-  <!-- Оверлей / Бэкдроп -->
-  <div
-    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
-    onclick={handleBackdropClick}
-    role="presentation"
+  <ModalShell
+    label={editingTag ? $t("tags.editTitle") : $t("tags.new")}
+    onClose={handleClose}
+    width="max-w-lg"
+    panelClass="flex flex-col"
   >
-    <!-- Диалоговое окно -->
     <div
-      class="flex w-full max-w-lg flex-col rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] shadow-lg"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
+      class="flex items-center justify-between border-b border-[var(--border)] p-5"
     >
-      <div
-        class="flex items-center justify-between border-b border-[var(--border)] p-5"
+      <h2 id="modal-title" class="text-lg font-bold text-[var(--text-primary)]">
+        {editingTag ? $t("tags.editTitle") : $t("tags.new")}
+      </h2>
+      <button
+        type="button"
+        onclick={handleClose}
+        class="icon-btn"
+        aria-label={$t("common.close")}
       >
-        <h2
-          id="modal-title"
-          class="text-lg font-bold text-[var(--text-primary)]"
-        >
-          {editingTag ? $t("tags.editTitle") : $t("tags.new")}
-        </h2>
-        <button
-          type="button"
-          onclick={handleClose}
-          class="icon-btn"
-          aria-label={$t("common.close")}
-        >
-          <X size={20} />
-        </button>
-      </div>
+        <X size={20} />
+      </button>
+    </div>
 
-      <div class="space-y-4 p-6">
-        <div>
-          <label
-            for="tag-name"
-            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-          >
-            {$t("tags.name")}
-          </label>
-          <input
-            bind:this={nameInput}
-            bind:value={tagName}
-            onkeydown={handleNameKeydown}
-            id="tag-name"
-            type="text"
-            placeholder={$t("tags.namePlaceholder")}
-            class="input w-full px-3.5"
-            maxlength="50"
-          />
-          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-            {$t("tags.nameHint")}
-          </p>
-        </div>
-        <div>
-          <label
-            for="tag-value"
-            class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
-          >
-            {$t("tags.value")}
-          </label>
-          <textarea
-            bind:value={tagValue}
-            id="tag-value"
-            placeholder={$t("tags.valuePlaceholder")}
-            rows="6"
-            class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
-            maxlength="5000"></textarea>
-          <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
-            {$t("tags.valueHint")}
-          </p>
-        </div>
+    <div class="space-y-4 p-6">
+      <div>
+        <label
+          for="tag-name"
+          class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
+        >
+          {$t("tags.name")}
+        </label>
+        <input
+          bind:this={nameInput}
+          bind:value={tagName}
+          onkeydown={handleNameKeydown}
+          id="tag-name"
+          type="text"
+          placeholder={$t("tags.namePlaceholder")}
+          class="input w-full px-3.5"
+          maxlength="50"
+        />
+        <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
+          {$t("tags.nameHint")}
+        </p>
       </div>
-
-      <div
-        class="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--bg-medium)] p-5"
-      >
-        <button
-          type="button"
-          onclick={handleClose}
-          class="btn btn-outline btn-md"
+      <div>
+        <label
+          for="tag-value"
+          class="mb-2 block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]"
         >
-          {$t("common.cancel")}
-        </button>
-        <button
-          type="button"
-          onclick={handleSubmit}
-          disabled={!tagName.trim() || !tagValue.trim()}
-          class="btn btn-primary btn-md"
-        >
-          {editingTag ? $t("common.save") : $t("common.create")}
-        </button>
+          {$t("tags.value")}
+        </label>
+        <textarea
+          bind:value={tagValue}
+          id="tag-value"
+          placeholder={$t("tags.valuePlaceholder")}
+          rows="6"
+          class="input h-auto w-full resize-none px-3.5 py-2.5 font-mono"
+          maxlength="5000"></textarea>
+        <p class="mt-1.5 text-xs text-[var(--text-tertiary)]">
+          {$t("tags.valueHint")}
+        </p>
       </div>
     </div>
-  </div>
+
+    <div
+      class="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--bg-medium)] p-5"
+    >
+      <button
+        type="button"
+        onclick={handleClose}
+        class="btn btn-outline btn-md"
+      >
+        {$t("common.cancel")}
+      </button>
+      <button
+        type="button"
+        onclick={handleSubmit}
+        disabled={!tagName.trim() || !tagValue.trim()}
+        class="btn btn-primary btn-md"
+      >
+        {editingTag ? $t("common.save") : $t("common.create")}
+      </button>
+    </div>
+  </ModalShell>
 {/if}

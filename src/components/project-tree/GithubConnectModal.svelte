@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ModalShell from "../ui/ModalShell.svelte";
   import { t } from "$lib/i18n";
   import { X, FolderGit, LoaderCircle } from "@lucide/svelte";
 
@@ -42,33 +43,6 @@
       error = null;
     }
   });
-
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  }
-
-  function handleBackdropKeydown(event: KeyboardEvent) {
-    const target = event.target as HTMLElement | null;
-    if (target && target.tagName === "INPUT") {
-      return;
-    }
-
-    if (event.key === "Escape") {
-      onClose();
-    }
-  }
-
-  function handleWindowKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape" && isOpen) {
-      onClose();
-    }
-  }
-
-  function stopEventPropagation(event: Event) {
-    event.stopPropagation();
-  }
 
   async function handleConnect() {
     const parsed = parseGithubUrl(githubUrl);
@@ -114,111 +88,100 @@
   }
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
-
 {#if isOpen}
-  <div
-    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
-    onclick={handleBackdropClick}
-    onkeydown={handleBackdropKeydown}
-    role="dialog"
-    aria-modal="true"
-    aria-label={$t("tree.connectGithub")}
-    tabindex="-1"
+  <ModalShell
+    label={$t("tree.connectGithub")}
+    {onClose}
+    width="max-w-md"
+    panelClass="p-6"
   >
-    <div
-      class="w-full max-w-md rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] p-6 shadow-lg"
-      role="presentation"
-      onclick={stopEventPropagation}
-    >
-      <div class="mb-4 flex items-center justify-between">
-        <h3
-          class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
-        >
-          <FolderGit size={20} class="text-[var(--accent)]" />
-          {$t("tree.connectGithub")}
-        </h3>
-        <button
-          type="button"
-          onclick={onClose}
-          class="icon-btn"
-          aria-label={$t("common.close")}
-        >
-          <X size={18} />
-        </button>
-      </div>
-
-      {#if error}
-        <div
-          class="mb-4 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-3 py-2 text-xs text-[var(--error)]"
-        >
-          {error}
-        </div>
-      {/if}
-
-      <div class="space-y-4">
-        <div>
-          <label
-            for="github-url"
-            class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
-            >{$t("github.url")}</label
-          >
-          <input
-            id="github-url"
-            bind:value={githubUrl}
-            placeholder="https://github.com/owner/repo"
-            class="input w-full px-3"
-          />
-        </div>
-
-        <div>
-          <label
-            for="github-branch"
-            class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
-            >{$t("github.branch")}</label
-          >
-          <input
-            id="github-branch"
-            bind:value={githubBranch}
-            placeholder="main"
-            class="input w-full px-3"
-          />
-        </div>
-
-        <div>
-          <label
-            for="github-token"
-            class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
-          >
-            Personal Access Token
-            <span
-              class="normal-case tracking-normal text-[var(--text-tertiary)]/70"
-              >{$t("github.tokenOptional")}</span
-            >
-          </label>
-          <input
-            id="github-token"
-            bind:value={githubToken}
-            type="password"
-            placeholder="ghp_xxxxxxxxxxxx"
-            class="input w-full px-3 font-mono"
-          />
-        </div>
-
-        <button
-          type="button"
-          onclick={handleConnect}
-          disabled={isLoading || !githubUrl}
-          class="btn btn-primary btn-md w-full"
-        >
-          {#if isLoading}
-            <LoaderCircle size={15} class="animate-spin" />
-            <span>{$t("common.loading")}</span>
-          {:else}
-            <span>{$t("github.connect")}</span>
-          {/if}
-        </button>
-      </div>
+    <div class="mb-4 flex items-center justify-between">
+      <h3
+        class="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]"
+      >
+        <FolderGit size={20} class="text-[var(--accent)]" />
+        {$t("tree.connectGithub")}
+      </h3>
+      <button
+        type="button"
+        onclick={onClose}
+        class="icon-btn"
+        aria-label={$t("common.close")}
+      >
+        <X size={18} />
+      </button>
     </div>
-  </div>
+
+    {#if error}
+      <div
+        class="mb-4 rounded-md border border-[var(--error)]/40 bg-[var(--error)]/10 px-3 py-2 text-xs text-[var(--error)]"
+      >
+        {error}
+      </div>
+    {/if}
+
+    <div class="space-y-4">
+      <div>
+        <label
+          for="github-url"
+          class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
+          >{$t("github.url")}</label
+        >
+        <input
+          id="github-url"
+          bind:value={githubUrl}
+          placeholder="https://github.com/owner/repo"
+          class="input w-full px-3"
+        />
+      </div>
+
+      <div>
+        <label
+          for="github-branch"
+          class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
+          >{$t("github.branch")}</label
+        >
+        <input
+          id="github-branch"
+          bind:value={githubBranch}
+          placeholder="main"
+          class="input w-full px-3"
+        />
+      </div>
+
+      <div>
+        <label
+          for="github-token"
+          class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.8px] text-[var(--text-tertiary)]"
+        >
+          Personal Access Token
+          <span
+            class="normal-case tracking-normal text-[var(--text-tertiary)]/70"
+            >{$t("github.tokenOptional")}</span
+          >
+        </label>
+        <input
+          id="github-token"
+          bind:value={githubToken}
+          type="password"
+          placeholder="ghp_xxxxxxxxxxxx"
+          class="input w-full px-3 font-mono"
+        />
+      </div>
+
+      <button
+        type="button"
+        onclick={handleConnect}
+        disabled={isLoading || !githubUrl}
+        class="btn btn-primary btn-md w-full"
+      >
+        {#if isLoading}
+          <LoaderCircle size={15} class="animate-spin" />
+          <span>{$t("common.loading")}</span>
+        {:else}
+          <span>{$t("github.connect")}</span>
+        {/if}
+      </button>
+    </div>
+  </ModalShell>
 {/if}

@@ -1,111 +1,78 @@
 <script lang="ts">
+  import ModalShell from "./ModalShell.svelte";
   import { t } from "$lib/i18n";
   import { CircleAlert, HelpCircle } from "@lucide/svelte";
   import { confirmState, closeConfirm } from "../../stores/confirm";
+  import { autofocus } from "$lib/actions/autofocus";
 
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      closeConfirm($confirmState.hideCancel ? true : false);
-    }
-  }
-
-  function handleBackdropKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      closeConfirm($confirmState.hideCancel ? true : false);
-    }
+  // Escape и клик мимо — отказ; у одиночного уведомления (без «Отмены») — «ОК».
+  function dismiss() {
+    closeConfirm($confirmState.hideCancel ? true : false);
   }
 </script>
 
-<svelte:window
-  onkeydown={(event) => {
-    if (!$confirmState.open) return;
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      closeConfirm($confirmState.hideCancel ? true : false);
-    }
-  }}
-/>
-
 {#if $confirmState.open}
-  <div
-    class="fixed inset-0 z-[100] flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
-    onclick={handleBackdropClick}
-    onkeydown={handleBackdropKeydown}
+  <ModalShell
+    label={$confirmState.title || $t("confirm.dialog")}
+    onClose={dismiss}
     role="alertdialog"
-    aria-modal="true"
-    aria-label={$confirmState.title || $t("confirm.dialog")}
-    tabindex="-1"
+    width="max-w-md"
+    panelClass="relative p-6"
   >
-    <div
-      class="relative w-full max-w-md animate-scale-in rounded-lg border border-[var(--border-light)] bg-[var(--bg-medium)] p-6 shadow-lg"
-      role="presentation"
-      onclick={(event) => event.stopPropagation()}
-      onkeydown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-        }
-      }}
-    >
-      {#if $confirmState.danger}
-        <span
-          class="absolute left-0 top-6 h-9 w-0.75 rounded-r bg-[var(--error)]"
-          aria-hidden="true"
-        ></span>
-      {:else}
-        <span
-          class="absolute left-0 top-6 h-9 w-0.75 rounded-r bg-[var(--accent)]"
-          aria-hidden="true"
-        ></span>
-      {/if}
-      <div class="flex items-start gap-4">
-        <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border {$confirmState.danger
-            ? 'border-[var(--error)]/40 bg-[var(--error)]/10'
-            : 'border-[var(--accent)]/40 bg-[var(--accent-dim)]'}"
-        >
-          {#if $confirmState.danger}
-            <CircleAlert size={20} class="text-[var(--error)]" />
-          {:else}
-            <HelpCircle size={20} class="text-[var(--accent)]" />
-          {/if}
-        </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="mb-1 text-[15px] font-bold text-[var(--text-primary)]">
-            {$confirmState.title || $t("confirm.title")}
-          </h3>
-          <p
-            class="whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-secondary)]"
-          >
-            {$confirmState.message}
-          </p>
-        </div>
-      </div>
-      <div class="mt-6 flex justify-end gap-2">
-        {#if !$confirmState.hideCancel}
-          <button
-            type="button"
-            onclick={() => closeConfirm(false)}
-            class="btn btn-outline btn-md"
-          >
-            {$confirmState.cancelText || $t("common.cancel")}
-          </button>
+    {#if $confirmState.danger}
+      <span
+        class="absolute left-0 top-6 h-9 w-0.75 rounded-r bg-[var(--error)]"
+        aria-hidden="true"
+      ></span>
+    {:else}
+      <span
+        class="absolute left-0 top-6 h-9 w-0.75 rounded-r bg-[var(--accent)]"
+        aria-hidden="true"
+      ></span>
+    {/if}
+    <div class="flex items-start gap-4">
+      <div
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border {$confirmState.danger
+          ? 'border-[var(--error)]/40 bg-[var(--error)]/10'
+          : 'border-[var(--accent)]/40 bg-[var(--accent-dim)]'}"
+      >
+        {#if $confirmState.danger}
+          <CircleAlert size={20} class="text-[var(--error)]" />
+        {:else}
+          <HelpCircle size={20} class="text-[var(--accent)]" />
         {/if}
-        <button
-          type="button"
-          onclick={() => closeConfirm(true)}
-          class="btn {$confirmState.danger
-            ? 'btn-danger'
-            : 'btn-primary'} btn-md"
+      </div>
+      <div class="min-w-0 flex-1">
+        <h3 class="mb-1 text-[15px] font-bold text-[var(--text-primary)]">
+          {$confirmState.title || $t("confirm.title")}
+        </h3>
+        <p
+          class="whitespace-pre-wrap text-sm leading-relaxed text-[var(--text-secondary)]"
         >
-          {$confirmState.confirmText || $t("confirm.ok")}
-        </button>
+          {$confirmState.message}
+        </p>
       </div>
     </div>
-  </div>
+    <div class="mt-6 flex justify-end gap-2">
+      {#if !$confirmState.hideCancel}
+        <!-- Для опасного действия фокус на «Отмене»: Enter не удалит случайно. -->
+        <button
+          type="button"
+          use:autofocus={$confirmState.danger}
+          onclick={() => closeConfirm(false)}
+          class="btn btn-outline btn-md"
+        >
+          {$confirmState.cancelText || $t("common.cancel")}
+        </button>
+      {/if}
+      <button
+        type="button"
+        use:autofocus={!$confirmState.danger || $confirmState.hideCancel}
+        onclick={() => closeConfirm(true)}
+        class="btn {$confirmState.danger ? 'btn-danger' : 'btn-primary'} btn-md"
+      >
+        {$confirmState.confirmText || $t("confirm.ok")}
+      </button>
+    </div>
+  </ModalShell>
 {/if}
