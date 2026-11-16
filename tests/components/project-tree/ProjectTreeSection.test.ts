@@ -11,8 +11,10 @@ import {
   selectedProjectFiles,
 } from "../../../src/stores";
 import { setActiveTree } from "../../helpers/project";
+import { requestConfirm } from "../../../src/stores/confirm";
 import {
   clearGithubConfig,
+  clearProjectTreeSource,
   restoreGithubTree,
   setProjectTreeSource,
 } from "../../../src/utils/projectActions";
@@ -41,6 +43,7 @@ vi.mock("../../../src/utils/github", () => ({
 
 vi.mock("../../../src/utils/projectActions", () => ({
   clearGithubConfig: vi.fn(),
+  clearProjectTreeSource: vi.fn(),
   restoreGithubTree: vi.fn(),
   setProjectTreeSource: vi.fn(),
 }));
@@ -180,7 +183,10 @@ describe("ProjectTreeSection", () => {
         configurable: true,
       });
 
-      setActiveTree([], "project");
+      setActiveTree(
+        [{ name: "a.ts", path: "a.ts", type: "file", children: [] }] as any,
+        "project",
+      );
 
       render(ProjectTreeSection);
 
@@ -198,7 +204,10 @@ describe("ProjectTreeSection", () => {
     it("вставляет дерево в редактор отдельным блоком", async () => {
       const editor = makeEditorMock();
 
-      setActiveTree([], "project");
+      setActiveTree(
+        [{ name: "a.ts", path: "a.ts", type: "file", children: [] }] as any,
+        "project",
+      );
 
       render(ProjectTreeSection, {
         props: {
@@ -218,6 +227,53 @@ describe("ProjectTreeSection", () => {
         get(projectTreeString),
       );
       expect(editor.run).toHaveBeenCalled();
+    });
+  });
+
+  describe("Удаление дерева", () => {
+    it("кнопки нет, пока дерева нет", () => {
+      render(ProjectTreeSection);
+
+      expect(
+        screen.queryByRole("button", { name: "Удалить дерево проекта" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("убирает дерево после подтверждения", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(true);
+      setActiveTree(
+        [{ name: "a.ts", path: "a.ts", type: "file", children: [] }] as any,
+        "project",
+      );
+
+      render(ProjectTreeSection);
+
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Удалить дерево проекта" }),
+      );
+
+      await waitFor(() => expect(clearProjectTreeSource).toHaveBeenCalled());
+      expect(requestConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({ danger: true }),
+      );
+    });
+
+    it("при отмене дерево остаётся", async () => {
+      vi.mocked(requestConfirm).mockResolvedValue(false);
+      setActiveTree(
+        [{ name: "a.ts", path: "a.ts", type: "file", children: [] }] as any,
+        "project",
+      );
+
+      render(ProjectTreeSection);
+
+      await fireEvent.click(
+        screen.getByRole("button", { name: "Удалить дерево проекта" }),
+      );
+      await tick();
+
+      expect(requestConfirm).toHaveBeenCalled();
+      expect(clearProjectTreeSource).not.toHaveBeenCalled();
     });
   });
 

@@ -719,6 +719,13 @@ export const es: Dict = {
     refreshError: "No se pudo actualizar el árbol",
     refreshLabel: "Actualizar el árbol del proyecto",
     refreshUnavailable: "El árbol no está conectado a GitHub",
+    remove: {
+      button: "Eliminar el árbol del proyecto",
+      failed: "No se pudo eliminar el árbol",
+      message:
+        "El árbol «{name}» se quitará del proyecto junto con los archivos seleccionados. Los archivos del disco y del repositorio no se tocan.",
+      title: "¿Eliminar el árbol del proyecto?",
+    },
     restoreGithub: "Restaurar el repo de GitHub",
     search: "Buscar en el árbol del proyecto",
     searchPlaceholder: "Buscar en el árbol…",

@@ -74,3 +74,55 @@ test.describe("Панель проекта", () => {
     ).toBeVisible();
   });
 });
+
+test("дерево проекта удаляется отдельной кнопкой с подтверждением", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("projectTreeOpen", "true");
+  });
+  await page.goto("/");
+  await expect(page.locator(".tiptap-prose")).toBeEditable({
+    timeout: 15_000,
+  });
+
+  await page.evaluate(async () => {
+    const actionsPath = "/src/utils/projectActions.ts";
+    const { setProjectTreeSource } = await import(
+      /* @vite-ignore */ actionsPath
+    );
+    return setProjectTreeSource({
+      rootName: "demo",
+      fileCount: 1,
+      nodes: [
+        {
+          name: "a.ts",
+          path: "a.ts",
+          type: "file",
+          children: [],
+          fileRef: new File(["x"], "a.ts"),
+        },
+      ],
+    });
+  });
+
+  const sidebar = page.getByRole("complementary");
+  await expect(sidebar.getByText("demo", { exact: true })).toBeVisible();
+
+  // «Отмена» оставляет дерево на месте.
+  await sidebar.getByRole("button", { name: "Удалить дерево проекта" }).click();
+  const confirm = page.getByRole("alertdialog", {
+    name: "Удалить дерево проекта?",
+  });
+  await expect(confirm).toBeVisible();
+  await confirm.getByRole("button", { name: "Отмена" }).click();
+  await expect(sidebar.getByText("demo", { exact: true })).toBeVisible();
+
+  // «Удалить» убирает дерево; текст редактора не затронут.
+  await page.locator(".tiptap-prose").click();
+  await page.keyboard.type("Текст остаётся");
+  await sidebar.getByRole("button", { name: "Удалить дерево проекта" }).click();
+  await confirm.getByRole("button", { name: "Удалить" }).click();
+  await expect(sidebar.getByText("Дерево не создано")).toBeVisible();
+  await expect(page.locator(".tiptap-prose")).toContainText("Текст остаётся");
+});

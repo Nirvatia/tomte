@@ -702,6 +702,13 @@ export const en: Dict = {
     refreshError: "Could not refresh the tree",
     refreshLabel: "Refresh project tree",
     refreshUnavailable: "The tree is not connected to GitHub",
+    remove: {
+      button: "Delete project tree",
+      failed: "Could not delete the tree",
+      message:
+        "The tree “{name}” will be removed from the project along with the file selection. Files on disk and in the repository are not touched.",
+      title: "Delete the project tree?",
+    },
     restoreGithub: "Restore GitHub repo",
     search: "Search the project tree",
     searchPlaceholder: "Search the tree…",

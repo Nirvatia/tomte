@@ -16,6 +16,7 @@
     FolderTree,
     LoaderCircle,
     RefreshCw,
+    Trash2,
   } from "@lucide/svelte";
 
   import type { Editor } from "@tiptap/core";
@@ -35,6 +36,7 @@
 
   import {
     clearGithubConfig,
+    clearProjectTreeSource,
     restoreGithubTree,
     setProjectTreeSource,
   } from "../../utils/projectActions";
@@ -48,6 +50,7 @@
   } from "../../utils/projectTree";
   import { excludeFilteredPaths, parseGitignore } from "../../utils/treeFilter";
 
+  import { requestConfirm } from "../../stores/confirm";
   import { SECTION_TOOL_BTN } from "./constants";
   import { getErrorMessage } from "../../utils";
 
@@ -247,6 +250,24 @@
     }
   }
 
+  /** Убирает дерево из проекта. Файлы на диске и в репозитории не трогаем. */
+  async function handleRemoveTree() {
+    const confirmed = await requestConfirm({
+      title: $t("tree.remove.title"),
+      message: $t("tree.remove.message", { name: $projectTreeRootName }),
+      confirmText: $t("common.delete"),
+      cancelText: $t("common.cancel"),
+      danger: true,
+    });
+    if (!confirmed) return;
+    try {
+      await clearProjectTreeSource();
+    } catch (err) {
+      error = getErrorMessage(err, $t("tree.remove.failed"));
+      logError("Failed to remove project tree", err);
+    }
+  }
+
   function handleInsertToEditor() {
     if (!editor || !$projectTreeString) return;
     // Отдельным блоком после текущего абзаца: текст вокруг не трогаем,
@@ -324,34 +345,6 @@
 
       <div class="flex-1"></div>
 
-      {#if $projectTreeString}
-        <button
-          type="button"
-          onclick={handleCopy}
-          class="{SECTION_TOOL_BTN} {copied ? 'text-[var(--success)]' : ''}"
-          title={copied ? $t("common.copiedExclaim") : $t("tree.copy")}
-          aria-label={$t("tree.copy")}
-        >
-          {#if copied}
-            <span class="text-caption font-bold">✓</span>
-          {:else}
-            <Copy size={16} />
-          {/if}
-        </button>
-
-        <button
-          type="button"
-          onclick={handleInsertToEditor}
-          class={SECTION_TOOL_BTN}
-          title={$t("tree.insert")}
-          aria-label={$t("tree.insert")}
-        >
-          <FileInput size={16} />
-        </button>
-
-        <div class="mx-1 h-4 w-px shrink-0 bg-[var(--border)]"></div>
-      {/if}
-
       {#if $projectTreeNodes.length > 0}
         <div
           class="flex shrink-0 items-center gap-1.5"
@@ -413,11 +406,48 @@
         </div>
       </div>
     {:else}
+      <!-- Строка папки: имя и действия над самим деревом (копировать,
+           вставить, удалить). Источники — в ряду выше. -->
       <div
-        class="truncate border-b border-[var(--border)] bg-[var(--bg-light)] px-4 py-1.5 font-mono text-label font-medium text-[var(--text-secondary)]"
-        title={$projectTreeRootName}
+        class="flex items-center gap-0.5 border-b border-[var(--border)] bg-[var(--bg-light)] py-1 pr-2 pl-4"
       >
-        {$projectTreeRootName}
+        <span
+          class="min-w-0 flex-1 truncate font-mono text-label font-medium text-[var(--text-secondary)]"
+          title={$projectTreeRootName}
+        >
+          {$projectTreeRootName}
+        </span>
+        <button
+          type="button"
+          onclick={handleCopy}
+          class="{SECTION_TOOL_BTN} {copied ? 'text-[var(--success)]' : ''}"
+          title={copied ? $t("common.copiedExclaim") : $t("tree.copy")}
+          aria-label={$t("tree.copy")}
+        >
+          {#if copied}
+            <span class="text-caption font-bold">✓</span>
+          {:else}
+            <Copy size={16} />
+          {/if}
+        </button>
+        <button
+          type="button"
+          onclick={handleInsertToEditor}
+          class={SECTION_TOOL_BTN}
+          title={$t("tree.insert")}
+          aria-label={$t("tree.insert")}
+        >
+          <FileInput size={16} />
+        </button>
+        <button
+          type="button"
+          onclick={() => void handleRemoveTree()}
+          class="{SECTION_TOOL_BTN} hover:!bg-[var(--error)]/10 hover:!text-[var(--error)]"
+          title={$t("tree.remove.button")}
+          aria-label={$t("tree.remove.button")}
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
       <div class="border-b border-[var(--border)] px-3 py-1.5">
         <div class="flex items-center gap-1.5">
