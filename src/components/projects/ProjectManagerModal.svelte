@@ -32,6 +32,7 @@
     createNewProject,
     deleteProjectById,
     duplicateProjectById,
+    flushPendingEditorSave,
     renameProjectById,
     switchProject,
   } from "../../utils/projectActions";
@@ -103,6 +104,9 @@
     if (actionInProgress) return;
     actionInProgress = true;
     try {
+      // Бэкап читается из базы: сначала дописываем текст, набранный за
+      // последние мгновения, иначе он не попадёт в архив.
+      await flushPendingEditorSave();
       const full = await loadProject(project.id);
       if (full) exportProjectBackup(full);
     } catch (error) {

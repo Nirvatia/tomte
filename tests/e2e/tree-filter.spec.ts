@@ -14,15 +14,19 @@ test("фильтр: .gitignore по умолчанию, пресет «толь�
     localStorage.setItem("projectTreeOpen", "true");
   });
   await page.goto("/");
-  await page.waitForTimeout(1500);
+  // Ждём загрузки проекта: редактор появляется после неё. Фиксированная
+  // пауза под нагрузкой не успевала, и дерево ставилось в пустоту.
+  await expect(page.locator(".tiptap-prose")).toBeEditable({
+    timeout: 15_000,
+  });
 
-  await page.evaluate(async () => {
+  const installed = await page.evaluate(async () => {
     const actionsPath = "/src/utils/projectActions.ts";
     const { setProjectTreeSource } = await import(
       /* @vite-ignore */ actionsPath
     );
     const file = (name: string, text: string) => new File([text], name);
-    await setProjectTreeSource({
+    return setProjectTreeSource({
       rootName: "demo",
       fileCount: 4,
       nodes: [
@@ -78,6 +82,7 @@ test("фильтр: .gitignore по умолчанию, пресет «толь�
       ],
     });
   });
+  expect(installed).toBe(true);
 
   // .gitignore учитывается по умолчанию: node_modules и *.log отсеяны.
   await expect(

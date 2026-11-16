@@ -141,7 +141,7 @@ export const en: Dict = {
     notSavedToast: "Text not saved: {reason}",
     pasteFailed: "Could not paste the image",
     placeholder:
-      "Write your prompt here...\n\nClick files on the side to insert a placeholder like [IMAGE_1: ...] or [FILE_1: ...]",
+      "Describe the task for the model…\n\nClick a file in the left panel to insert it into the text.",
     region: "Editor area",
     saveFailed: "Could not save the project",
     saveStatus: "Save status",

@@ -145,7 +145,7 @@ export const es: Dict = {
     notSavedToast: "Texto sin guardar: {reason}",
     pasteFailed: "No se pudo pegar la imagen",
     placeholder:
-      "Escribe tu prompt aquí...\n\nHaz clic en los archivos del lateral para insertar un marcador como [IMAGE_1: ...] o [FILE_1: ...]",
+      "Describe la tarea para el modelo…\n\nHaz clic en un archivo del panel izquierdo para insertarlo en el texto.",
     region: "Área del editor",
     saveFailed: "No se pudo guardar el proyecto",
     saveStatus: "Estado del guardado",

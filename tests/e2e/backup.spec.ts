@@ -31,7 +31,8 @@ test("бэкап: экспорт → импорт → содержимое на 
   await editor.click();
   await page.keyboard.type(marker);
 
-  // 3. Экспорт бэкапа.
+  // 3. Экспорт бэкапа сразу после набора, не дожидаясь автосохранения:
+  // бэкап обязан дописать отложенный текст сам (раньше терял его).
   await page.getByRole("button", { name: "Открыть менеджер проектов" }).click();
   const downloadPromise = page.waitForEvent("download");
   await page

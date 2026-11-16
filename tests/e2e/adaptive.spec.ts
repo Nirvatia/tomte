@@ -139,6 +139,12 @@ test.describe("Телефон (390px)", () => {
 });
 
 test.describe("Телефон: высота окна", () => {
+  // Эмуляции мобильного устройства (isMobile) в Firefox нет.
+  test.skip(
+    ({ browserName }) => browserName === "firefox",
+    "Firefox не эмулирует мобильное устройство",
+  );
+
   // Сенсорный экран: высоту даёт visualViewport (адресная строка, клавиатура).
   test.use({
     viewport: { width: 390, height: 664 },
