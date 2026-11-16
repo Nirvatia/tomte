@@ -1,6 +1,7 @@
 import { toast } from "svelte-sonner";
 
 import { translate } from "./i18n";
+import { logError } from "$lib/log";
 
 /**
  * Уведомления внизу справа. Все тексты для пользователя идут через этот
@@ -20,7 +21,7 @@ export function notifyUndo(message: string, undo: UndoFn): void {
       label: translate("common.undo"),
       onClick: () => {
         Promise.resolve(undo()).catch((error) => {
-          console.error("Undo failed:", error);
+          logError("Undo failed", error);
           notifyError(translate("notify.undoFailed"));
         });
       },

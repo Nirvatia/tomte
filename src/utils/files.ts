@@ -1,6 +1,7 @@
 import { translate } from "$lib/i18n";
 import type { AttachedFile, ExportFile } from "../types";
 import { generateId } from "./index";
+import { logWarn } from "$lib/log";
 
 export const TEXT_EXTENSIONS = [
   "txt",
@@ -158,7 +159,7 @@ export async function processFile(file: File): Promise<AttachedFile> {
       const { width, height } = await measureImage(dataUrl);
       return { ...base, type: "image", dataUrl, width, height };
     } catch (error) {
-      console.warn(`Could not read image ${file.name}:`, error);
+      logWarn(`Could not read image ${file.name}`, error);
     }
   }
 

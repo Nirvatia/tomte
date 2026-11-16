@@ -6,6 +6,7 @@ import { exportToMD } from "./md";
 import { exportToPDF } from "./pdf";
 import { exportToPNG } from "./png";
 import { validateExportLimits } from "./limits";
+import { logError } from "$lib/log";
 
 export interface ExportOptions {
   openInNewTab?: boolean;
@@ -41,7 +42,7 @@ export async function exportFile(
         throw new Error(translate("export.unsupported", { format }));
     }
   } catch (error) {
-    console.error("Global Export Error:", error);
+    logError("Global Export Error", error);
     throw error;
   }
 }

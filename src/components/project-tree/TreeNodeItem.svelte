@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
   import { t } from "$lib/i18n";
   import {
     ChevronDown,
@@ -141,7 +142,7 @@
         content,
       });
     } catch (error) {
-      console.error("File read failed:", error);
+      logError("File read failed", error);
       await requestAlert({
         title: $t("tree.readError.title"),
         message: $t("tree.readError.message", {

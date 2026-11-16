@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
   import { t } from "$lib/i18n";
   import { notifyUndo } from "$lib/notify";
   import { dropzone } from "$lib/actions/dropzone";
@@ -81,7 +82,7 @@
         await addAttachmentsToProject(processedFiles);
       }
     } catch (error) {
-      console.error("Failed to add attachments:", error);
+      logError("Failed to add attachments", error);
       errorMessage = getErrorMessage(error, $t("attachments.errors.add"));
     } finally {
       actionInProgress = false;
@@ -120,7 +121,7 @@
       const undo = await removeAttachmentWithUndo(id);
       if (undo) notifyUndo($t("attachments.deleted", { name }), undo);
     } catch (error) {
-      console.error("Failed to remove attachment:", error);
+      logError("Failed to remove attachment", error);
       errorMessage = getErrorMessage(error, $t("attachments.errors.delete"));
     } finally {
       actionInProgress = false;
@@ -173,7 +174,7 @@
     try {
       await removeAttachmentsFromProject(idsToDelete);
     } catch (error) {
-      console.error("Failed to delete selected attachments:", error);
+      logError("Failed to delete selected attachments", error);
       errorMessage = getErrorMessage(
         error,
         $t("attachments.errors.deleteMany"),

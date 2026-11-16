@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
   import ModalShell from "../ui/ModalShell.svelte";
   import { t } from "$lib/i18n";
   import { notifyUndo } from "$lib/notify";
@@ -72,7 +73,7 @@
         await addAttachmentsToProject(processedFiles);
       }
     } catch (error) {
-      console.error("Failed to add attachments:", error);
+      logError("Failed to add attachments", error);
       errorMessage = getErrorMessage(error, $t("attachments.errors.add"));
     } finally {
       actionInProgress = false;
@@ -122,7 +123,7 @@
         previewFile = null;
       }
     } catch (error) {
-      console.error("Failed to remove file:", error);
+      logError("Failed to remove file", error);
       errorMessage = getErrorMessage(error, $t("attachments.errors.delete"));
     } finally {
       actionInProgress = false;
@@ -174,7 +175,7 @@
         }
       }
     } catch (error) {
-      console.error("Failed to delete selected files:", error);
+      logError("Failed to delete selected files", error);
       errorMessage = getErrorMessage(
         error,
         $t("attachments.errors.deleteMany"),

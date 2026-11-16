@@ -406,6 +406,7 @@ export const es: Dict = {
     downloadZipHint: "Descargar los seleccionados como ZIP (Markdown)",
     empty: "No hay archivos de prompt",
     errors: {
+      create: "No se pudo crear el archivo",
       delete: "No se pudo eliminar el archivo",
       deleteMany: "No se pudieron eliminar los archivos",
       export: "No se pudieron exportar los archivos",
@@ -495,6 +496,9 @@ export const es: Dict = {
     empty: "No hay etiquetas",
     emptyHint:
       "Crea tu primera etiqueta para insertar instrucciones en el prompt rápidamente",
+    errors: {
+      save: "No se pudieron guardar las etiquetas: el almacenamiento del navegador no está disponible o está lleno",
+    },
     favorite: "Favorita",
     favorites: "Favoritas",
     favoritesCount: {

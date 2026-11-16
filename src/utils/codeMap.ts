@@ -1,6 +1,7 @@
 import type { TreeNode } from "./projectTree";
 import { fetchGithubFileContent } from "./github";
 import { isOutlineSupported, parseFileOutline } from "./treeSitter";
+import { logWarn } from "$lib/log";
 
 export interface CodeMapResult {
   text: string;
@@ -104,7 +105,7 @@ export async function generateCodeMap(
         ...outline.map((line) => `${indent}  ${line}`),
       ];
     } catch (err) {
-      console.warn(`Error parsing ${node.path}:`, err);
+      logWarn(`Error parsing ${node.path}`, err);
       result.failed.push(node.path);
       return [];
     }

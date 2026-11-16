@@ -5,6 +5,7 @@ import {
   type GithubRef,
   type GithubRepoConfig,
 } from "./github";
+import { logWarn } from "$lib/log";
 
 export interface TreeNode {
   name: string;
@@ -231,7 +232,7 @@ export async function getSelectedTreeFilesAsAttachments(
         content,
       } as AttachedFile;
     } catch (error) {
-      console.warn(`Could not read ${node.path}:`, error);
+      logWarn(`Could not read ${node.path}`, error);
       return null;
     }
   });
@@ -258,7 +259,7 @@ export async function readTreeFileContent(
       return githubFile.content;
     }
   } catch (error) {
-    console.warn(`Could not read ${node.path}:`, error);
+    logWarn(`Could not read ${node.path}`, error);
   }
   return null;
 }

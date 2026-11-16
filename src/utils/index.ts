@@ -1,3 +1,5 @@
+import { logError } from "$lib/log";
+
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + " B";
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
@@ -59,7 +61,7 @@ export function createFlushableAsync(
     dirty = false;
     running = fn()
       .catch((error) => {
-        console.error("Flushable async task failed:", error);
+        logError("Flushable async task failed", error);
       })
       .finally(() => {
         running = null;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
   import { t } from "$lib/i18n";
   import { onDestroy } from "svelte";
   import { get } from "svelte/store";
@@ -94,7 +95,7 @@
       // Если пока писали, текст снова поменялся, статус остаётся «не сохранено».
       saveStatus = pendingSave ? "dirty" : "saved";
     } catch (error) {
-      console.error("Failed to save project:", error);
+      logError("Failed to save project", error);
       saveStatus = "error";
       saveErrorMessage = getErrorMessage(error, $t("editor.saveFailed"));
       // Одно уведомление на серию ошибок, а не на каждое нажатие клавиши.
@@ -245,7 +246,7 @@
         const attachedFile = await processFile(file);
         await addAttachmentsToProject([attachedFile]);
       } catch (error) {
-        console.error("Error processing dropped file:", error);
+        logError("Error processing dropped file", error);
         notifyError(
           $t("editor.dropFailed", {
             name: file.name,
@@ -275,7 +276,7 @@
             .run();
         }
       } catch (error) {
-        console.error("Error processing pasted image:", error);
+        logError("Error processing pasted image", error);
         notifyError(getErrorMessage(error, $t("editor.pasteFailed")));
       }
     }

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { notifyError } from "$lib/notify";
+  import { logError } from "$lib/log";
   import ModalShell from "../ui/ModalShell.svelte";
   import { t } from "$lib/i18n";
   import { X, Copy, Check, Folder, LoaderCircle } from "@lucide/svelte";
@@ -56,7 +58,7 @@
       generateError = null;
       copied = false;
     } catch (err) {
-      console.error(err);
+      logError("Unexpected error", err);
       report = null;
       generatedMap = "";
       generateError = $t("codeMap.error");
@@ -72,7 +74,8 @@
       copied = true;
       setTimeout(() => (copied = false), 2000);
     } catch (err) {
-      console.error("Failed to copy", err);
+      logError("Failed to copy", err);
+      notifyError($t("common.copyFailed"));
     }
   }
 </script>

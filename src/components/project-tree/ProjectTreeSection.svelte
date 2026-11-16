@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
   import TreeFilterPopover from "./TreeFilterPopover.svelte";
   import { t } from "$lib/i18n";
   import { browser } from "$app/environment";
@@ -182,7 +183,7 @@
       // Пользователь закрыл диалог выбора папки — это не ошибка.
       if (!(err instanceof DOMException && err.name === "AbortError")) {
         error = getErrorMessage(err, $t("tree.errors.readFolder"));
-        console.error(err);
+        logError("Unexpected error", err);
       }
     } finally {
       isLoading = false;
@@ -201,7 +202,7 @@
       }
     } catch (err) {
       error = getErrorMessage(err, $t("tree.errors.loadRepo"));
-      console.error(err);
+      logError("Unexpected error", err);
     } finally {
       isLoading = false;
     }
@@ -228,7 +229,7 @@
       }
     } catch (err) {
       error = getErrorMessage(err, $t("tree.errors.readFolder"));
-      console.error(err);
+      logError("Unexpected error", err);
     } finally {
       isLoading = false;
       input.value = "";

@@ -1,6 +1,7 @@
 import type { AttachedFile } from "../types";
 import type { TreeNode } from "./projectTree";
 import { fetchGithubFileContent } from "./github";
+import { logWarn } from "$lib/log";
 
 /**
  * Оценка токенов финального промпта для StatusBar.
@@ -97,7 +98,7 @@ export async function loadTreeFileTokens(node: TreeNode): Promise<number> {
     treeTokenCache.set(node.path, tokens);
     return tokens;
   } catch (error) {
-    console.warn(`Could not read tree file ${node.path}:`, error);
+    logWarn(`Could not read tree file ${node.path}`, error);
     return 0;
   }
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError, logWarn } from "$lib/log";
   import { t } from "$lib/i18n";
   import {
     Check,
@@ -147,9 +148,9 @@
       const errorMessage =
         error instanceof Error ? error.message : $t("common.unknownError");
       if (error instanceof ExportLimitError) {
-        console.warn("Export limit exceeded:", errorMessage);
+        logWarn("Export limit exceeded", errorMessage);
       } else {
-        console.error("Export failed:", error);
+        logError("Export failed", error);
       }
       exportError = errorMessage;
     } finally {

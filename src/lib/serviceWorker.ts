@@ -2,6 +2,7 @@ import { toast } from "svelte-sonner";
 
 import { translate } from "./i18n";
 import { flushPendingEditorSave } from "../utils/projectActions";
+import { logError } from "$lib/log";
 
 /**
  * Этап 10.7 / 12.2–12.3. Регистрация сервис-воркера и обновление приложения.
@@ -94,7 +95,7 @@ export function registerServiceWorker(): () => void {
       document.addEventListener("visibilitychange", onVisible);
     })
     .catch((error) => {
-      console.error("Service worker registration failed:", error);
+      logError("Service worker registration failed", error);
     });
 
   return () => {

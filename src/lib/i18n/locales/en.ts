@@ -394,6 +394,7 @@ export const en: Dict = {
     downloadZipHint: "Download selected as ZIP (Markdown)",
     empty: "No prompt files",
     errors: {
+      create: "Could not create the file",
       delete: "Could not delete the file",
       deleteMany: "Could not delete the files",
       export: "Could not export the files",
@@ -481,6 +482,9 @@ export const en: Dict = {
     empty: "No tags",
     emptyHint:
       "Create your first tag to insert instructions into the prompt quickly",
+    errors: {
+      save: "Could not save tags: browser storage is unavailable or full",
+    },
     favorite: "Favorite",
     favorites: "Favorites",
     favoritesCount: {

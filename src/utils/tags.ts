@@ -2,6 +2,7 @@ import { translate } from "$lib/i18n";
 import type { Tag } from "../types";
 
 import { generateId } from "./index";
+import { reportError } from "$lib/log";
 
 const TAGS_KEY = "tomte_tags_v1";
 
@@ -49,7 +50,9 @@ export function saveTags(tags: Tag[]): void {
   try {
     localStorage.setItem(TAGS_KEY, JSON.stringify(tags));
   } catch (error) {
-    console.error("Failed to save tags:", error);
+    // Хранилище недоступно или переполнено: без уведомления тег пропал бы
+    // молча после перезагрузки.
+    reportError("Failed to save tags", error, translate("tags.errors.save"));
   }
 }
 

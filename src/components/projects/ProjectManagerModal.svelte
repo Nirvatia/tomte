@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
   import ModalShell from "../ui/ModalShell.svelte";
   import ProjectRow from "./ProjectRow.svelte";
   import { t } from "$lib/i18n";
@@ -62,7 +63,7 @@
     try {
       projects = await loadProjectSummaries();
     } catch (error) {
-      console.error("Failed to load projects:", error);
+      logError("Failed to load projects", error);
       projects = [];
       errorMessage = $t("projects.errors.load");
     } finally {
@@ -98,7 +99,7 @@
       const full = await loadProject(project.id);
       if (full) exportProjectBackup(full);
     } catch (error) {
-      console.error("Failed to export backup:", error);
+      logError("Failed to export backup", error);
       notifyError(getErrorMessage(error, $t("backup.errors.export")));
     } finally {
       actionInProgress = false;
@@ -117,7 +118,7 @@
       notifyInfo($t("backup.imported", { name: project.name }));
       await loadProjects();
     } catch (error) {
-      console.error("Failed to import backup:", error);
+      logError("Failed to import backup", error);
       notifyError(getErrorMessage(error, $t("backup.errors.import")));
     } finally {
       isImporting = false;
@@ -165,7 +166,7 @@
       await loadProjects();
       cancelCreate();
     } catch (error) {
-      console.error("Failed to create project:", error);
+      logError("Failed to create project", error);
       errorMessage = getErrorMessage(error, $t("projects.errors.create"));
     } finally {
       actionInProgress = false;
@@ -184,7 +185,7 @@
       await switchProject(projectId);
       close();
     } catch (error) {
-      console.error("Failed to switch project:", error);
+      logError("Failed to switch project", error);
       errorMessage = getErrorMessage(error, $t("projects.errors.switch"));
     } finally {
       actionInProgress = false;
@@ -212,7 +213,7 @@
       cancelRename();
       await loadProjects();
     } catch (error) {
-      console.error("Failed to rename project:", error);
+      logError("Failed to rename project", error);
       errorMessage = getErrorMessage(error, $t("projects.errors.rename"));
     } finally {
       actionInProgress = false;
@@ -247,7 +248,7 @@
       }
       await loadProjects();
     } catch (error) {
-      console.error("Failed to delete project:", error);
+      logError("Failed to delete project", error);
       errorMessage = getErrorMessage(error, $t("projects.errors.delete"));
     } finally {
       actionInProgress = false;
@@ -262,7 +263,7 @@
       await duplicateProjectById(project.id);
       await loadProjects();
     } catch (error) {
-      console.error("Failed to duplicate project:", error);
+      logError("Failed to duplicate project", error);
       errorMessage = getErrorMessage(error, $t("projects.errors.duplicate"));
     } finally {
       actionInProgress = false;

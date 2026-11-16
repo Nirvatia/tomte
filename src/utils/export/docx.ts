@@ -25,6 +25,7 @@ import { locale, translate, translateIn, type Locale } from "$lib/i18n";
 import type { MessageKey } from "$lib/i18n/types";
 import { sanitizeFileName } from "../index";
 import { downloadBlob, exportTitle } from "./common";
+import { logError } from "$lib/log";
 
 // ════════════════════════════════════════════
 // Стили
@@ -673,7 +674,7 @@ export async function exportToDOCX(
     const blob = await Packer.toBlob(doc);
     downloadBlob(blob, `${sanitizeFileName(fileName)}.docx`);
   } catch (error) {
-    console.error("DOCX Export Error:", error);
+    logError("DOCX Export Error", error);
     throw new Error(
       translate("export.failed", {
         format: "DOCX",

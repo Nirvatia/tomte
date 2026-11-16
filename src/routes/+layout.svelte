@@ -14,12 +14,16 @@
   import { registerServiceWorker } from "$lib/serviceWorker";
   import { confirmDecisions } from "$lib/projectDecisions";
   import { setProjectDecisions } from "../utils/projectActions";
+  import { setErrorReporter } from "$lib/log";
+  import { notifyError } from "$lib/notify";
 
   let { children } = $props();
 
   // Вопросы действий над проектом (лимиты, токен) — окнами подтверждения.
   // До монтирования страницы: её onMount уже может вызвать действия.
   setProjectDecisions(confirmDecisions);
+  // Сбои, о которых должен узнать пользователь (src/lib/log.ts), — уведомлением.
+  setErrorReporter((message) => notifyError(message));
 
   // Высота приложения на телефоне: адресная строка и клавиатура (этап 11.2).
   onMount(() => trackAppHeight());

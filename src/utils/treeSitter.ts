@@ -1,4 +1,5 @@
 import type { Language, Node, Parser } from "web-tree-sitter";
+import { logWarn } from "$lib/log";
 
 /** Расширение файла → имя WASM-грамматики в static/wasm. */
 const EXT_TO_WASM: Record<string, string> = {
@@ -73,7 +74,7 @@ export function getLanguage(ext: string): Promise<Language | null> {
         const { Language } = await loadModule();
         return await Language.load(`/wasm/tree-sitter-${wasmName}.wasm`);
       } catch (err) {
-        console.warn(`Failed to load language for ${wasmName}:`, err);
+        logWarn(`Failed to load language for ${wasmName}`, err);
         languages.delete(wasmName);
         return null;
       }

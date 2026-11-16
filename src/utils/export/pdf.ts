@@ -13,6 +13,7 @@ import {
   waitForImages,
 } from "./common";
 import type { ExportOptions } from "./index";
+import { logError } from "$lib/log";
 
 export async function exportToPDF(
   editorHtml: string,
@@ -111,7 +112,7 @@ export async function exportToPDF(
       }, 500);
     }
   } catch (error) {
-    console.error("PDF Export Error:", error);
+    logError("PDF Export Error", error);
     throw new Error(
       translate("export.failed", {
         format: "PDF",

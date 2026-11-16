@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
+  import { notifyError } from "$lib/notify";
+  import { getErrorMessage } from "../../utils";
   import { t } from "$lib/i18n";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
@@ -90,7 +93,9 @@
     try {
       await createPromptFile();
     } catch (error) {
-      console.error("Failed to create prompt file:", error);
+      // Раньше сбой был виден только в консоли: «+» просто не срабатывал.
+      logError("Failed to create prompt file", error);
+      notifyError(getErrorMessage(error, $t("prompts.errors.create")));
     } finally {
       isCreatingPrompt = false;
     }
@@ -102,7 +107,7 @@
     try {
       await refreshProjectTree();
     } catch (error) {
-      console.error("Failed to refresh project tree:", error);
+      logError("Failed to refresh project tree", error);
       await requestAlert({
         title: $t("tree.refreshError"),
         message:

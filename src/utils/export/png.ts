@@ -12,6 +12,7 @@ import {
   removeContainer,
   waitForImages,
 } from "./common";
+import { logError } from "$lib/log";
 
 export async function exportToPNG(
   editorHtml: string,
@@ -35,7 +36,7 @@ export async function exportToPNG(
     const blob = await response.blob();
     downloadBlob(blob, `${sanitizeFileName(fileName)}.png`);
   } catch (error) {
-    console.error("PNG Export Error:", error);
+    logError("PNG Export Error", error);
     throw new Error(
       translate("export.failed", {
         format: "PNG",

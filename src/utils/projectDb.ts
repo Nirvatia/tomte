@@ -4,6 +4,7 @@ import { openDB, type IDBPDatabase, type IDBPTransaction } from "idb";
 import type { Project, AttachedFile, ProjectTreeSource } from "../types";
 import { PROJECT_SIZE_LIMIT } from "../types";
 import type { TreeNode } from "./projectTree";
+import { logError } from "$lib/log";
 
 /*
  * Схема хранения (v2).
@@ -241,7 +242,7 @@ export async function saveProject(
 
     await Promise.all([...ops, tx.done]);
   } catch (error) {
-    console.error("Failed to save project to IndexedDB:", error);
+    logError("Failed to save project to IndexedDB", error);
     throw new Error(translate("errors.saveQuota"));
   }
 }
@@ -446,7 +447,7 @@ export async function initializeActiveProject(
     await saveProject(newProject);
     return newProject;
   } catch (error) {
-    console.error("Failed to initialize project:", error);
+    logError("Failed to initialize project", error);
     return createEmptyProject();
   }
 }

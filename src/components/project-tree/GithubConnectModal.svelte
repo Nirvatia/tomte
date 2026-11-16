@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { logError } from "$lib/log";
   import ModalShell from "../ui/ModalShell.svelte";
   import { t } from "$lib/i18n";
   import { X, FolderGit, LoaderCircle } from "@lucide/svelte";
@@ -81,7 +82,7 @@
       onClose();
     } catch (err) {
       error = getErrorMessage(err, $t("tree.errors.loadRepo"));
-      console.error(err);
+      logError("Unexpected error", err);
     } finally {
       isLoading = false;
     }

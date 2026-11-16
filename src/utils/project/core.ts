@@ -23,6 +23,7 @@ import {
   type ProjectSaveChanges,
 } from "../projectDb";
 import { rememberLastProject } from "../lastProject";
+import { logError } from "$lib/log";
 
 // ════════════════════════════════════════════
 // Общие помощники
@@ -34,7 +35,7 @@ export async function flushPendingEditorSave(): Promise<void> {
   try {
     await controller.flush();
   } catch (error) {
-    console.error("Failed to flush pending editor save:", error);
+    logError("Failed to flush pending editor save", error);
   }
 }
 
