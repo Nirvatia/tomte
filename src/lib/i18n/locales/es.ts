@@ -11,6 +11,10 @@ export const es: Dict = {
   },
   app: {
     loading: "Cargando el proyecto…",
+    update: {
+      available: "Hay una nueva versión de Tomte",
+      reload: "Actualizar",
+    },
   },
   attachments: {
     deleteMany: {

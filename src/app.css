@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+/* Шрифты лежат в сборке (src/routes/+layout.svelte, пакеты @fontsource-variable):
+   офлайн они кэшируются сервис-воркером вместе с приложением. */
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════
@@ -49,8 +50,10 @@
   --radius-lg: 10px;
 
   /* Typography */
-  --font-ui: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --font-ui: "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono",
+    monospace;
 
   /* Animations */
   --animate-fade-in: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);

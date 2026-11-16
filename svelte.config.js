@@ -15,6 +15,9 @@ const config = {
     // Этап 10.7 (PWA): статическая сборка, приложение целиком клиентское.
     // fallback отдаёт shell для любого маршрута и для офлайн-навигации.
     adapter: adapter({ fallback: "200.html" }),
+    // Регистрируем сами и только в проде (src/lib/serviceWorker.ts):
+    // авторегистрация включала его и в dev.
+    serviceWorker: { register: false },
   },
 };
 

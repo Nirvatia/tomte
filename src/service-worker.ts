@@ -23,7 +23,12 @@ const RUNTIME_CACHE = `runtime-${version}`;
 
 // Сборка обязана встать целиком, оболочки — по одной: отсутствующий
 // fallback-файл не должен ронять установку.
-const BUILD_ASSETS = [...build];
+// Из шрифтов прекэшируем только латиницу и кириллицу (язык интерфейса):
+// остальные наборы (latin-ext, greek, vietnamese…) браузер запросит, только
+// если такие символы встретятся в тексте, и они лягут в кэш по запросу.
+const isPrecachedAsset = (path: string) =>
+  !path.endsWith(".woff2") || /-(latin|cyrillic)-wght-/.test(path);
+const BUILD_ASSETS = build.filter(isPrecachedAsset);
 const SHELL_PAGES = ["index.html", "200.html"];
 
 worker.addEventListener("install", (event) => {
@@ -34,6 +39,11 @@ worker.addEventListener("install", (event) => {
       await Promise.allSettled(SHELL_PAGES.map((page) => cache.add(page)));
     })(),
   );
+});
+
+// Пользователь нажал «Обновить» в уведомлении (src/lib/serviceWorker.ts).
+worker.addEventListener("message", (event) => {
+  if (event.data?.type === "tomte:skip-waiting") void worker.skipWaiting();
 });
 
 worker.addEventListener("activate", (event) => {

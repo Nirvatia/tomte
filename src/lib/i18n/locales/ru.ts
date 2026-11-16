@@ -9,6 +9,10 @@ export const ru = {
   },
   app: {
     loading: "Загрузка проекта…",
+    update: {
+      available: "Доступна новая версия Томте",
+      reload: "Обновить",
+    },
   },
   attachments: {
     deleteMany: {

@@ -1,27 +1,28 @@
 <script lang="ts">
+  // Шрифты из сборки, а не с Google Fonts: работают офлайн (PWA) и не
+  // ходят к сторонним серверам. Variable-версии: один файл на все начертания,
+  // браузер грузит только нужные наборы символов (unicode-range).
+  import "@fontsource-variable/inter/wght.css";
+  import "@fontsource-variable/inter/wght-italic.css";
+  import "@fontsource-variable/jetbrains-mono/wght.css";
   import "../app.css";
   import { onMount } from "svelte";
   import { Toaster } from "svelte-sonner";
   import ConfirmModal from "../components/ui/ConfirmModal.svelte";
   import { trackAppHeight } from "$lib/viewport";
   import { applyTheme, theme } from "$lib/theme";
+  import { registerServiceWorker } from "$lib/serviceWorker";
 
   let { children } = $props();
 
-  // Этап 10.7 (PWA): кэшируем приложение для работы без сети.
-  // Только прод: в dev service worker мешал бы горячей перезагрузке.
+  // Высота приложения на телефоне: адресная строка и клавиатура (этап 11.2).
   onMount(() => trackAppHeight());
 
   // Тема: data-theme на <html> следует за выбором и за системой.
   $effect(() => applyTheme($theme));
 
-  onMount(() => {
-    if (import.meta.env.PROD && "serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js").catch((error) => {
-        console.error("Service worker registration failed:", error);
-      });
-    }
-  });
+  // PWA: кэш для работы без сети и уведомление об обновлении (только прод).
+  onMount(() => registerServiceWorker());
 </script>
 
 <svelte:head>
