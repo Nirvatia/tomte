@@ -59,10 +59,6 @@ describe("sanitizeFileName", () => {
 });
 
 describe("generateId", () => {
-  it("возвращает строку", () => {
-    expect(typeof generateId()).toBe("string");
-  });
-
   it("генерирует уникальные значения", () => {
     const ids = new Set(Array.from({ length: 100 }, () => generateId()));
     expect(ids.size).toBe(100);

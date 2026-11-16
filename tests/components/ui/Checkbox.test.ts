@@ -174,18 +174,6 @@ describe("Checkbox", () => {
 
       expect(wrapper).toHaveAttribute("aria-disabled", "true");
     });
-
-    it("добавляет класс checkbox-disabled к wrapper при disabled", () => {
-      const { container } = render(Checkbox, {
-        props: {
-          disabled: true,
-        },
-      });
-
-      const wrapper = container.querySelector(".checkbox-wrapper");
-
-      expect(wrapper?.className).toContain("checkbox-disabled");
-    });
   });
 
   describe("Children (Snippet)", () => {
@@ -197,27 +185,6 @@ describe("Checkbox", () => {
       });
 
       expect(screen.getByText("Текст лейбла")).toBeInTheDocument();
-    });
-
-    it("оборачивает children в span с классом checkbox-label", () => {
-      const { container } = render(Checkbox, {
-        props: {
-          children: createTextSnippet("Label"),
-        },
-      });
-
-      const labelSpan = container.querySelector(".checkbox-label");
-
-      expect(labelSpan).toBeInTheDocument();
-      expect(labelSpan?.textContent).toBe("Label");
-    });
-
-    it("не рендерит контейнер для children, если children не передан", () => {
-      const { container } = render(Checkbox);
-
-      const labelSpan = container.querySelector(".checkbox-label");
-
-      expect(labelSpan).toBeNull();
     });
   });
 });

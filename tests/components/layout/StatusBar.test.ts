@@ -12,6 +12,7 @@ import {
 } from "../../../src/stores";
 import { tokenLimitSetting } from "../../../src/lib/tokenLimit";
 import type { Project } from "../../../src/types";
+import { estimateTokens } from "../../../src/utils/tokens";
 
 function project(attachmentContent = ""): Project {
   return {
@@ -35,6 +36,13 @@ function project(attachmentContent = ""): Project {
   };
 }
 
+/** Строка из букв, которую оценка считает ровно в `tokens` токенов. */
+function textOfTokens(tokens: number): string {
+  let text = "";
+  while (estimateTokens(text) < tokens) text += "y";
+  return text;
+}
+
 const tokenButton = () => screen.getByRole("button", { name: /≈/ });
 
 describe("StatusBar: токены", () => {
@@ -46,9 +54,9 @@ describe("StatusBar: токены", () => {
   });
 
   it("разбивает оценку на промпт и вложения", async () => {
-    activeProject.set(project("x".repeat(40))); // ≈ 10 токенов
+    activeProject.set(project(textOfTokens(10)));
     selectedFileIds.set(new Set(["a"]));
-    editorHtml.set(`<p>${"y".repeat(80)}</p>`); // ≈ 20 токенов
+    editorHtml.set(`<p>${textOfTokens(20)}</p>`);
     render(StatusBar);
 
     await waitFor(() => expect(tokenButton()).toHaveTextContent("≈ 30 / 100"));
@@ -62,13 +70,13 @@ describe("StatusBar: токены", () => {
 
   it("жёлтый с 80% и красный при превышении", async () => {
     activeProject.set(project());
-    editorHtml.set(`<p>${"y".repeat(340)}</p>`); // ≈ 85 токенов
+    editorHtml.set(`<p>${textOfTokens(85)}</p>`);
     render(StatusBar);
 
     await waitFor(() => expect(tokenButton()).toHaveTextContent("85%"));
     expect(tokenButton().className).toContain("--warning");
 
-    editorHtml.set(`<p>${"y".repeat(480)}</p>`); // ≈ 120 токенов
+    editorHtml.set(`<p>${textOfTokens(120)}</p>`);
     await waitFor(() => expect(tokenButton().className).toContain("--error"));
     await fireEvent.click(tokenButton());
     expect(
