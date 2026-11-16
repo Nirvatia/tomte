@@ -78,9 +78,7 @@ describe("ExtractorModal", () => {
       isExtractorOpen.set(true);
       render(ExtractorModal);
 
-      expect(
-        await screen.findByText("Экстрактор кода"),
-      ).toBeInTheDocument();
+      expect(await screen.findByText("Экстрактор кода")).toBeInTheDocument();
     });
 
     it("показывает описание", async () => {

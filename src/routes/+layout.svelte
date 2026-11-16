@@ -12,8 +12,14 @@
   import { trackAppHeight } from "$lib/viewport";
   import { applyTheme, theme } from "$lib/theme";
   import { registerServiceWorker } from "$lib/serviceWorker";
+  import { confirmDecisions } from "$lib/projectDecisions";
+  import { setProjectDecisions } from "../utils/projectActions";
 
   let { children } = $props();
+
+  // Вопросы действий над проектом (лимиты, токен) — окнами подтверждения.
+  // До монтирования страницы: её onMount уже может вызвать действия.
+  setProjectDecisions(confirmDecisions);
 
   // Высота приложения на телефоне: адресная строка и клавиатура (этап 11.2).
   onMount(() => trackAppHeight());

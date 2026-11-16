@@ -35,6 +35,7 @@ import {
   movePromptFileBy,
   moveTab,
   moveTabBy,
+  setProjectDecisions,
 } from "../../src/utils/projectActions";
 
 import {
@@ -43,8 +44,6 @@ import {
   checkProjectSize,
   calculateProjectSize,
 } from "../../src/utils/projectDb";
-
-import { requestConfirm } from "../../src/stores/confirm";
 
 // Оставляем импорт для использования ВНУТРИ самих тестов (в it-блоках)
 import { PROJECT_SIZE_LIMIT } from "../../src/types";
@@ -73,10 +72,12 @@ vi.mock("../../src/utils/projectDb", async (importOriginal) => {
   };
 });
 
-vi.mock("../../src/stores/confirm", () => ({
-  requestConfirm: vi.fn().mockResolvedValue(true),
-  requestAlert: vi.fn().mockResolvedValue(true),
-}));
+// Вопросы пользователю — через интерфейс решений (этап 15.1).
+const decisions = {
+  addAttachmentsAsMetadata: vi.fn(),
+  saveTreeStructureOnly: vi.fn(),
+  copyGithubToken: vi.fn(),
+};
 
 function promptFile(id: string, name: string, content = ""): PromptFile {
   const now = new Date().toISOString();
@@ -133,7 +134,10 @@ describe("projectActions", () => {
     vi.clearAllMocks();
     resetStores();
 
-    vi.mocked(requestConfirm).mockResolvedValue(true);
+    decisions.addAttachmentsAsMetadata.mockResolvedValue(true);
+    decisions.saveTreeStructureOnly.mockResolvedValue(true);
+    decisions.copyGithubToken.mockResolvedValue(true);
+    setProjectDecisions(decisions);
     vi.mocked(saveProject).mockResolvedValue(undefined);
 
     vi.mocked(checkProjectSize).mockReturnValue({
@@ -523,7 +527,7 @@ describe("projectActions", () => {
           limit: PROJECT_SIZE_LIMIT,
         });
 
-      vi.mocked(requestConfirm).mockResolvedValueOnce(true);
+      decisions.addAttachmentsAsMetadata.mockResolvedValueOnce(true);
 
       const file = attachment({
         content: "very large content",
@@ -533,7 +537,7 @@ describe("projectActions", () => {
 
       const project = get(activeProject);
 
-      expect(requestConfirm).toHaveBeenCalledTimes(1);
+      expect(decisions.addAttachmentsAsMetadata).toHaveBeenCalledTimes(1);
       expect(project!.attachments).toHaveLength(1);
 
       const savedAttachment = project!.attachments[0];
@@ -542,6 +546,19 @@ describe("projectActions", () => {
       expect(project!.totalSize).toBe(1200);
 
       expect(saveProject).toHaveBeenCalledTimes(1);
+    });
+
+    it("без зарегистрированных решений ответ — «нет»", async () => {
+      setProjectDecisions(null);
+      activeProject.set(makeProject());
+      vi.mocked(checkProjectSize).mockReturnValueOnce({
+        ok: false,
+        size: PROJECT_SIZE_LIMIT + 1,
+        limit: PROJECT_SIZE_LIMIT,
+      });
+
+      await expect(addAttachmentsToProject([attachment()])).rejects.toThrow();
+      expect(saveProject).not.toHaveBeenCalled();
     });
 
     it("отменяет добавление вложений, если пользователь отказался", async () => {
@@ -553,7 +570,7 @@ describe("projectActions", () => {
         limit: PROJECT_SIZE_LIMIT,
       });
 
-      vi.mocked(requestConfirm).mockResolvedValueOnce(false);
+      decisions.addAttachmentsAsMetadata.mockResolvedValueOnce(false);
 
       const file = attachment();
 
@@ -688,14 +705,14 @@ describe("projectActions", () => {
     }
 
     it("без согласия копирует настройки GitHub без токена", async () => {
-      vi.mocked(requestConfirm).mockResolvedValue(false);
+      decisions.copyGithubToken.mockResolvedValue(false);
       activeProject.set(makeProject({ githubConfig: github }));
 
       await duplicateProjectById("project-1");
 
-      expect(requestConfirm).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "Скопировать GitHub-токен?" }),
-      );
+      expect(decisions.copyGithubToken).toHaveBeenCalledWith({
+        repo: "me/repo",
+      });
       expect(savedCopy().githubConfig).toEqual({
         owner: "me",
         repo: "repo",
@@ -705,7 +722,7 @@ describe("projectActions", () => {
     });
 
     it("с согласием копирует токен", async () => {
-      vi.mocked(requestConfirm).mockResolvedValue(true);
+      decisions.copyGithubToken.mockResolvedValue(true);
       activeProject.set(makeProject({ githubConfig: github }));
 
       await duplicateProjectById("project-1");
@@ -722,7 +739,7 @@ describe("projectActions", () => {
 
       await duplicateProjectById("project-1");
 
-      expect(requestConfirm).not.toHaveBeenCalled();
+      expect(decisions.copyGithubToken).not.toHaveBeenCalled();
       expect(savedCopy().name).toBe("Test Project (копия)");
     });
   });
