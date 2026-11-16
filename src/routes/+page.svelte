@@ -63,14 +63,16 @@
 
 {#if isReady}
   <AppHeader />
-  <div class="app-main flex flex-1 overflow-hidden">
+  <!-- overflow-clip, а не hidden: обрезка та же, но контейнер не
+       прокручиваемый — фокус на элементе за краем не сдвигает колонку. -->
+  <div class="app-main flex flex-1 overflow-clip">
     <ActivityBar />
     {#if $isDesktop}
       <ProjectTreeSidebar {editor} onInsertPlaceholder={insertPlaceholder} />
     {:else if $isProjectTreeOpen}
       <!-- Планшет и телефон (этап 9): сайдбар выезжает поверх редактора. -->
       <div
-        class="fixed inset-0 z-40 bg-black/50 animate-fade-in"
+        class="fixed inset-0 z-40 bg-[var(--overlay)] animate-fade-in"
         onclick={() => isProjectTreeOpen.set(false)}
         role="presentation"
         aria-hidden="true"
@@ -84,7 +86,9 @@
         />
       </div>
     {/if}
-    <div class="flex flex-1 flex-col overflow-hidden bg-[var(--bg-darkest)]">
+    <div
+      class="flex min-w-0 flex-1 flex-col overflow-clip bg-[var(--bg-darkest)]"
+    >
       <TabsBar />
       <EditorToolbar {editor} />
       <main class="flex-1 overflow-hidden">

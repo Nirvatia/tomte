@@ -21,23 +21,29 @@ async function freshPage(
 
 const tourOf = (page: Page) => page.getByRole("dialog", { name: "Обучение" });
 
-/** Подсказка стоит вплотную к цели, а не посреди экрана. */
+/**
+ * Подсказка стоит вплотную к цели, а не посреди экрана. С повтором:
+ * подсказка переезжает к цели с анимацией.
+ */
 async function expectNextTo(page: Page, targetSelector: string) {
-  const target = await page.locator(targetSelector).boundingBox();
-  const popover = await tourOf(page).boundingBox();
-  expect(target).not.toBeNull();
-  expect(popover).not.toBeNull();
-  const gapX = Math.max(
-    target!.x - (popover!.x + popover!.width),
-    popover!.x - (target!.x + target!.width),
-    0,
-  );
-  const gapY = Math.max(
-    target!.y - (popover!.y + popover!.height),
-    popover!.y - (target!.y + target!.height),
-    0,
-  );
-  expect(Math.max(gapX, gapY)).toBeLessThan(40);
+  await expect
+    .poll(async () => {
+      const target = await page.locator(targetSelector).boundingBox();
+      const popover = await tourOf(page).boundingBox();
+      if (!target || !popover) return Infinity;
+      const gapX = Math.max(
+        target.x - (popover.x + popover.width),
+        popover.x - (target.x + target.width),
+        0,
+      );
+      const gapY = Math.max(
+        target.y - (popover.y + popover.height),
+        popover.y - (target.y + target.height),
+        0,
+      );
+      return Math.max(gapX, gapY);
+    })
+    .toBeLessThan(40);
 }
 
 /** Подсветка обводит цель. */

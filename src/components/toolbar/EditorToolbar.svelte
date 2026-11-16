@@ -29,6 +29,7 @@
     Wrench,
     FlaskConical,
     GraduationCap,
+    Table2,
   } from "@lucide/svelte";
 
   import type { Editor } from "@tiptap/core";
@@ -53,6 +54,7 @@
 
   import FontSizePicker from "./FontSizePicker.svelte";
   import TablePicker from "./TablePicker.svelte";
+  import Dropdown from "../ui/Dropdown.svelte";
 
   interface Props {
     editor?: Editor | null;
@@ -230,6 +232,53 @@
     "text-[var(--text-secondary)] hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)]";
   const TOOLBAR_BTN_ACTIVE =
     "bg-[var(--accent)] text-[var(--bg-darkest)] hover:bg-[var(--accent-hover)]";
+  /** Пункты меню, которые видны, только пока их группы нет в тулбаре. */
+  const narrowOnly = $derived(
+    toolbarState.isInsideTable ? "flex @6xl:hidden" : "flex @5xl:hidden",
+  );
+
+  const tableActions = $derived([
+    { label: $t("toolbar.rowAbove"), icon: Rows3, run: addRowBefore },
+    {
+      label: $t("toolbar.rowBelow"),
+      icon: Rows3,
+      iconClass: "rotate-180",
+      run: addRowAfter,
+    },
+    {
+      label: $t("toolbar.colLeft"),
+      icon: Columns3,
+      run: addColumnBefore,
+      separatorBefore: true,
+    },
+    {
+      label: $t("toolbar.colRight"),
+      icon: Columns3,
+      iconClass: "rotate-180",
+      run: addColumnAfter,
+    },
+    {
+      label: $t("toolbar.deleteRow"),
+      icon: Minus,
+      run: deleteRow,
+      danger: true,
+      separatorBefore: true,
+    },
+    {
+      label: $t("toolbar.deleteCol"),
+      icon: Minus,
+      iconClass: "rotate-90",
+      run: deleteColumn,
+      danger: true,
+    },
+    {
+      label: $t("toolbar.deleteTable.button"),
+      icon: Trash,
+      run: () => void deleteTable(),
+      danger: true,
+    },
+  ]);
+
   const ACTION_BTN_BASE =
     "flex items-center gap-2 px-3.5 py-[7px] rounded-md border border-[var(--border)] text-[var(--text-secondary)] text-[13px] font-medium transition-all duration-150 hover:bg-[var(--bg-light)] hover:text-[var(--text-primary)] hover:border-[var(--border-light)]";
 </script>
@@ -420,82 +469,48 @@
     <TablePicker {editor} />
   </div>
   {#if toolbarState.isInsideTable}
+    <!-- Действия с таблицей — одной кнопкой с меню: семь кнопок в ряд
+         переполняли тулбар, и «Инструменты» уезжали за край. -->
     <div class="mx-1.5 h-6 w-px shrink-0 bg-[var(--border)]"></div>
-    <div class="flex animate-fade-in items-center gap-0.5">
-      <div
-        class="select-none px-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--warning)]"
+    <div class="shrink-0 animate-fade-in">
+      <Dropdown
+        label={$t("toolbar.tableActions")}
+        widthClass="w-60"
+        triggerClass="h-8 text-[var(--warning)]"
       >
-        {$t("toolbar.table")}
-      </div>
-      <button
-        type="button"
-        onclick={addRowBefore}
-        class={btnClass(false)}
-        aria-label={$t("toolbar.rowAbove")}
-        title={$t("toolbar.rowAbove")}
-      >
-        <Rows3 size={18} />
-      </button>
-      <button
-        type="button"
-        onclick={addRowAfter}
-        class={btnClass(false)}
-        aria-label={$t("toolbar.rowBelow")}
-        title={$t("toolbar.rowBelow")}
-      >
-        <Rows3 size={18} class="rotate-180" />
-      </button>
-      <button
-        type="button"
-        onclick={addColumnBefore}
-        class={btnClass(false)}
-        aria-label={$t("toolbar.colLeft")}
-        title={$t("toolbar.colLeft")}
-      >
-        <Columns3 size={18} />
-      </button>
-      <button
-        type="button"
-        onclick={addColumnAfter}
-        class={btnClass(false)}
-        aria-label={$t("toolbar.colRight")}
-        title={$t("toolbar.colRight")}
-      >
-        <Columns3 size={18} class="rotate-180" />
-      </button>
-      <button
-        type="button"
-        onclick={deleteRow}
-        class={btnClass(false)}
-        aria-label={$t("toolbar.deleteRow")}
-        title={$t("toolbar.deleteRow")}
-      >
-        <Minus size={18} class="text-[var(--error)]" />
-      </button>
-      <button
-        type="button"
-        onclick={deleteColumn}
-        class={btnClass(false)}
-        aria-label={$t("toolbar.deleteCol")}
-        title={$t("toolbar.deleteCol")}
-      >
-        <Minus size={18} class="rotate-90 text-[var(--error)]" />
-      </button>
-      <button
-        type="button"
-        onclick={deleteTable}
-        class={`${TOOLBAR_BTN_BASE} hover:bg-[var(--error)]/10`}
-        aria-label={$t("toolbar.deleteTable.button")}
-        title={$t("toolbar.deleteTable.button")}
-      >
-        <Trash size={18} class="text-[var(--error)]" />
-      </button>
+        {#snippet trigger()}
+          <Table2 size={16} aria-hidden="true" />
+          <span class="hidden @3xl:inline">{$t("toolbar.table")}</span>
+        {/snippet}
+        {#each tableActions as item (item.label)}
+          {#if item.separatorBefore}
+            <div class="menu-sep"></div>
+          {/if}
+          <button
+            type="button"
+            role="menuitem"
+            class="menu-item {item.danger ? 'danger' : ''}"
+            onclick={item.run}
+          >
+            <item.icon size={14} class="shrink-0 {item.iconClass ?? ''}" />
+            <span class="flex-1">{item.label}</span>
+          </button>
+        {/each}
+      </Dropdown>
     </div>
   {/if}
+  <!-- Копировать/очистить: в тулбаре только на широком экране, иначе —
+       в меню «Инструменты». С таблицей ширины нужно больше (её кнопка). -->
   <div
-    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] @5xl:block"
+    class="mx-1.5 hidden h-6 w-px shrink-0 bg-[var(--border)] {toolbarState.isInsideTable
+      ? '@6xl:block'
+      : '@5xl:block'}"
   ></div>
-  <div class="hidden items-center gap-0.5 @5xl:flex">
+  <div
+    class="hidden items-center gap-0.5 {toolbarState.isInsideTable
+      ? '@6xl:flex'
+      : '@5xl:flex'}"
+  >
     <button
       type="button"
       onclick={handleCopy}
@@ -559,11 +574,12 @@
             <Eye size={14} class="shrink-0" />
             <span class="flex-1">{$t("toolbar.preview")}</span>
           </button>
-          <!-- «Копировать» ниже @5xl живёт здесь: в широком тулбаре есть своя кнопка. -->
+          <!-- Копировать и очистить — здесь, когда в тулбаре для них нет места
+               (пороги те же, что у группы в тулбаре). -->
           <button
             type="button"
             role="menuitem"
-            class="menu-item hidden @5xl:flex"
+            class="menu-item {narrowOnly}"
             onclick={() => {
               isToolsMenuOpen = false;
               handleCopy();
@@ -571,6 +587,30 @@
           >
             <Copy size={14} class="shrink-0" />
             <span class="flex-1">{$t("toolbar.copyText")}</span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            class="menu-item danger {narrowOnly}"
+            onclick={() => {
+              isToolsMenuOpen = false;
+              void handleClear();
+            }}
+          >
+            <Trash2 size={14} class="shrink-0" />
+            <span class="flex-1">{$t("toolbar.clearText.button")}</span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            class="menu-item {narrowOnly}"
+            onclick={() => {
+              isToolsMenuOpen = false;
+              void handleClearDraft();
+            }}
+          >
+            <Eraser size={14} class="shrink-0 text-[var(--warning)]" />
+            <span class="flex-1">{$t("toolbar.clearProject.button")}</span>
           </button>
           <button
             type="button"

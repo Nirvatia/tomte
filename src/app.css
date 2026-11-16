@@ -13,6 +13,11 @@
   --bg-lighter: #2e3538;
   --border: #363e41;
   --border-light: #454e52;
+  /* Всплывающие поверхности (меню, подсказки тура). В тёмной теме они
+     светлее фона, в светлой — белые с тенью. */
+  --bg-raised: #262c2e;
+  /* Затемнение под модалками и туром. */
+  --overlay: rgba(5, 8, 9, 0.66);
 
   /* Text Colors */
   --text-primary: #e0f2f1;
@@ -73,6 +78,47 @@
 }
 
 /* ═══════════════════════════════════════════
+   СВЕТЛАЯ ТЕМА
+   Те же токены, другие значения. data-theme на <html> ставит
+   src/lib/theme.ts (и скрипт в app.html до первой отрисовки).
+   Контраст по WCAG 2.1, как и в тёмной: tertiary — не ниже 4.5:1 на фонах
+   darkest…light, dim (декоративные иконки) — не ниже 3:1 на darkest…light.
+   ═══════════════════════════════════════════ */
+:root {
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-darkest: #ffffff;
+  --bg-dark: #f5f8f8;
+  --bg-medium: #eef3f2;
+  --bg-light: #e3ebea;
+  --bg-lighter: #d3dedd;
+  --bg-raised: #ffffff;
+  --border: #d6e0df;
+  --border-light: #bccbc9;
+  --overlay: rgba(16, 36, 34, 0.38);
+
+  --text-primary: #102422;
+  --text-secondary: #35504d;
+  --text-tertiary: #4f6b68;
+  --text-dim: #6b8582;
+
+  --accent: #0f766e;
+  --accent-hover: #115e59;
+  --accent-dim: rgba(15, 118, 110, 0.1);
+  --success: #147a3a;
+  --warning: #b45309;
+  --error: #be123c;
+  --info: #0369a1;
+
+  --shadow-sm: 0 1px 2px rgba(16, 36, 34, 0.06);
+  --shadow-md: 0 4px 14px rgba(16, 36, 34, 0.1);
+  --shadow-lg: 0 10px 28px rgba(16, 36, 34, 0.14);
+}
+
+/* ═══════════════════════════════════════════
    BASE STYLES
    ═══════════════════════════════════════════ */
 @layer base {
@@ -92,7 +138,7 @@
   }
 
   ::selection {
-    background: rgba(20, 184, 166, 0.35);
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
     color: var(--text-primary);
   }
 
@@ -328,6 +374,14 @@
   color: var(--text-secondary);
   background-color: var(--accent-dim);
   border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Выделение маркером: без своего стиля браузер рисовал системный #ff0. */
+.tiptap-prose mark {
+  background-color: color-mix(in srgb, var(--warning) 32%, transparent);
+  color: inherit;
+  padding: 0.05em 0.15em;
+  border-radius: var(--radius-sm);
 }
 
 .tiptap-prose code {
@@ -651,6 +705,7 @@
    ═══════════════════════════════════════════ */
 .export-preview {
   --bg-darkest: #ffffff;
+  --bg-raised: #ffffff;
   --bg-dark: #f8fafc;
   --bg-medium: #f1f5f9;
   --bg-light: #e2e8f0;
@@ -755,12 +810,12 @@
   border-color: var(--text-dim);
 }
 .btn-danger {
-  background: rgba(251, 113, 133, 0.12);
+  background: color-mix(in srgb, var(--error) 12%, transparent);
   color: var(--error);
-  border-color: rgba(251, 113, 133, 0.35);
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
 }
 .btn-danger:hover:not(:disabled) {
-  background: rgba(251, 113, 133, 0.2);
+  background: color-mix(in srgb, var(--error) 20%, transparent);
 }
 
 .btn-spinner {
@@ -768,7 +823,7 @@
   height: 14px;
   flex-shrink: 0;
   border-radius: 50%;
-  border: 2px solid rgba(11, 36, 34, 0.3);
+  border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
   border-top-color: var(--bg-darkest);
   animation: btnSpin 0.8s linear infinite;
 }
@@ -800,7 +855,7 @@
   color: var(--text-primary);
 }
 .icon-btn.danger:hover {
-  background: rgba(251, 113, 133, 0.12);
+  background: color-mix(in srgb, var(--error) 12%, transparent);
   color: var(--error);
 }
 
@@ -877,7 +932,7 @@
 
 /* — Меню: raised-поверхность (этап 8, выше панелей по высоте). — */
 .menu-panel {
-  background: var(--bg-light);
+  background: var(--bg-raised);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
@@ -933,7 +988,7 @@
 }
 .chip.accent {
   background: var(--accent-dim);
-  border-color: rgba(20, 184, 166, 0.3);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
   color: var(--accent-hover);
 }
 
@@ -945,7 +1000,7 @@
   padding: 0.1em 0.4em;
   border-radius: var(--radius-sm);
   background: var(--accent-dim);
-  border: 1px solid rgba(20, 184, 166, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   color: var(--accent-hover);
   cursor: pointer;
   transition:
@@ -954,14 +1009,14 @@
 }
 
 .tiptap-prose .attachment-ref:hover {
-  background: rgba(20, 184, 166, 0.25);
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
   border-color: var(--accent);
 }
 
 /* Битая метка: вложения с таким номером больше нет. */
 .tiptap-prose .attachment-ref.is-broken {
-  background: rgba(251, 113, 133, 0.1);
-  border-color: rgba(251, 113, 133, 0.4);
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  border-color: color-mix(in srgb, var(--error) 40%, transparent);
   border-style: dashed;
   color: var(--error);
   text-decoration: line-through;
@@ -992,7 +1047,7 @@
   pointer-events: auto;
 }
 .tour-dim {
-  background: rgba(5, 8, 9, 0.66);
+  background: var(--overlay);
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -1000,7 +1055,7 @@
    форму (скругления) задаёт компонент тура по CSS самой цели. */
 .tour-spot {
   position: absolute;
-  box-shadow: 0 0 0 9999px rgba(5, 8, 9, 0.66);
+  box-shadow: 0 0 0 9999px var(--overlay);
   transition:
     top 0.22s cubic-bezier(0.16, 1, 0.3, 1),
     left 0.22s cubic-bezier(0.16, 1, 0.3, 1),
@@ -1013,12 +1068,12 @@
   position: absolute;
   pointer-events: auto;
   max-width: calc(100vw - 24px);
-  background: var(--bg-light);
+  background: var(--bg-raised);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   box-shadow:
     var(--shadow-lg),
-    0 0 0 1px rgba(20, 184, 166, 0.08);
+    0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--text-primary);
   font-family: var(--font-ui);
   transition:
@@ -1118,7 +1173,7 @@
   position: absolute;
   width: 12px;
   height: 12px;
-  background: var(--bg-light);
+  background: var(--bg-raised);
   border: 1px solid var(--border-light);
   transform: rotate(45deg);
 }

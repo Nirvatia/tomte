@@ -10,6 +10,27 @@
     <meta name="text-scale" content="scale" />
     <!-- Этап 10.7: установка как приложение (PWA). -->
     <meta name="theme-color" content="#141819" />
+    <!-- Тема до первой отрисовки, иначе на светлой системе мелькает тёмный
+         экран. Ключ и логика те же, что в src/lib/theme.ts. -->
+    <script>
+      (function () {
+        var pref = "system";
+        try {
+          pref = localStorage.getItem("tomte:theme") || "system";
+        } catch (e) {}
+        var light =
+          pref === "light" ||
+          (pref !== "dark" &&
+            window.matchMedia("(prefers-color-scheme: light)").matches);
+        var theme = light ? "light" : "dark";
+        document.documentElement.dataset.theme = theme;
+        if (light) {
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute("content", "#f5f8f8");
+        }
+      })();
+    </script>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     %sveltekit.head%

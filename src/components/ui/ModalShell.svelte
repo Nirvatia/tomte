@@ -51,7 +51,7 @@
 
 <div
   bind:this={dialog}
-  class="fixed inset-0 z-[90] flex animate-fade-in justify-center bg-black/60 p-4 backdrop-blur-[2px] {placement ===
+  class="fixed inset-0 z-[90] flex animate-fade-in justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px] {placement ===
   'top'
     ? 'items-start pt-[12vh]'
     : 'items-center'}"

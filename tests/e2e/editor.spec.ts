@@ -101,3 +101,55 @@ test.describe("Редактор", () => {
     await expect(editor.locator("strong")).toContainText("Жирный текст");
   });
 });
+
+test.describe("Тулбар", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("в таблице действия собраны в меню, тулбар не переполняется", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const editor = page.locator(".tiptap-prose");
+    await expect(editor).toBeEditable({ timeout: 15_000 });
+    await editor.click();
+
+    await page.getByRole("button", { name: "Вставить таблицу" }).click();
+    await page.getByRole("button", { name: "Таблица 3×3" }).click();
+    await expect(editor.locator("table")).toBeVisible();
+
+    const toolbar = page.locator('[data-tour="toolbar"]');
+    const fits = await toolbar.evaluate(
+      (el) => el.scrollWidth <= el.clientWidth,
+    );
+    expect(fits).toBe(true);
+    await expect(
+      page.getByRole("button", { name: "Открыть меню инструментов" }),
+    ).toBeInViewport();
+
+    const rowsBefore = await editor.locator("tr").count();
+    await page.getByRole("button", { name: "Действия с таблицей" }).click();
+    await page.getByRole("menuitem", { name: "Добавить строку ниже" }).click();
+    await expect(editor.locator("tr")).toHaveCount(rowsBefore + 1);
+  });
+});
+
+test.describe("Тулбар на телефоне", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("копировать и очистить доступны из «Инструментов»", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".tiptap-prose")).toBeEditable({
+      timeout: 15_000,
+    });
+    await page
+      .getByRole("button", { name: "Открыть меню инструментов" })
+      .click();
+    const menu = page.getByRole("menu", { name: "Меню инструментов" });
+    await expect(
+      menu.getByRole("menuitem", { name: "Копировать текст" }),
+    ).toBeVisible();
+    await expect(
+      menu.getByRole("menuitem", { name: "Очистить весь текст" }),
+    ).toBeVisible();
+  });
+});

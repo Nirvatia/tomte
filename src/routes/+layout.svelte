@@ -4,12 +4,16 @@
   import { Toaster } from "svelte-sonner";
   import ConfirmModal from "../components/ui/ConfirmModal.svelte";
   import { trackAppHeight } from "$lib/viewport";
+  import { applyTheme, theme } from "$lib/theme";
 
   let { children } = $props();
 
   // Этап 10.7 (PWA): кэшируем приложение для работы без сети.
   // Только прод: в dev service worker мешал бы горячей перезагрузке.
   onMount(() => trackAppHeight());
+
+  // Тема: data-theme на <html> следует за выбором и за системой.
+  $effect(() => applyTheme($theme));
 
   onMount(() => {
     if (import.meta.env.PROD && "serviceWorker" in navigator) {
@@ -43,7 +47,7 @@
 <!-- offset: над строкой состояния (28px), иначе уведомления на неё наезжают -->
 <Toaster
   position="bottom-right"
-  theme="dark"
+  theme={$theme}
   richColors
   closeButton
   offset="44px"

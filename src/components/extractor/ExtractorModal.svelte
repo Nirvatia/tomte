@@ -131,7 +131,7 @@
 
 {#if $isExtractorOpen}
   <div
-    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
+    class="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
     onkeydown={handleBackdropKeydown}
     role="dialog"
@@ -365,7 +365,7 @@
 
 {#if previewFile}
   <div
-    class="fixed inset-0 z-60 flex animate-fade-in items-center justify-center bg-black/70 p-4 backdrop-blur-[2px]"
+    class="fixed inset-0 z-60 flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
     onclick={handlePreviewBackdropClick}
     onkeydown={handlePreviewBackdropKeydown}
     role="dialog"

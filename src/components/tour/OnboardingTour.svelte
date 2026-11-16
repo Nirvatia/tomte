@@ -257,7 +257,19 @@
           document.querySelector<HTMLElement>(`[data-tour="${name}"]`),
         )
         .find(Boolean);
-      element?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      // Прокручиваем, только если цель за экраном: scrollIntoView двигает и
+      // контейнеры с overflow: hidden, а вернуть их пользователь не сможет.
+      if (element) {
+        const box = element.getBoundingClientRect();
+        const offscreen =
+          box.bottom < 0 ||
+          box.top > window.innerHeight ||
+          box.right < 0 ||
+          box.left > window.innerWidth;
+        if (offscreen) {
+          element.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+      }
 
       if (current.keepFocus) return;
       // Фокус на цель — для набора текста всегда (печатать можно сразу),

@@ -532,6 +532,12 @@ export const ru = {
     presetOnlySrc: "Только src/",
     title: "Фильтры файлов",
   },
+  theme: {
+    dark: "Тёмная",
+    label: "Тема оформления",
+    light: "Светлая",
+    system: "Как в системе",
+  },
   tokens: {
     attachments: "Вложения",
     buttonHint:
@@ -598,6 +604,7 @@ export const ru = {
     rowBelow: "Добавить строку ниже",
     strike: "Зачёркнутый",
     table: "Таблица",
+    tableActions: "Действия с таблицей",
     testData: "Тест",
     tools: "Инструменты",
     toolsMenu: "Меню инструментов",

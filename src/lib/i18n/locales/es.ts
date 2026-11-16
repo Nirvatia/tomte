@@ -531,6 +531,12 @@ export const es: Dict = {
     presetOnlySrc: "Solo src/",
     title: "Filtros de archivos",
   },
+  theme: {
+    dark: "Oscuro",
+    label: "Tema",
+    light: "Claro",
+    system: "Como el sistema",
+  },
   tokens: {
     attachments: "Adjuntos",
     buttonHint:
@@ -596,6 +602,7 @@ export const es: Dict = {
     rowBelow: "Añadir fila abajo",
     strike: "Tachado",
     table: "Tabla",
+    tableActions: "Acciones de tabla",
     testData: "Prueba",
     tools: "Herramientas",
     toolsMenu: "Menú de herramientas",

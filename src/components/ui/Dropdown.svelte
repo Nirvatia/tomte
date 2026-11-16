@@ -42,6 +42,25 @@
     open = false;
   }
 
+  // Выбор пункта закрывает меню и возвращает фокус на кнопку.
+  // Пункты-чекбоксы (menuitemcheckbox) оставляют меню открытым.
+  function closeOnItem(event: MouseEvent) {
+    const item = (event.target as Element).closest('[role="menuitem"]');
+    if (!item || !panelEl?.contains(item)) return;
+    // Действие могло само перевести фокус (в редактор) — тогда не трогаем.
+    const focusWasInMenu = panelEl.contains(document.activeElement);
+    close();
+    if (focusWasInMenu) triggerEl?.focus();
+  }
+
+  // Делегирование: клик приходит от кнопок-пунктов внутри панели.
+  $effect(() => {
+    const panel = panelEl;
+    if (!panel) return;
+    panel.addEventListener("click", closeOnItem);
+    return () => panel.removeEventListener("click", closeOnItem);
+  });
+
   function handleWindowPointerDown(event: PointerEvent) {
     if (
       open &&

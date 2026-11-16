@@ -19,6 +19,7 @@
   import TemplateFillModal from "../templates/TemplateFillModal.svelte";
   import AppLogo from "./AppLogo.svelte";
   import LanguageSwitcher from "./LanguageSwitcher.svelte";
+  import ThemeSwitcher from "./ThemeSwitcher.svelte";
 
   import type { ExportFormat } from "../../types";
   import {
@@ -178,6 +179,7 @@
         <FolderKanban size={16} />
       </button>
     {/if}
+    <ThemeSwitcher />
     <LanguageSwitcher />
     <div data-tour="export" bind:this={exportMenuContainer} class="relative">
       <button

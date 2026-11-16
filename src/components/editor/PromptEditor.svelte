@@ -308,7 +308,7 @@
 
       {#if dropZoneActive}
         <div
-          class="pointer-events-none absolute inset-0 flex animate-fade-in items-center justify-center bg-black/60 backdrop-blur-sm"
+          class="pointer-events-none absolute inset-0 flex animate-fade-in items-center justify-center bg-[var(--overlay)] backdrop-blur-sm"
         >
           <div class="text-center">
             <Upload size={44} class="mx-auto mb-3 text-[var(--warning)]" />

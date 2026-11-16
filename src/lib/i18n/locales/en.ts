@@ -516,6 +516,12 @@ export const en: Dict = {
     presetOnlySrc: "Only src/",
     title: "File filters",
   },
+  theme: {
+    dark: "Dark",
+    label: "Theme",
+    light: "Light",
+    system: "System",
+  },
   tokens: {
     attachments: "Attachments",
     buttonHint:
@@ -580,6 +586,7 @@ export const en: Dict = {
     rowBelow: "Add row below",
     strike: "Strikethrough",
     table: "Table",
+    tableActions: "Table actions",
     testData: "Test",
     tools: "Tools",
     toolsMenu: "Tools menu",

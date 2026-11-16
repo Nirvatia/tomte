@@ -34,7 +34,7 @@
 
 {#if $confirmState.open}
   <div
-    class="fixed inset-0 z-[100] flex animate-fade-in items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
+    class="fixed inset-0 z-[100] flex animate-fade-in items-center justify-center bg-[var(--overlay)] p-4 backdrop-blur-[2px]"
     onclick={handleBackdropClick}
     onkeydown={handleBackdropKeydown}
     role="alertdialog"
