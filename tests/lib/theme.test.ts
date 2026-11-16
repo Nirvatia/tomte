@@ -37,7 +37,7 @@ describe("theme", () => {
 
     applyTheme("light");
     expect(document.documentElement.dataset.theme).toBe("light");
-    expect(meta.getAttribute("content")).toBe("#ebeee3");
+    expect(meta.getAttribute("content")).toBe("#f0f3f3");
 
     applyTheme("dark");
     expect(document.documentElement.dataset.theme).toBe("dark");

@@ -107,14 +107,16 @@
    СВЕТЛАЯ ТЕМА
    Те же токены, другие значения. data-theme на <html> ставит
    src/lib/theme.ts (и скрипт в app.html до первой отрисовки).
-   Палитра пастельная: приглушённые шалфейно-кремовые поверхности без
-   чисто белого (он слепит на большом экране), тёмный зелёно-бирюзовый
-   акцент и приглушённые статусные цвета. Иерархия слоёв та же, что в
-   тёмной: darkest — редактор, dark — шапка и панели, medium — сайдбар и
-   тулбар, light/lighter — наведение и ползунки.
-   Контраст по WCAG 2.1, как и в тёмной: tertiary — не ниже 4.5:1 на фонах
-   darkest…lighter, dim (декоративные иконки) — не ниже 3:1 на darkest…
-   lighter, текст на кнопке акцента — не ниже 4.5:1.
+   Нейтральная холодная серая шкала с едва заметным бирюзовым подтоном.
+   Мягкость даёт не цвет поверхностей (цветные фоны выглядят грязно и
+   съедают контраст), а то, что редактор — не чисто белый, а хром (шапка,
+   сайдбар, тулбар) на несколько заметных ступеней темнее его. Иерархия
+   та же, что в тёмной теме: darkest — редактор, dark — шапка и боковая
+   панель, medium — сайдбар и тулбар, light/lighter — наведение и ползунки.
+   Единственный насыщенный цвет — бирюзовый акцент.
+   Контраст по WCAG 2.1: tertiary — не ниже 4.5:1 на фонах darkest…light,
+   dim (декоративные иконки) — не ниже 3:1 на darkest…lighter, текст на
+   кнопке акцента — не ниже 4.5:1. Пересчитывать при смене фонов.
    ═══════════════════════════════════════════ */
 :root {
   color-scheme: dark;
@@ -122,32 +124,32 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg-darkest: #f6f4ec;
-  --bg-dark: #ebeee3;
-  --bg-medium: #e3e9dd;
-  --bg-light: #dde5d6;
-  --bg-lighter: #ccd7c4;
-  --bg-raised: #fcfbf6;
-  --border: #cfd9c7;
-  --border-light: #b4c2ab;
-  --overlay: rgba(38, 50, 42, 0.4);
+  --bg-darkest: #fbfcfc;
+  --bg-dark: #f0f3f3;
+  --bg-medium: #e8eded;
+  --bg-light: #dfe5e5;
+  --bg-lighter: #cbd3d3;
+  --bg-raised: #ffffff;
+  --border: #d5dcdc;
+  --border-light: #b3bfbf;
+  --overlay: rgba(20, 32, 32, 0.4);
 
-  --text-primary: #27332b;
-  --text-secondary: #44554a;
-  --text-tertiary: #4c6052;
-  --text-dim: #667a6b;
+  --text-primary: #1b2626;
+  --text-secondary: #364646;
+  --text-tertiary: #4f6060;
+  --text-dim: #657677;
 
-  --accent: #2f6f66;
-  --accent-hover: #245a53;
-  --accent-dim: rgba(47, 111, 102, 0.13);
-  --success: #277042;
-  --warning: #8f5b12;
-  --error: #b0304c;
-  --info: #2a6791;
+  --accent: #0f766e;
+  --accent-hover: #115e59;
+  --accent-dim: rgba(15, 118, 110, 0.1);
+  --success: #15703a;
+  --warning: #9a5a0b;
+  --error: #be123c;
+  --info: #0369a1;
 
-  --shadow-sm: 0 1px 2px rgba(38, 50, 42, 0.08);
-  --shadow-md: 0 4px 14px rgba(38, 50, 42, 0.12);
-  --shadow-lg: 0 10px 28px rgba(38, 50, 42, 0.16);
+  --shadow-sm: 0 1px 2px rgba(20, 32, 32, 0.07);
+  --shadow-md: 0 4px 14px rgba(20, 32, 32, 0.11);
+  --shadow-lg: 0 10px 28px rgba(20, 32, 32, 0.15);
 }
 
 /* ═══════════════════════════════════════════
