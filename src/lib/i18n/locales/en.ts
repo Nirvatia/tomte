@@ -579,6 +579,7 @@ export const en: Dict = {
     tools: "Tools",
     toolsMenu: "Tools menu",
     toolsOpen: "Open tools menu",
+    tour: "Tour",
     treeTitle: "Project structure",
     underline: "Underline",
     underlineHint: "Underline (Ctrl+U)",
@@ -620,7 +621,7 @@ export const en: Dict = {
         title: "Formats",
       },
       final: {
-        text: "Press “?” for the hotkey cheat sheet — you can restart this tour from there too. Happy prompting!",
+        text: "Press “?” for the hotkey cheat sheet — you can restart this tour from the “Tools” menu. Happy prompting!",
         title: "All set",
       },
       newPrompt: {

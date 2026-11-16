@@ -280,3 +280,14 @@ test("на телефоне подсказка — шторка, панель в
   await expect(tour.getByText("Шаг 3 из 12")).toBeVisible();
   await context.close();
 });
+
+test("тур открывается из меню «Инструменты»", async ({ page }) => {
+  // Обычный контекст: тур уже пройден (глобальный storageState).
+  await page.goto("/");
+  await page.getByRole("button", { name: "Открыть меню инструментов" }).click();
+  await page.getByRole("menuitem", { name: "Обучение" }).click();
+
+  const tour = tourOf(page);
+  await expect(tour).toBeVisible();
+  await expect(tour.getByText("Добро пожаловать в Томте")).toBeVisible();
+});

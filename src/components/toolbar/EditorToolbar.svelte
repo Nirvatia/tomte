@@ -28,6 +28,7 @@
     FolderTree,
     Wrench,
     FlaskConical,
+    GraduationCap,
   } from "@lucide/svelte";
 
   import type { Editor } from "@tiptap/core";
@@ -37,6 +38,7 @@
     isExtractorOpen,
     exportFormat,
     isProjectTreeOpen,
+    isTourOpen,
   } from "../../stores";
 
   import { requestConfirm } from "../../stores/confirm";
@@ -581,6 +583,18 @@
           >
             <Brain size={14} class="shrink-0" />
             <span class="flex-1">{$t("toolbar.extractor")}</span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onclick={() => {
+              isToolsMenuOpen = false;
+              isTourOpen.set(true);
+            }}
+            class="menu-item"
+          >
+            <GraduationCap size={14} class="shrink-0" />
+            <span class="flex-1">{$t("toolbar.tour")}</span>
           </button>
           <div class="menu-sep"></div>
           <button

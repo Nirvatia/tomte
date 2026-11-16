@@ -255,10 +255,19 @@
   outline: none;
 }
 
+/* Плейсхолдер пустого редактора. Абсолютное позиционирование, а не
+   float: подсказка в две строки делала плавающий блок шириной ~620px, и в
+   Firefox и Safari каретка и вводимый текст вставали справа от него.
+   Абсолютный блок в раскладку строки не входит ни в одном браузере. */
+.tiptap-prose p.is-editor-empty:first-child {
+  position: relative;
+}
 .tiptap-prose p.is-editor-empty:first-child::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   color: var(--text-tertiary);
-  float: left;
-  height: 0;
   pointer-events: none;
   white-space: pre-wrap;
   content: attr(data-placeholder);

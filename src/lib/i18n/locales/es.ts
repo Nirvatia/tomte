@@ -595,6 +595,7 @@ export const es: Dict = {
     tools: "Herramientas",
     toolsMenu: "Menú de herramientas",
     toolsOpen: "Abrir el menú de herramientas",
+    tour: "Recorrido",
     treeTitle: "Estructura del proyecto",
     underline: "Subrayado",
     underlineHint: "Subrayado (Ctrl+U)",
@@ -636,7 +637,7 @@ export const es: Dict = {
         title: "Formatos",
       },
       final: {
-        text: "Pulsa «?» para ver los atajos de teclado; desde ahí también puedes repetir este recorrido. ¡Buenos prompts!",
+        text: "Pulsa «?» para ver los atajos de teclado; puedes repetir este recorrido desde el menú «Herramientas». ¡Buenos prompts!",
         title: "Todo listo",
       },
       newPrompt: {
